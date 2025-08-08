@@ -158,7 +158,18 @@
           </div>
           <div class="mb-6">
             <label class="block text-blue-900 text-sm font-semibold mb-2">Password</label>
-            <input type="password" id="password" class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+            <div class="relative">
+              <input type="password" id="password" class="w-full px-3 py-2 pr-10 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+              <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-blue-600 hover:text-blue-800">
+                <svg id="eye-icon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <svg id="eye-off-icon" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                </svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="w-full bg-blue-900 text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-200 font-semibold shadow-md">
             Log In
@@ -179,16 +190,41 @@
         </div>
         <form onsubmit="requestPasswordReset(event)">
           <div class="mb-5">
-            <label class="block text-blue-900 text-sm font-semibold mb-2">Username</label>
-            <input type="text" id="reset-username" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
-          </div>
-          <div class="mb-6">
             <label class="block text-blue-900 text-sm font-semibold mb-2">Request Type</label>
-            <select id="request-type" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50">
+            <select id="request-type" onchange="toggleRequestFields()" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50">
               <option value="reset">Reset Existing Password</option>
               <option value="access">Request New Viewer Access</option>
             </select>
           </div>
+          
+          <!-- Reset Password Fields -->
+          <div id="reset-fields">
+            <div class="mb-5">
+              <label class="block text-blue-900 text-sm font-semibold mb-2">ID Number</label>
+              <input type="text" id="reset-username" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+            </div>
+          </div>
+          
+          <!-- New Access Fields -->
+          <div id="access-fields" class="hidden">
+            <div class="mb-4">
+              <label class="block text-blue-900 text-sm font-semibold mb-2">Company Email</label>
+              <input type="email" id="company-email" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" placeholder="your.name@pldt.com.ph">
+            </div>
+            <div class="mb-4">
+              <label class="block text-blue-900 text-sm font-semibold mb-2">ID Number</label>
+              <input type="text" id="access-id-number" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" placeholder="Enter your employee ID">
+            </div>
+            <div class="mb-4">
+              <label class="block text-blue-900 text-sm font-semibold mb-2">Preferred Password</label>
+              <input type="password" id="preferred-password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" placeholder="Minimum 8 characters" minlength="8">
+            </div>
+            <div class="mb-5">
+              <label class="block text-blue-900 text-sm font-semibold mb-2">Confirm Password</label>
+              <input type="password" id="confirm-preferred-password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" placeholder="Confirm your password" minlength="8">
+            </div>
+          </div>
+          
           <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-200 font-semibold">
             Submit Request
           </button>
@@ -447,6 +483,9 @@
       <div class="flex-1"></div>
       <div class="text-center">
         <div class="text-xs text-gray-500 mb-3" id="user-role">Admin</div>
+        <button onclick="openUserManagement()" id="nav-user-mgmt" class="p-3 rounded hover:bg-purple-100 mb-2 hidden" title="User Management">
+          <img src="https://img.icons8.com/ios-filled/28/000000/user-group-man-man.png" alt="User Management" />
+        </button>
         <button onclick="logout()" class="p-3 rounded hover:bg-red-100">
           <img id="logout-icon" src="https://img.icons8.com/ios-filled/28/000000/logout-rounded.png" alt="Logout" />
         </button>
@@ -535,12 +574,6 @@
             <h2 class="text-xl font-bold">Organizational Chart</h2>
           </div>
           <div class="flex items-center space-x-2">
-            <div class="flex items-center space-x-2">
-              <label class="flex items-center space-x-2 text-sm">
-                <input type="checkbox" id="show-functions" onchange="toggleFunctionView()" class="rounded">
-                <span>📋 Show Functions/AO</span>
-              </label>
-            </div>
             <div id="org-admin-controls" class="space-x-2 hidden">
               <input type="file" id="org-file" accept=".xlsx,.xls,.vsdx,.vsd" class="hidden" onchange="uploadOrgChart(event)">
               <button onclick="document.getElementById('org-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
@@ -572,26 +605,9 @@
           </div>
         </div>
         
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2">
-            <div id="org-chart" class="overflow-x-auto bg-gray-50 p-4 rounded-lg">
-              <!-- Dynamic org chart will be generated here -->
-            </div>
-          </div>
-          <div id="functions-panel" class="hidden">
-            <div class="bg-white border rounded-lg p-4 h-full">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Organizational Functions</h3>
-              <div id="selected-unit-info" class="mb-4 p-3 bg-blue-50 rounded-lg hidden">
-                <h4 id="selected-unit-name" class="font-semibold text-blue-900"></h4>
-                <p class="text-sm text-blue-700 mt-1">Click on org chart units to view their functions and administrative orders</p>
-              </div>
-              <div id="functions-content" class="space-y-4">
-                <div class="text-center text-gray-500 py-8">
-                  <div class="text-4xl mb-2">📋</div>
-                  <p>Select an organizational unit from the chart to view its functions and administrative orders</p>
-                </div>
-              </div>
-            </div>
+        <div class="w-full">
+          <div id="org-chart" class="overflow-x-auto bg-gray-50 p-4 rounded-lg">
+            <!-- Dynamic org chart will be generated here -->
           </div>
         </div>
       </div>
@@ -1030,6 +1046,23 @@
       adminPassword: localStorage.getItem('adminPassword') || 'Hunter542639'
     };
 
+    // Password visibility toggle
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eye-icon');
+      const eyeOffIcon = document.getElementById('eye-off-icon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeOffIcon.classList.remove('hidden');
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeOffIcon.classList.add('hidden');
+      }
+    }
+
     // Authentication
     function login(event) {
       event.preventDefault();
@@ -1049,12 +1082,13 @@
         accessLevel = 'viewer';
         isValid = password === 'PLDT_HR_OD';
       } else {
-        // Check approved users first
+        // Check approved users (ID numbers as usernames)
         if (username && userManagement.approvedUsers[username]) {
+          accessLevel = 'viewer';
           isValid = password === userManagement.approvedUsers[username].password;
         } else {
-          // Default viewer password for any other username
-          isValid = password === 'PLDTSMART_HR_OD';
+          // No default password - users must be approved
+          isValid = false;
         }
       }
 
@@ -1071,6 +1105,7 @@
           document.getElementById('logo-admin-controls').classList.remove('hidden');
           document.getElementById('positions-admin-controls').classList.remove('hidden');
           document.getElementById('nav-admin').classList.remove('hidden');
+          document.getElementById('nav-user-mgmt').classList.remove('hidden');
           showCategoryUploadButtons();
           showExportButtons();
         } else {
@@ -1113,6 +1148,34 @@
       document.getElementById('reset-form').classList.remove('hidden');
     }
 
+    function toggleRequestFields() {
+      const requestType = document.getElementById('request-type').value;
+      const resetFields = document.getElementById('reset-fields');
+      const accessFields = document.getElementById('access-fields');
+      
+      if (requestType === 'access') {
+        resetFields.classList.add('hidden');
+        accessFields.classList.remove('hidden');
+        // Make access fields required
+        document.getElementById('company-email').required = true;
+        document.getElementById('access-id-number').required = true;
+        document.getElementById('preferred-password').required = true;
+        document.getElementById('confirm-preferred-password').required = true;
+        // Make reset field not required
+        document.getElementById('reset-username').required = false;
+      } else {
+        resetFields.classList.remove('hidden');
+        accessFields.classList.add('hidden');
+        // Make reset field required
+        document.getElementById('reset-username').required = true;
+        // Make access fields not required
+        document.getElementById('company-email').required = false;
+        document.getElementById('access-id-number').required = false;
+        document.getElementById('preferred-password').required = false;
+        document.getElementById('confirm-preferred-password').required = false;
+      }
+    }
+
     function showLoginForm() {
       document.getElementById('reset-form').classList.add('hidden');
       document.getElementById('new-password-form').classList.add('hidden');
@@ -1122,26 +1185,67 @@
 
     function requestPasswordReset(event) {
       event.preventDefault();
-      const username = document.getElementById('reset-username').value;
       const requestType = document.getElementById('request-type').value;
 
-      const request = {
-        username: username,
-        type: requestType,
-        timestamp: new Date().toISOString(),
-        id: Date.now()
-      };
-
       if (requestType === 'reset') {
+        const username = document.getElementById('reset-username').value;
+        const request = {
+          username: username,
+          type: requestType,
+          timestamp: new Date().toISOString(),
+          id: Date.now()
+        };
+
         userManagement.resetRequests.push(request);
         localStorage.setItem('resetRequests', JSON.stringify(userManagement.resetRequests));
+        
+        document.getElementById('reset-username').value = '';
       } else {
+        // New access request with detailed information
+        const email = document.getElementById('company-email').value;
+        const idNumber = document.getElementById('access-id-number').value;
+        const preferredPassword = document.getElementById('preferred-password').value;
+        const confirmPassword = document.getElementById('confirm-preferred-password').value;
+
+        // Validate passwords match
+        if (preferredPassword !== confirmPassword) {
+          alert('Passwords do not match! Please try again.');
+          return;
+        }
+
+        // Validate email domain
+        if (!email.endsWith('@pldt.com.ph') && !email.endsWith('@smart.com.ph')) {
+          alert('Please use your company email address (@pldt.com.ph or @smart.com.ph)');
+          return;
+        }
+
+        // Check if ID number already exists
+        if (userManagement.approvedUsers[idNumber]) {
+          alert('This ID number already has an account. Please use the "Reset Password" option instead.');
+          return;
+        }
+
+        const request = {
+          username: idNumber,
+          email: email,
+          idNumber: idNumber,
+          preferredPassword: preferredPassword,
+          type: requestType,
+          timestamp: new Date().toISOString(),
+          id: Date.now()
+        };
+
         userManagement.accessRequests.push(request);
         localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
+        
+        // Clear form
+        document.getElementById('company-email').value = '';
+        document.getElementById('access-id-number').value = '';
+        document.getElementById('preferred-password').value = '';
+        document.getElementById('confirm-preferred-password').value = '';
       }
 
       document.getElementById('login-success').classList.remove('hidden');
-      document.getElementById('reset-username').value = '';
       
       setTimeout(() => {
         showLoginForm();
@@ -1220,12 +1324,13 @@
           const div = document.createElement('div');
           div.className = 'bg-white p-3 rounded border';
           div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-semibold">${request.username}</p>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="font-semibold text-sm">ID: ${request.username}</p>
+                <p class="text-xs text-blue-600">${request.email}</p>
                 <p class="text-xs text-gray-500">${new Date(request.timestamp).toLocaleString()}</p>
               </div>
-              <div class="space-x-2">
+              <div class="space-x-2 flex-shrink-0">
                 <button onclick="approveAccess('${request.username}', ${request.id})" class="bg-green-500 text-white px-2 py-1 rounded text-xs">Approve</button>
                 <button onclick="denyRequest('access', ${request.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Deny</button>
               </div>
@@ -1248,13 +1353,14 @@
           const div = document.createElement('div');
           div.className = 'bg-white p-3 rounded border';
           div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-semibold">${username}</p>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="font-semibold text-sm">ID: ${username}</p>
+                ${user.email ? `<p class="text-xs text-blue-600">${user.email}</p>` : ''}
                 <p class="text-xs text-gray-500">Approved: ${new Date(user.approvedDate).toLocaleDateString()}</p>
               </div>
-              <div class="space-x-2">
-                <button onclick="resetUserPassword('${username}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Reset Password</button>
+              <div class="space-x-2 flex-shrink-0">
+                <button onclick="resetUserPassword('${username}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Reset</button>
                 <button onclick="removeUser('${username}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Remove</button>
               </div>
             </div>
@@ -1283,22 +1389,28 @@
     }
 
     function approveAccess(username, requestId) {
-      // Generate temporary access link
-      const tempCode = Math.random().toString(36).substring(2, 15);
-      alert(`Access approved for ${username}. Temporary setup code: ${tempCode}\n\nShare this code with the user to set up their account.`);
+      // Find the request to get the preferred password
+      const request = userManagement.accessRequests.find(r => r.id === requestId);
+      if (!request) {
+        alert('Request not found!');
+        return;
+      }
+      
+      // Add to approved users with their preferred password
+      userManagement.approvedUsers[username] = {
+        password: request.preferredPassword,
+        email: request.email,
+        idNumber: request.idNumber,
+        approvedDate: new Date().toISOString(),
+        type: 'viewer'
+      };
+      localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
       
       // Remove from requests
       userManagement.accessRequests = userManagement.accessRequests.filter(r => r.id !== requestId);
       localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
       
-      // Add to approved users with temporary status
-      userManagement.approvedUsers[username] = {
-        password: null,
-        approvedDate: new Date().toISOString(),
-        type: 'viewer',
-        tempCode: tempCode
-      };
-      localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
+      alert(`Access approved for ID: ${username}\nEmail: ${request.email}\n\nUser can now log in with their ID number and chosen password.`);
       
       // Refresh both modal and admin panel if open
       if (document.getElementById('user-management-modal').classList.contains('hidden') === false) {
@@ -1407,6 +1519,7 @@
       document.getElementById('jd-admin-controls').classList.add('hidden');
       document.getElementById('logo-admin-controls').classList.add('hidden');
       document.getElementById('nav-admin').classList.add('hidden');
+      document.getElementById('nav-user-mgmt').classList.add('hidden');
       hideExportButtons();
     }
 
@@ -1509,11 +1622,7 @@
       const mainContent = document.createElement('div');
       mainContent.textContent = node.Position;
       mainContent.onclick = () => {
-        if (document.getElementById('show-functions').checked) {
-          selectOrgUnit(node);
-        } else {
-          toggleOrgNode(node.Id);
-        }
+        toggleOrgNode(node.Id);
       };
       mainContent.style.cursor = 'pointer';
       
@@ -2764,31 +2873,7 @@
       renderCategories();
     });
 
-    // Function View Toggle
-    function toggleFunctionView() {
-      const functionsPanel = document.getElementById('functions-panel');
-      const showFunctions = document.getElementById('show-functions').checked;
-      
-      if (showFunctions) {
-        functionsPanel.classList.remove('hidden');
-        // Update org chart nodes to show they're clickable for functions
-        const orgNodes = document.querySelectorAll('.org-node');
-        orgNodes.forEach(node => {
-          node.style.cursor = 'pointer';
-          node.title = 'Click to view functions and administrative orders';
-        });
-      } else {
-        functionsPanel.classList.add('hidden');
-        // Reset org chart nodes to normal behavior
-        const orgNodes = document.querySelectorAll('.org-node');
-        orgNodes.forEach(node => {
-          node.style.cursor = 'pointer';
-          node.title = 'Click to expand/collapse';
-        });
-        // Clear selection
-        clearOrgSelection();
-      }
-    }
+
 
     // Show functions in popup
     function showOrgFunctions(node) {
@@ -3428,12 +3513,13 @@
           const div = document.createElement('div');
           div.className = 'bg-green-50 p-3 rounded border border-green-200';
           div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-medium text-sm">${request.username}</p>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="font-medium text-sm">ID: ${request.username}</p>
+                <p class="text-xs text-blue-600">${request.email}</p>
                 <p class="text-xs text-gray-500">${new Date(request.timestamp).toLocaleDateString()}</p>
               </div>
-              <div class="flex space-x-1">
+              <div class="flex space-x-1 flex-shrink-0">
                 <button onclick="approveAccess('${request.username}', ${request.id})" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600">✓</button>
                 <button onclick="denyRequest('access', ${request.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">✗</button>
               </div>
@@ -3461,12 +3547,13 @@
           const div = document.createElement('div');
           div.className = 'bg-blue-50 p-3 rounded border border-blue-200';
           div.innerHTML = `
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-medium text-sm">${username}</p>
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="font-medium text-sm">ID: ${username}</p>
+                ${user.email ? `<p class="text-xs text-blue-600">${user.email}</p>` : ''}
                 <p class="text-xs text-gray-500">Approved: ${new Date(user.approvedDate).toLocaleDateString()}</p>
               </div>
-              <div class="flex space-x-1">
+              <div class="flex space-x-1 flex-shrink-0">
                 <button onclick="resetUserPassword('${username}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Reset Password">🔑</button>
                 <button onclick="removeUser('${username}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove User">🗑️</button>
               </div>
@@ -3683,5 +3770,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bfd9e013ddfec5',t:'MTc1NDY2NDg4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c028dda5555783',t:'MTc1NDY2ODEyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
