@@ -117,24 +117,140 @@
         <h2 class="text-3xl font-bold text-blue-900 mb-2">Organization Design Portal</h2>
         <p class="text-blue-600 text-sm">Please enter your credentials to continue</p>
       </div>
-      <form onsubmit="login(event)">
-        <div class="mb-5">
-          <label class="block text-blue-900 text-sm font-semibold mb-2">Access Level</label>
-          <select id="access-level" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50">
-            <option value="admin">Administrator</option>
-            <option value="viewer">Viewer</option>
-          </select>
+      
+      <!-- Regular Login Form -->
+      <div id="login-form">
+        <form onsubmit="login(event)">
+          <div class="mb-4">
+            <label class="block text-blue-900 text-sm font-semibold mb-2">Username</label>
+            <input type="text" id="username" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+            <div id="access-indicator" class="mt-2 text-sm font-medium hidden">
+              <span id="admin-indicator" class="text-purple-600 hidden">🔑 Administrator Access Detected</span>
+              <span id="viewer-indicator" class="text-blue-600 hidden">👤 Viewer Access</span>
+            </div>
+          </div>
+          <div class="mb-6">
+            <label class="block text-blue-900 text-sm font-semibold mb-2">Password</label>
+            <input type="password" id="password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+          </div>
+          <button type="submit" class="w-full bg-blue-900 text-white py-3 px-4 rounded-lg hover:bg-blue-800 transition duration-200 font-semibold text-lg shadow-md">
+            Log In
+          </button>
+        </form>
+        <div class="mt-4 text-center">
+          <button onclick="showPasswordReset()" class="text-blue-600 text-sm hover:text-blue-800 underline">
+            Reset Password / Request Access
+          </button>
         </div>
+      </div>
+
+      <!-- Password Reset Form -->
+      <div id="reset-form" class="hidden">
         <div class="mb-6">
-          <label class="block text-blue-900 text-sm font-semibold mb-2">Password</label>
-          <input type="password" id="password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+          <h3 class="text-xl font-bold text-blue-900 mb-2">Reset Password / Request Access</h3>
+          <p class="text-blue-600 text-sm">Enter your username to reset password or request viewer access</p>
         </div>
-        <button type="submit" class="w-full bg-blue-900 text-white py-3 px-4 rounded-lg hover:bg-blue-800 transition duration-200 font-semibold text-lg shadow-md">
-          Log In
-        </button>
-      </form>
+        <form onsubmit="requestPasswordReset(event)">
+          <div class="mb-5">
+            <label class="block text-blue-900 text-sm font-semibold mb-2">Username</label>
+            <input type="text" id="reset-username" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
+          </div>
+          <div class="mb-6">
+            <label class="block text-blue-900 text-sm font-semibold mb-2">Request Type</label>
+            <select id="request-type" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50">
+              <option value="reset">Reset Existing Password</option>
+              <option value="access">Request New Viewer Access</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-200 font-semibold">
+            Submit Request
+          </button>
+        </form>
+        <div class="mt-4 text-center">
+          <button onclick="showLoginForm()" class="text-blue-600 text-sm hover:text-blue-800 underline">
+            ← Back to Login
+          </button>
+        </div>
+      </div>
+
+      <!-- Set New Password Form -->
+      <div id="new-password-form" class="hidden">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-blue-900 mb-2">Set New Password</h3>
+          <p class="text-blue-600 text-sm">Create your new password</p>
+        </div>
+        <form onsubmit="setNewPassword(event)">
+          <div class="mb-5">
+            <label class="block text-blue-900 text-sm font-semibold mb-2">New Password</label>
+            <input type="password" id="new-password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required minlength="8">
+          </div>
+          <div class="mb-6">
+            <label class="block text-blue-900 text-sm font-semibold mb-2">Confirm Password</label>
+            <input type="password" id="confirm-password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required minlength="8">
+          </div>
+          <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition duration-200 font-semibold">
+            Set Password
+          </button>
+        </form>
+      </div>
+
       <div id="login-error" class="mt-4 text-red-600 text-sm text-center hidden bg-red-50 p-3 rounded-lg border border-red-200">
         Invalid credentials. Please try again.
+      </div>
+      <div id="login-success" class="mt-4 text-green-600 text-sm text-center hidden bg-green-50 p-3 rounded-lg border border-green-200">
+        Request submitted successfully!
+      </div>
+    </div>
+  </div>
+
+  <!-- User Management Modal -->
+  <div id="user-management-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-blue-900">User Management</h3>
+        <button onclick="closeUserManagement()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Password Reset Requests -->
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-blue-900 mb-4">🔑 Password Reset Requests</h4>
+          <div id="reset-requests" class="space-y-3">
+            <!-- Reset requests will be populated here -->
+          </div>
+        </div>
+
+        <!-- Access Requests -->
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-green-900 mb-4">👥 New Access Requests</h4>
+          <div id="access-requests" class="space-y-3">
+            <!-- Access requests will be populated here -->
+          </div>
+        </div>
+
+        <!-- Approved Users -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4">✅ Approved Users</h4>
+          <div id="approved-users" class="space-y-3">
+            <!-- Approved users will be populated here -->
+          </div>
+        </div>
+
+        <!-- Admin Controls -->
+        <div class="bg-purple-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-purple-900 mb-4">⚙️ Admin Controls</h4>
+          <div class="space-y-3">
+            <button onclick="changeAdminPassword()" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 text-sm">
+              Change Admin Password
+            </button>
+            <button onclick="exportUserList()" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm">
+              Export User List
+            </button>
+            <button onclick="clearAllRequests()" class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 text-sm">
+              Clear All Requests
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -235,6 +351,9 @@
         <div class="flex items-center justify-between">
           <img id="company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-20" alt="Company Logo" />
           <div id="logo-admin-controls" class="hidden space-x-2">
+            <button onclick="openUserManagement()" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">
+              👥 User Management
+            </button>
             <input type="file" id="logo-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadLogo(event)">
             <button onclick="document.getElementById('logo-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
               📷 Change Logo
@@ -543,20 +662,44 @@
     let currentCategory = '';
     let currentUnit = '';
     let currentOrg = '';
+    let pendingUser = null;
+
+    // User Management System
+    let userManagement = {
+      resetRequests: JSON.parse(localStorage.getItem('resetRequests') || '[]'),
+      accessRequests: JSON.parse(localStorage.getItem('accessRequests') || '[]'),
+      approvedUsers: JSON.parse(localStorage.getItem('approvedUsers') || '{}'),
+      adminPassword: localStorage.getItem('adminPassword') || 'Hunter542639'
+    };
 
     // Authentication
     function login(event) {
       event.preventDefault();
-      const accessLevel = document.getElementById('access-level').value;
       const password = document.getElementById('password').value;
+      const username = document.getElementById('username').value;
       const errorDiv = document.getElementById('login-error');
 
-      const credentials = {
-        admin: 'Hunter542639',
-        viewer: 'PLDTSMART_HR_OD'
-      };
+      let isValid = false;
+      let accessLevel = 'viewer'; // Default to viewer
 
-      if (credentials[accessLevel] === password) {
+      // Check if username indicates admin access
+      if (username === 'ntbernal_ADMIN') {
+        accessLevel = 'admin';
+        isValid = password === userManagement.adminPassword;
+      } else if (username === 'ntbernal') {
+        // Specific viewer account
+        accessLevel = 'viewer';
+        isValid = password === 'PLDT_HR_OD';
+      } else {
+        // Regular viewer authentication
+        if (username && userManagement.approvedUsers[username]) {
+          isValid = password === userManagement.approvedUsers[username].password;
+        } else {
+          isValid = password === 'PLDTSMART_HR_OD'; // Default viewer password
+        }
+      }
+
+      if (isValid) {
         currentUser = accessLevel;
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
@@ -575,6 +718,294 @@
       } else {
         errorDiv.classList.remove('hidden');
         document.getElementById('password').value = '';
+      }
+    }
+
+    // Real-time access level detection based on username
+    document.getElementById('username').addEventListener('input', function() {
+      const username = this.value;
+      const accessIndicator = document.getElementById('access-indicator');
+      const adminIndicator = document.getElementById('admin-indicator');
+      const viewerIndicator = document.getElementById('viewer-indicator');
+      
+      if (username === 'ntbernal_ADMIN') {
+        accessIndicator.classList.remove('hidden');
+        adminIndicator.classList.remove('hidden');
+        viewerIndicator.classList.add('hidden');
+      } else if (username.length > 0) {
+        accessIndicator.classList.remove('hidden');
+        adminIndicator.classList.add('hidden');
+        viewerIndicator.classList.remove('hidden');
+      } else {
+        accessIndicator.classList.add('hidden');
+        adminIndicator.classList.add('hidden');
+        viewerIndicator.classList.add('hidden');
+      }
+    });
+
+    // Password Reset Functions
+    function showPasswordReset() {
+      document.getElementById('login-form').classList.add('hidden');
+      document.getElementById('reset-form').classList.remove('hidden');
+    }
+
+    function showLoginForm() {
+      document.getElementById('reset-form').classList.add('hidden');
+      document.getElementById('new-password-form').classList.add('hidden');
+      document.getElementById('login-form').classList.remove('hidden');
+      document.getElementById('login-success').classList.add('hidden');
+    }
+
+    function requestPasswordReset(event) {
+      event.preventDefault();
+      const username = document.getElementById('reset-username').value;
+      const requestType = document.getElementById('request-type').value;
+
+      const request = {
+        username: username,
+        type: requestType,
+        timestamp: new Date().toISOString(),
+        id: Date.now()
+      };
+
+      if (requestType === 'reset') {
+        userManagement.resetRequests.push(request);
+        localStorage.setItem('resetRequests', JSON.stringify(userManagement.resetRequests));
+      } else {
+        userManagement.accessRequests.push(request);
+        localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
+      }
+
+      document.getElementById('login-success').classList.remove('hidden');
+      document.getElementById('reset-username').value = '';
+      
+      setTimeout(() => {
+        showLoginForm();
+      }, 2000);
+    }
+
+    function setNewPassword(event) {
+      event.preventDefault();
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (newPassword !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      if (pendingUser) {
+        userManagement.approvedUsers[pendingUser.username] = {
+          password: newPassword,
+          approvedDate: new Date().toISOString(),
+          type: 'viewer'
+        };
+        localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
+        
+        alert('Password set successfully! You can now log in.');
+        pendingUser = null;
+        showLoginForm();
+      }
+    }
+
+    // User Management Modal Functions
+    function openUserManagement() {
+      document.getElementById('user-management-modal').classList.remove('hidden');
+      loadUserManagementData();
+    }
+
+    function closeUserManagement() {
+      document.getElementById('user-management-modal').classList.add('hidden');
+    }
+
+    function loadUserManagementData() {
+      // Load reset requests
+      const resetContainer = document.getElementById('reset-requests');
+      resetContainer.innerHTML = '';
+      
+      if (userManagement.resetRequests.length === 0) {
+        resetContainer.innerHTML = '<p class="text-gray-500 text-sm">No pending reset requests</p>';
+      } else {
+        userManagement.resetRequests.forEach(request => {
+          const div = document.createElement('div');
+          div.className = 'bg-white p-3 rounded border';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-semibold">${request.username}</p>
+                <p class="text-xs text-gray-500">${new Date(request.timestamp).toLocaleString()}</p>
+              </div>
+              <div class="space-x-2">
+                <button onclick="approveReset('${request.username}', ${request.id})" class="bg-green-500 text-white px-2 py-1 rounded text-xs">Approve</button>
+                <button onclick="denyRequest('reset', ${request.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Deny</button>
+              </div>
+            </div>
+          `;
+          resetContainer.appendChild(div);
+        });
+      }
+
+      // Load access requests
+      const accessContainer = document.getElementById('access-requests');
+      accessContainer.innerHTML = '';
+      
+      if (userManagement.accessRequests.length === 0) {
+        accessContainer.innerHTML = '<p class="text-gray-500 text-sm">No pending access requests</p>';
+      } else {
+        userManagement.accessRequests.forEach(request => {
+          const div = document.createElement('div');
+          div.className = 'bg-white p-3 rounded border';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-semibold">${request.username}</p>
+                <p class="text-xs text-gray-500">${new Date(request.timestamp).toLocaleString()}</p>
+              </div>
+              <div class="space-x-2">
+                <button onclick="approveAccess('${request.username}', ${request.id})" class="bg-green-500 text-white px-2 py-1 rounded text-xs">Approve</button>
+                <button onclick="denyRequest('access', ${request.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Deny</button>
+              </div>
+            </div>
+          `;
+          accessContainer.appendChild(div);
+        });
+      }
+
+      // Load approved users
+      const approvedContainer = document.getElementById('approved-users');
+      approvedContainer.innerHTML = '';
+      
+      const approvedUsersList = Object.keys(userManagement.approvedUsers);
+      if (approvedUsersList.length === 0) {
+        approvedContainer.innerHTML = '<p class="text-gray-500 text-sm">No approved users</p>';
+      } else {
+        approvedUsersList.forEach(username => {
+          const user = userManagement.approvedUsers[username];
+          const div = document.createElement('div');
+          div.className = 'bg-white p-3 rounded border';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-semibold">${username}</p>
+                <p class="text-xs text-gray-500">Approved: ${new Date(user.approvedDate).toLocaleDateString()}</p>
+              </div>
+              <div class="space-x-2">
+                <button onclick="resetUserPassword('${username}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Reset Password</button>
+                <button onclick="removeUser('${username}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Remove</button>
+              </div>
+            </div>
+          `;
+          approvedContainer.appendChild(div);
+        });
+      }
+    }
+
+    function approveReset(username, requestId) {
+      // Generate temporary access link
+      const tempCode = Math.random().toString(36).substring(2, 15);
+      alert(`Password reset approved for ${username}. Temporary access code: ${tempCode}\n\nShare this code with the user to set their new password.`);
+      
+      // Remove from requests
+      userManagement.resetRequests = userManagement.resetRequests.filter(r => r.id !== requestId);
+      localStorage.setItem('resetRequests', JSON.stringify(userManagement.resetRequests));
+      
+      loadUserManagementData();
+    }
+
+    function approveAccess(username, requestId) {
+      // Generate temporary access link
+      const tempCode = Math.random().toString(36).substring(2, 15);
+      alert(`Access approved for ${username}. Temporary setup code: ${tempCode}\n\nShare this code with the user to set up their account.`);
+      
+      // Remove from requests
+      userManagement.accessRequests = userManagement.accessRequests.filter(r => r.id !== requestId);
+      localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
+      
+      // Add to approved users with temporary status
+      userManagement.approvedUsers[username] = {
+        password: null,
+        approvedDate: new Date().toISOString(),
+        type: 'viewer',
+        tempCode: tempCode
+      };
+      localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
+      
+      loadUserManagementData();
+    }
+
+    function denyRequest(type, requestId) {
+      if (type === 'reset') {
+        userManagement.resetRequests = userManagement.resetRequests.filter(r => r.id !== requestId);
+        localStorage.setItem('resetRequests', JSON.stringify(userManagement.resetRequests));
+      } else {
+        userManagement.accessRequests = userManagement.accessRequests.filter(r => r.id !== requestId);
+        localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
+      }
+      loadUserManagementData();
+    }
+
+    function resetUserPassword(username) {
+      const tempCode = Math.random().toString(36).substring(2, 15);
+      alert(`Password reset initiated for ${username}. Temporary code: ${tempCode}\n\nShare this code with the user to set their new password.`);
+    }
+
+    function removeUser(username) {
+      if (confirm(`Are you sure you want to remove user "${username}"?`)) {
+        delete userManagement.approvedUsers[username];
+        localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
+        loadUserManagementData();
+      }
+    }
+
+    function changeAdminPassword() {
+      const currentPassword = prompt('Enter current admin password:');
+      if (currentPassword !== userManagement.adminPassword) {
+        alert('Incorrect current password!');
+        return;
+      }
+      
+      const newPassword = prompt('Enter new admin password (minimum 8 characters):');
+      if (!newPassword || newPassword.length < 8) {
+        alert('Password must be at least 8 characters long!');
+        return;
+      }
+      
+      const confirmPassword = prompt('Confirm new admin password:');
+      if (newPassword !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+      }
+      
+      userManagement.adminPassword = newPassword;
+      localStorage.setItem('adminPassword', newPassword);
+      alert('Admin password changed successfully!');
+    }
+
+    function exportUserList() {
+      const userData = {
+        approvedUsers: userManagement.approvedUsers,
+        resetRequests: userManagement.resetRequests,
+        accessRequests: userManagement.accessRequests,
+        exportDate: new Date().toISOString()
+      };
+      
+      const dataStr = JSON.stringify(userData, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'user_management_export.json';
+      link.click();
+    }
+
+    function clearAllRequests() {
+      if (confirm('Are you sure you want to clear all pending requests? This cannot be undone.')) {
+        userManagement.resetRequests = [];
+        userManagement.accessRequests = [];
+        localStorage.setItem('resetRequests', JSON.stringify([]));
+        localStorage.setItem('accessRequests', JSON.stringify([]));
+        loadUserManagementData();
+        alert('All requests cleared successfully!');
       }
     }
 
@@ -1050,5 +1481,6 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bf72bbb509fed4',t:'MTc1NDY2MDY2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bf8979c3efe2f6',t:'MTc1NDY2MTU5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
