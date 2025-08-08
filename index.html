@@ -4,96 +4,1008 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PLDT Smart Org Design</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
+          }
+        }
+      }
+    }
+  </script>
   <style>
     .active {
       background-color: #e0f2fe;
     }
+    .active img {
+      filter: brightness(0) saturate(100%) invert(59%) sepia(98%) saturate(1175%) hue-rotate(184deg) brightness(103%) contrast(101%);
+    }
+    .org-node {
+      position: relative;
+      display: inline-block;
+      margin: 10px;
+      padding: 15px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 150px;
+      text-align: center;
+    }
+    .org-node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .org-level-1 { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); }
+    .org-level-2 { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
+    .org-level-3 { background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); }
+    .org-level-4 { background: linear-gradient(135deg, #3b82f6 0%, #93c5fd 100%); }
+    
+    /* Dynamic color classes */
+    .org-blue-1 { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); }
+    .org-blue-2 { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
+    .org-blue-3 { background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); }
+    .org-blue-4 { background: linear-gradient(135deg, #3b82f6 0%, #93c5fd 100%); }
+    
+    .org-green-1 { background: linear-gradient(135deg, #14532d 0%, #166534 100%); }
+    .org-green-2 { background: linear-gradient(135deg, #15803d 0%, #16a34a 100%); }
+    .org-green-3 { background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%); }
+    .org-green-4 { background: linear-gradient(135deg, #4ade80 0%, #86efac 100%); }
+    
+    .org-red-1 { background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%); }
+    .org-red-2 { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+    .org-red-3 { background: linear-gradient(135deg, #f87171 0%, #fca5a5 100%); }
+    .org-red-4 { background: linear-gradient(135deg, #fca5a5 0%, #fecaca 100%); }
+    
+    .org-purple-1 { background: linear-gradient(135deg, #581c87 0%, #6b21a8 100%); }
+    .org-purple-2 { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); }
+    .org-purple-3 { background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%); }
+    .org-purple-4 { background: linear-gradient(135deg, #c4b5fd 0%, #ddd6fe 100%); }
+    
+    .org-orange-1 { background: linear-gradient(135deg, #9a3412 0%, #c2410c 100%); }
+    .org-orange-2 { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
+    .org-orange-3 { background: linear-gradient(135deg, #fb923c 0%, #fdba74 100%); }
+    .org-orange-4 { background: linear-gradient(135deg, #fdba74 0%, #fed7aa 100%); }
+    
+    .org-teal-1 { background: linear-gradient(135deg, #134e4a 0%, #115e59 100%); }
+    .org-teal-2 { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
+    .org-teal-3 { background: linear-gradient(135deg, #2dd4bf 0%, #5eead4 100%); }
+    .org-teal-4 { background: linear-gradient(135deg, #5eead4 0%, #99f6e4 100%); }
+    
+    .org-indigo-1 { background: linear-gradient(135deg, #312e81 0%, #3730a3 100%); }
+    .org-indigo-2 { background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%); }
+    .org-indigo-3 { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); }
+    .org-indigo-4 { background: linear-gradient(135deg, #818cf8 0%, #a5b4fc 100%); }
+    
+    .org-pink-1 { background: linear-gradient(135deg, #831843 0%, #be185d 100%); }
+    .org-pink-2 { background: linear-gradient(135deg, #db2777 0%, #ec4899 100%); }
+    .org-pink-3 { background: linear-gradient(135deg, #f472b6 0%, #f9a8d4 100%); }
+    .org-pink-4 { background: linear-gradient(135deg, #f9a8d4 0%, #fbcfe8 100%); }
+    .org-connector {
+      position: absolute;
+      background: #cbd5e1;
+      z-index: -1;
+    }
+    .org-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .org-children {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+      position: relative;
+    }
   </style>
 </head>
 <body class="bg-white text-gray-800 font-sans">
-  <div class="flex h-screen">
+  <!-- Login Screen -->
+  <div id="login-screen" class="min-h-screen bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-96">
+      <div class="text-center mb-6">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-12 mx-auto mb-4" alt="PLDT Logo" />
+        <h2 class="text-2xl font-bold text-gray-800">Organization Design Portal</h2>
+        <p class="text-gray-600 mt-2">Please enter your credentials</p>
+      </div>
+      <form onsubmit="login(event)">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Access Level</label>
+          <select id="access-level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+            <option value="admin">Administrator</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+          <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+          Sign In
+        </button>
+      </form>
+      <div id="login-error" class="mt-4 text-red-600 text-sm text-center hidden">
+        Invalid credentials. Please try again.
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Description Modal -->
+  <div id="jd-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="jd-title" class="text-xl font-bold"></h3>
+        <button onclick="closeJobDescriptionModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="jd-content" class="prose max-w-none">
+        <p class="text-gray-600">Job description content will be displayed here. Upload job description files to populate this section.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organization Units Modal -->
+  <div id="org-units-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 id="org-units-title" class="text-xl font-bold"></h3>
+          <nav class="text-sm text-gray-600 mt-1">
+            <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+            <span class="mx-2">></span>
+            <span id="breadcrumb-category"></span>
+            <span class="mx-2">></span>
+            <span id="breadcrumb-unit"></span>
+          </nav>
+        </div>
+        <button onclick="closeOrgUnitsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="org-units-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Organization units will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Positions Modal -->
+  <div id="positions-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 id="positions-title" class="text-xl font-bold"></h3>
+          <nav class="text-sm text-gray-600 mt-1">
+            <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+            <span class="mx-2">></span>
+            <span id="positions-breadcrumb-category" class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()"></span>
+            <span class="mx-2">></span>
+            <span id="positions-breadcrumb-unit" class="cursor-pointer hover:text-blue-600" onclick="goBackToUnits()"></span>
+            <span class="mx-2">></span>
+            <span id="positions-breadcrumb-org"></span>
+          </nav>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div id="positions-admin-controls" class="hidden">
+            <input type="file" id="position-jd-file" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadPositionJD(event)">
+            <button onclick="document.getElementById('position-jd-file').click()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              📁 Upload JD
+            </button>
+          </div>
+          <button onclick="closePositionsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+      </div>
+      <div id="positions-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Positions will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application -->
+  <div id="main-app" class="flex h-screen hidden">
     <!-- Sidebar -->
-    <div class="w-16 bg-white border-r flex flex-col items-center py-4 space-y-6 shadow-md">
-      <button onclick="navigate('home')" id="nav-home" class="p-2 rounded hover:bg-blue-100">
-        <img src="https://img.icons8.com/ios-filled/20/000000/home.png" alt="Home" />
+    <div class="w-20 bg-white border-r flex flex-col items-center py-6 space-y-8 shadow-md h-full">
+      <button onclick="navigate('home')" id="nav-home" class="p-3 rounded hover:bg-blue-100">
+        <img src="https://img.icons8.com/ios-filled/28/000000/home.png" alt="Home" />
       </button>
-      <button onclick="navigate('org')" id="nav-org" class="p-2 rounded hover:bg-blue-100">
-        <img src="https://img.icons8.com/ios-filled/20/000000/organization.png" alt="Org Chart" />
+      <button onclick="navigate('org')" id="nav-org" class="p-3 rounded hover:bg-blue-100">
+        <img src="https://img.icons8.com/ios-filled/28/000000/organization.png" alt="Org Chart" />
       </button>
-      <button onclick="navigate('jd')" id="nav-jd" class="p-2 rounded hover:bg-blue-100">
-        <img src="https://img.icons8.com/ios-filled/20/000000/resume.png" alt="Job Description" />
+      <button onclick="navigate('jd')" id="nav-jd" class="p-3 rounded hover:bg-blue-100">
+        <img src="https://img.icons8.com/ios-filled/28/000000/resume.png" alt="Job Description" />
       </button>
-      <button onclick="alert('Logging out...')" class="mt-auto p-2 rounded hover:bg-red-100">
-        <img src="https://img.icons8.com/ios-filled/20/000000/logout-rounded.png" alt="Logout" />
-      </button>
+      <div class="flex-1"></div>
+      <div class="text-center">
+        <div class="text-xs text-gray-500 mb-3" id="user-role">Admin</div>
+        <button onclick="logout()" class="p-3 rounded hover:bg-red-100">
+          <img src="https://img.icons8.com/ios-filled/28/000000/logout-rounded.png" alt="Logout" />
+        </button>
+      </div>
     </div>
 
     <!-- Main content -->
     <div class="flex-1 p-6 overflow-y-auto">
       <!-- Home -->
-      <div id="home" class="space-y-4">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-10" alt="PLDT Logo" />
-        <h1 class="text-2xl font-bold text-blue-900">Welcome to the Organization Design Portal</h1>
-        <div class="space-y-4">
-          <button onclick="navigate('org')" class="block w-full text-left px-6 py-4 rounded-xl bg-gradient-to-r from-red-200 to-orange-200 shadow">
-            <p class="text-xs uppercase font-medium">Converged View</p>
-            <p class="text-xl font-bold">Organizational Charts</p>
+      <div id="home" class="space-y-8 h-full flex flex-col">
+        <div class="flex items-center justify-between">
+          <img id="company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-12" alt="Company Logo" />
+          <div id="logo-admin-controls" class="hidden">
+            <input type="file" id="logo-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadLogo(event)">
+            <button onclick="document.getElementById('logo-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+              📷 Change Logo
+            </button>
+          </div>
+        </div>
+        <h1 class="text-6xl font-bold text-blue-900 text-center mb-8">Organizational Design Portal</h1>
+        <div class="flex flex-col space-y-6 max-w-4xl mx-auto w-full">
+          <button onclick="navigate('org')" class="block w-full text-left px-8 py-8 rounded-xl bg-gradient-to-r from-red-200 to-orange-200 shadow-lg hover:shadow-xl transition-shadow">
+            <p class="text-sm uppercase font-medium text-gray-700">Converged View</p>
+            <p class="text-2xl font-bold text-gray-900 mt-2">Organizational Charts</p>
+            <p class="text-gray-600 mt-2">View and manage organizational hierarchy with dynamic color mapping</p>
           </button>
-          <button onclick="navigate('jd')" class="block w-full text-left px-6 py-4 rounded-xl bg-gradient-to-r from-teal-200 to-green-200 shadow">
-            <p class="text-xs uppercase font-medium">Database</p>
-            <p class="text-xl font-bold">Job Description</p>
+          <button onclick="navigate('jd')" class="block w-full text-left px-8 py-8 rounded-xl bg-gradient-to-r from-teal-200 to-green-200 shadow-lg hover:shadow-xl transition-shadow">
+            <p class="text-sm uppercase font-medium text-gray-700">Database</p>
+            <p class="text-2xl font-bold text-gray-900 mt-2">Job Description</p>
+            <p class="text-gray-600 mt-2">Browse positions by category and manage job descriptions</p>
           </button>
         </div>
       </div>
 
       <!-- Org Chart -->
       <div id="org" class="hidden">
-        <h2 class="text-xl font-bold mb-4">Organizational Chart</h2>
-        <button onclick="toggleChart()" class="mb-4 text-sm bg-blue-500 text-white px-4 py-2 rounded">Toggle Expansion</button>
-        <div id="org-chart" class="space-y-2">
-          <div class="font-bold">Board of Directors</div>
-          <div class="ml-6">↳ President and CEO
-            <div id="org-expanded" class="ml-6 hidden">
-              <div>↳ PLDT COO</div>
-              <div>↳ Smart COO</div>
-              <div>↳ Technology</div>
-              <div>↳ People Group</div>
-              <div>↳ Finance & Corporate Sustainability</div>
-              <!-- Add more as needed -->
-            </div>
+        <div class="flex justify-between items-center mb-6">
+          <div class="flex items-center space-x-4">
+            <img id="org-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-8" alt="Company Logo" />
+            <h2 class="text-xl font-bold">Organizational Chart</h2>
           </div>
+          <div id="org-admin-controls" class="space-x-2 hidden">
+            <input type="file" id="org-file" accept=".xlsx,.xls" class="hidden" onchange="uploadOrgChart(event)">
+            <button onclick="document.getElementById('org-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+              📁 Upload Org Chart
+            </button>
+            <button onclick="downloadOrgTemplate()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+              📥 Org Template
+            </button>
+            <button onclick="toggleEditMode()" id="edit-mode-btn" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700">
+              ✏️ Edit Mode
+            </button>
+          </div>
+        </div>
+        
+        <div id="org-chart" class="overflow-x-auto">
+          <!-- Dynamic org chart will be generated here -->
         </div>
       </div>
 
       <!-- JD Database -->
       <div id="jd" class="hidden">
-        <h2 class="text-xl font-bold mb-4">Job Descriptions</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="bg-gray-100 p-4 rounded">Consumer Business Home</div>
-          <div class="bg-gray-100 p-4 rounded">Cyber Security</div>
-          <div class="bg-gray-100 p-4 rounded">Finance Group</div>
-          <div class="bg-gray-100 p-4 rounded">Corporate Governance</div>
-          <!-- Add more groups -->
+        <div class="flex justify-between items-center mb-6">
+          <div class="flex items-center space-x-4">
+            <img id="jd-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-8" alt="Company Logo" />
+            <h2 class="text-xl font-bold">Job Descriptions</h2>
+          </div>
+          <div id="jd-admin-controls" class="space-x-2 hidden">
+            <input type="file" id="org-structure-file" accept=".xlsx,.xls" class="hidden" onchange="uploadOrgStructure(event)">
+            <button onclick="document.getElementById('org-structure-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+              📁 Upload Structure
+            </button>
+            <button onclick="downloadStructureTemplate()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+              📥 Structure Template
+            </button>
+            <input type="file" id="bulk-jd-file" accept=".zip,.rar" class="hidden" onchange="uploadBulkJD(event)">
+            <button onclick="document.getElementById('bulk-jd-file').click()" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700">
+              📦 Upload JD Bulk
+            </button>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Business -->
+          <div class="space-y-4">
+            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">BUSINESS</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('BUSINESS', 'Consumer Business Home')">Consumer Business Home</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('BUSINESS', 'Consumer Business Wireless')">Consumer Business Wireless</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('BUSINESS', 'Home Sales and Development')">Home Sales and Development</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('BUSINESS', 'Wireless Sales and Development')">Wireless Sales and Development</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('BUSINESS', 'Enterprise Business')">Enterprise Business</div>
+            </div>
+          </div>
+
+          <!-- Technology -->
+          <div class="space-y-4">
+            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">TECHNOLOGY</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('TECHNOLOGY', 'Network Group')">Network Group</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('TECHNOLOGY', 'Information Technology')">Information Technology</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('TECHNOLOGY', 'Cybersecurity')">Cybersecurity</div>
+            </div>
+          </div>
+
+          <!-- Support -->
+          <div class="space-y-4">
+            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">SUPPORT</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('SUPPORT', 'Finance Group')">Finance Group</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('SUPPORT', 'People Group')">People Group</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('SUPPORT', 'Supply Chain Management and Privacy Office')">Supply Chain Management and Privacy Office</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('SUPPORT', 'Legal and Regulatory')">Legal and Regulatory</div>
+            </div>
+          </div>
+
+          <!-- Governance -->
+          <div class="space-y-4">
+            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
+              <h3 class="font-bold text-lg">GOVERNANCE</h3>
+            </div>
+            <div class="space-y-2">
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('GOVERNANCE', 'Internal Audit')">Internal Audit</div>
+              <div class="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200" onclick="viewOrgUnits('GOVERNANCE', 'Corporate Governance')">Corporate Governance</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Job Description Modal -->
+  <div id="jd-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="jd-title" class="text-xl font-bold"></h3>
+        <button onclick="closeJobDescriptionModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="jd-content" class="prose max-w-none">
+        <p class="text-gray-600">Job description content will be displayed here. Upload job description files to populate this section.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Organization Units Modal -->
+  <div id="org-units-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 id="org-units-title" class="text-xl font-bold"></h3>
+          <nav class="text-sm text-gray-600 mt-1">
+            <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+            <span class="mx-2">></span>
+            <span id="breadcrumb-category"></span>
+            <span class="mx-2">></span>
+            <span id="breadcrumb-unit"></span>
+          </nav>
+        </div>
+        <button onclick="closeOrgUnitsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="org-units-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Organization units will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Positions Modal -->
+  <div id="positions-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 id="positions-title" class="text-xl font-bold"></h3>
+          <nav class="text-sm text-gray-600 mt-1">
+            <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+            <span class="mx-2">></span>
+            <span id="positions-breadcrumb-category" class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()"></span>
+            <span class="mx-2">></span>
+            <span id="positions-breadcrumb-unit" class="cursor-pointer hover:text-blue-600" onclick="goBackToUnits()"></span>
+            <span class="mx-2">></span>
+            <span id="positions-breadcrumb-org"></span>
+          </nav>
+        </div>
+        <div class="flex items-center space-x-2">
+          <div id="positions-admin-controls" class="hidden">
+            <input type="file" id="position-jd-file" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadPositionJD(event)">
+            <button onclick="document.getElementById('position-jd-file').click()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+              📁 Upload JD
+            </button>
+          </div>
+          <button onclick="closePositionsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+      </div>
+      <div id="positions-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Positions will be populated here -->
+      </div>
+    </div>
+  </div>
+
   <script>
-    function navigate(section) {
-      const sections = ['home', 'org', 'jd'];
-      const navIds = ['nav-home', 'nav-org', 'nav-jd'];
-      sections.forEach(id => document.getElementById(id).classList.add('hidden'));
-      navIds.forEach(id => document.getElementById(id).classList.remove('active'));
-      document.getElementById(section).classList.remove('hidden');
-      document.getElementById('nav-' + section).classList.add('active');
+    let currentUser = null;
+    let jobDescriptions = {};
+    let orgChartData = [
+      { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'blue', Id: 'board' },
+      { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'blue', Id: 'ceo' },
+      { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo' },
+      { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo' },
+      { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology' },
+      { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people' },
+      { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance' },
+      { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer' },
+      { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise' },
+      { Level: 4, Position: 'Mobile Services', Parent: 'smart-coo', Color: 'orange', Id: 'mobile' },
+      { Level: 4, Position: 'Network Operations', Parent: 'smart-coo', Color: 'orange', Id: 'network' },
+      { Level: 4, Position: 'IT Operations', Parent: 'technology', Color: 'purple', Id: 'it-ops' },
+      { Level: 4, Position: 'Digital Innovation', Parent: 'technology', Color: 'purple', Id: 'digital' }
+    ];
+    let orgStructure = {
+      'BUSINESS': {
+        'Consumer Business Home': {
+          'Regional Operations': ['Manager - Regional Operations', 'Senior Specialist - Customer Relations', 'Analyst - Market Research'],
+          'Sales Division': ['Sales Manager', 'Senior Sales Representative', 'Sales Coordinator'],
+          'Customer Service': ['Customer Service Manager', 'Senior Customer Service Representative', 'Technical Support Specialist']
+        },
+        'Consumer Business Wireless': {
+          'Mobile Services': ['Manager - Mobile Services', 'Product Manager - Mobile Plans', 'Technical Specialist - Network'],
+          'Retail Operations': ['Retail Manager', 'Store Supervisor', 'Sales Associate'],
+          'Digital Marketing': ['Digital Marketing Manager', 'Social Media Specialist', 'Content Creator']
+        },
+        'Home Sales and Development': {
+          'Product Development': ['Product Development Manager', 'Senior Product Analyst', 'UX/UI Designer'],
+          'Market Research': ['Market Research Manager', 'Research Analyst', 'Data Scientist'],
+          'Business Development': ['Business Development Manager', 'Partnership Specialist', 'Strategic Planner']
+        },
+        'Wireless Sales and Development': {
+          'Sales Strategy': ['Sales Strategy Manager', 'Senior Sales Analyst', 'Territory Manager'],
+          'Channel Management': ['Channel Manager', 'Partner Relations Specialist', 'Distribution Coordinator'],
+          'Revenue Management': ['Revenue Manager', 'Pricing Analyst', 'Financial Analyst']
+        },
+        'Enterprise Business': {
+          'Corporate Solutions': ['Enterprise Sales Manager', 'Solutions Architect', 'Account Manager'],
+          'Government Relations': ['Government Relations Manager', 'Policy Analyst', 'Compliance Specialist'],
+          'B2B Services': ['B2B Manager', 'Technical Consultant', 'Implementation Specialist']
+        }
+      },
+      'TECHNOLOGY': {
+        'Network Group': {
+          'Infrastructure': ['Network Infrastructure Manager', 'Senior Network Engineer', 'Systems Administrator'],
+          'Operations': ['Network Operations Manager', 'NOC Specialist', 'Field Technician'],
+          'Planning': ['Network Planning Manager', 'RF Engineer', 'Capacity Planner']
+        },
+        'Information Technology': {
+          'Software Development': ['IT Manager - Development', 'Senior Software Developer', 'DevOps Engineer'],
+          'System Administration': ['Systems Manager', 'Database Administrator', 'Cloud Architect'],
+          'IT Support': ['IT Support Manager', 'Help Desk Specialist', 'Technical Support']
+        },
+        'Cybersecurity': {
+          'Security Operations': ['CISO', 'Security Analyst', 'Incident Response Specialist'],
+          'Risk Management': ['Risk Manager', 'Compliance Officer', 'Security Auditor'],
+          'Security Architecture': ['Security Architect', 'Penetration Tester', 'Security Consultant']
+        }
+      },
+      'SUPPORT': {
+        'Finance Group': {
+          'Financial Planning': ['Finance Manager', 'Financial Analyst', 'Budget Specialist'],
+          'Accounting': ['Accounting Manager', 'Senior Accountant', 'Accounts Payable Specialist'],
+          'Treasury': ['Treasury Manager', 'Cash Management Specialist', 'Investment Analyst']
+        },
+        'People Group': {
+          'Human Resources': ['HR Manager', 'HR Business Partner', 'Recruitment Specialist'],
+          'Learning & Development': ['L&D Manager', 'Training Specialist', 'Organizational Development'],
+          'Compensation & Benefits': ['C&B Manager', 'Compensation Analyst', 'Benefits Administrator']
+        },
+        'Supply Chain Management and Privacy Office': {
+          'Procurement': ['Procurement Manager', 'Senior Buyer', 'Vendor Relations Specialist'],
+          'Supply Chain': ['Supply Chain Manager', 'Logistics Coordinator', 'Inventory Analyst'],
+          'Privacy Office': ['Privacy Officer', 'Data Protection Specialist', 'Compliance Analyst']
+        },
+        'Legal and Regulatory': {
+          'Legal Affairs': ['Legal Manager', 'Corporate Lawyer', 'Contract Specialist'],
+          'Regulatory Compliance': ['Regulatory Manager', 'Compliance Officer', 'Policy Analyst'],
+          'Corporate Governance': ['Governance Manager', 'Board Secretary', 'Ethics Officer']
+        }
+      },
+      'GOVERNANCE': {
+        'Internal Audit': {
+          'Audit Operations': ['Chief Audit Executive', 'Senior Auditor', 'Audit Specialist'],
+          'Risk Assessment': ['Risk Assessment Manager', 'Internal Controls Specialist', 'Fraud Investigator'],
+          'Compliance Monitoring': ['Compliance Manager', 'Monitoring Specialist', 'Audit Coordinator']
+        },
+        'Corporate Governance': {
+          'Board Relations': ['Corporate Secretary', 'Board Relations Manager', 'Governance Specialist'],
+          'Ethics & Compliance': ['Ethics Officer', 'Compliance Manager', 'Policy Developer'],
+          'Stakeholder Relations': ['Stakeholder Relations Manager', 'Investor Relations Specialist', 'Communications Manager']
+        }
+      }
+    };
+    let currentCategory = '';
+    let currentUnit = '';
+    let currentOrg = '';
+
+    // Authentication
+    function login(event) {
+      event.preventDefault();
+      const accessLevel = document.getElementById('access-level').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('login-error');
+
+      const credentials = {
+        admin: 'Hunter542639',
+        viewer: 'PLDTSMART_HR_OD'
+      };
+
+      if (credentials[accessLevel] === password) {
+        currentUser = accessLevel;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        document.getElementById('user-role').textContent = accessLevel === 'admin' ? 'Admin' : 'Viewer';
+        
+        // Show admin controls if admin
+        if (accessLevel === 'admin') {
+          document.getElementById('org-admin-controls').classList.remove('hidden');
+          document.getElementById('jd-admin-controls').classList.remove('hidden');
+          document.getElementById('logo-admin-controls').classList.remove('hidden');
+          document.getElementById('positions-admin-controls').classList.remove('hidden');
+        }
+        
+        navigate('home');
+        errorDiv.classList.add('hidden');
+      } else {
+        errorDiv.classList.remove('hidden');
+        document.getElementById('password').value = '';
+      }
     }
 
-    function toggleChart() {
-      const el = document.getElementById('org-expanded');
-      el.classList.toggle('hidden');
+    function logout() {
+      currentUser = null;
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('password').value = '';
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('org-admin-controls').classList.add('hidden');
+      document.getElementById('jd-admin-controls').classList.add('hidden');
+      document.getElementById('logo-admin-controls').classList.add('hidden');
     }
+
+    // Navigation
+    function navigate(section) {
+      const sections = ['home', 'org', 'jd'];
+      const navButtons = ['nav-home', 'nav-org', 'nav-jd'];
+
+      sections.forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+      });
+
+      navButtons.forEach(btn => {
+        document.getElementById(btn).classList.remove('active');
+      });
+
+      document.getElementById(section).classList.remove('hidden');
+      document.getElementById('nav-' + section).classList.add('active');
+      
+      // Render org chart when navigating to org section
+      if (section === 'org') {
+        renderOrgChart();
+      }
+    }
+
+    // Org Chart Rendering
+    function renderOrgChart() {
+      const chartContainer = document.getElementById('org-chart');
+      chartContainer.innerHTML = '';
+      
+      // Group nodes by level
+      const levels = {};
+      orgChartData.forEach(node => {
+        if (!levels[node.Level]) levels[node.Level] = [];
+        levels[node.Level].push(node);
+      });
+      
+      // Create hierarchical structure
+      const container = document.createElement('div');
+      container.className = 'org-container';
+      
+      // Render each level
+      Object.keys(levels).sort().forEach(level => {
+        const levelNodes = levels[level];
+        levelNodes.forEach(node => {
+          const nodeElement = createOrgNode(node);
+          if (level == 1) {
+            container.appendChild(nodeElement);
+          } else {
+            // Find parent and append
+            const parent = findParentElement(node.Parent);
+            if (parent) {
+              let childrenContainer = parent.querySelector(`#${node.Parent}-children`);
+              if (!childrenContainer) {
+                childrenContainer = document.createElement('div');
+                childrenContainer.id = `${node.Parent}-children`;
+                childrenContainer.className = 'org-children';
+                parent.appendChild(childrenContainer);
+              }
+              childrenContainer.appendChild(nodeElement);
+            }
+          }
+        });
+      });
+      
+      chartContainer.appendChild(container);
+    }
+
+    function createOrgNode(node) {
+      const container = document.createElement('div');
+      container.className = 'org-container';
+      
+      const nodeDiv = document.createElement('div');
+      nodeDiv.className = `org-node org-${node.Color}-${node.Level}`;
+      nodeDiv.textContent = node.Position;
+      nodeDiv.onclick = () => toggleOrgNode(node.Id);
+      nodeDiv.id = `node-${node.Id}`;
+      
+      container.appendChild(nodeDiv);
+      return container;
+    }
+
+    function findParentElement(parentId) {
+      return document.querySelector(`#node-${parentId}`)?.parentElement;
+    }
+
+    // Org Chart Functions
+    function toggleOrgNode(nodeId) {
+      const children = document.getElementById(nodeId + '-children');
+      if (children) {
+        children.classList.toggle('hidden');
+      }
+    }
+
+    function uploadOrgChart(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          // Process and update org chart
+          updateOrgChart(jsonData);
+          renderOrgChart();
+          alert('Organizational chart updated successfully!');
+        } catch (error) {
+          alert('Error reading Excel file. Please check the format.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function updateOrgChart(data) {
+      orgChartData = data.map((row, index) => ({
+        Level: row.Level || 1,
+        Position: row.Position || 'Untitled Position',
+        Parent: row.Parent || '',
+        Color: row.Color || 'blue',
+        Id: row.Id || `node-${index}`
+      }));
+    }
+
+    function downloadOrgTemplate() {
+      const templateData = [
+        { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'blue', Id: 'board' },
+        { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'blue', Id: 'ceo' },
+        { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo' },
+        { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo' },
+        { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology' },
+        { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer' },
+        { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise' }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'PLDT_OrgChart_Template.xlsx');
+      XLSX.writeFile(wb, 'PLDT_OrgChart_Template.xlsx');
+    }
+
+    // Hierarchical Job Description Functions
+    function viewOrgUnits(category, unit) {
+      currentCategory = category;
+      currentUnit = unit;
+      
+      document.getElementById('org-units-title').textContent = unit + ' - Organization Units';
+      document.getElementById('breadcrumb-category').textContent = category;
+      document.getElementById('breadcrumb-unit').textContent = unit;
+      
+      const content = document.getElementById('org-units-content');
+      content.innerHTML = '';
+      
+      if (orgStructure[category] && orgStructure[category][unit]) {
+        Object.keys(orgStructure[category][unit]).forEach(orgUnit => {
+          const div = document.createElement('div');
+          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow';
+          div.innerHTML = `
+            <h4 class="font-semibold text-lg text-blue-900 mb-2">${orgUnit}</h4>
+            <p class="text-sm text-gray-600">${orgStructure[category][unit][orgUnit].length} positions available</p>
+            <div class="mt-2 text-xs text-blue-600">Click to view positions →</div>
+          `;
+          div.onclick = () => viewPositions(category, unit, orgUnit);
+          content.appendChild(div);
+        });
+      } else {
+        content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No organization units found. Upload structure file to populate.</div>';
+      }
+      
+      document.getElementById('org-units-modal').classList.remove('hidden');
+    }
+
+    function viewPositions(category, unit, orgUnit) {
+      currentCategory = category;
+      currentUnit = unit;
+      currentOrg = orgUnit;
+      
+      document.getElementById('positions-title').textContent = orgUnit + ' - Available Positions';
+      document.getElementById('positions-breadcrumb-category').textContent = category;
+      document.getElementById('positions-breadcrumb-unit').textContent = unit;
+      document.getElementById('positions-breadcrumb-org').textContent = orgUnit;
+      
+      const content = document.getElementById('positions-content');
+      content.innerHTML = '';
+      
+      if (orgStructure[category] && orgStructure[category][unit] && orgStructure[category][unit][orgUnit]) {
+        orgStructure[category][unit][orgUnit].forEach(position => {
+          const div = document.createElement('div');
+          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow';
+          
+          const hasJD = jobDescriptions[position];
+          const statusColor = hasJD ? 'text-green-600' : 'text-orange-600';
+          const statusText = hasJD ? 'JD Available' : 'JD Pending';
+          
+          div.innerHTML = `
+            <h4 class="font-semibold text-lg text-gray-900 mb-2">${position}</h4>
+            <div class="flex justify-between items-center">
+              <span class="text-sm ${statusColor} font-medium">${statusText}</span>
+              <span class="text-xs text-blue-600">Click to view →</span>
+            </div>
+          `;
+          div.onclick = () => viewJobDescription(position);
+          content.appendChild(div);
+        });
+      }
+      
+      document.getElementById('org-units-modal').classList.add('hidden');
+      document.getElementById('positions-modal').classList.remove('hidden');
+    }
+
+    function viewJobDescription(title) {
+      document.getElementById('jd-title').textContent = title;
+      document.getElementById('jd-content').innerHTML = jobDescriptions[title] || 
+        '<p class="text-gray-600">Job description not available. Please upload the job description file for this position.</p>';
+      document.getElementById('jd-modal').classList.remove('hidden');
+    }
+
+    function closeJobDescriptionModal() {
+      document.getElementById('jd-modal').classList.add('hidden');
+    }
+
+    function closeOrgUnitsModal() {
+      document.getElementById('org-units-modal').classList.add('hidden');
+    }
+
+    function closePositionsModal() {
+      document.getElementById('positions-modal').classList.add('hidden');
+    }
+
+    function goBackToCategory() {
+      closeOrgUnitsModal();
+      closePositionsModal();
+      navigate('jd');
+    }
+
+    function goBackToUnits() {
+      closePositionsModal();
+      viewOrgUnits(currentCategory, currentUnit);
+    }
+
+    function uploadOrgStructure(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          // Process and update org structure
+          updateOrgStructure(jsonData);
+          alert('Organization structure updated successfully!');
+        } catch (error) {
+          alert('Error reading Excel file. Please check the format.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function updateOrgStructure(data) {
+      // Reset structure
+      orgStructure = { 'BUSINESS': {}, 'TECHNOLOGY': {}, 'SUPPORT': {}, 'GOVERNANCE': {} };
+      
+      data.forEach(row => {
+        const category = row.Category;
+        const unit = row.Unit;
+        const orgUnit = row.OrgUnit;
+        const position = row.Position;
+        
+        if (!orgStructure[category]) orgStructure[category] = {};
+        if (!orgStructure[category][unit]) orgStructure[category][unit] = {};
+        if (!orgStructure[category][unit][orgUnit]) orgStructure[category][unit][orgUnit] = [];
+        
+        if (position && !orgStructure[category][unit][orgUnit].includes(position)) {
+          orgStructure[category][unit][orgUnit].push(position);
+        }
+      });
+    }
+
+    function downloadStructureTemplate() {
+      const templateData = [
+        { Category: 'BUSINESS', Unit: 'Consumer Business Home', OrgUnit: 'Regional Operations', Position: 'Manager - Regional Operations' },
+        { Category: 'BUSINESS', Unit: 'Consumer Business Home', OrgUnit: 'Regional Operations', Position: 'Senior Specialist - Customer Relations' },
+        { Category: 'BUSINESS', Unit: 'Consumer Business Home', OrgUnit: 'Sales Division', Position: 'Sales Manager' },
+        { Category: 'TECHNOLOGY', Unit: 'Network Group', OrgUnit: 'Infrastructure', Position: 'Network Infrastructure Manager' },
+        { Category: 'SUPPORT', Unit: 'Finance Group', OrgUnit: 'Financial Planning', Position: 'Finance Manager' },
+        { Category: 'GOVERNANCE', Unit: 'Internal Audit', OrgUnit: 'Audit Operations', Position: 'Chief Audit Executive' }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Org Structure Template');
+      XLSX.writeFile(wb, 'PLDT_OrgStructure_Template.xlsx');
+    }
+
+    function uploadPositionJD(event) {
+      const files = event.target.files;
+      if (!files.length) return;
+
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const fileName = file.name.replace(/\.[^/.]+$/, "");
+          jobDescriptions[fileName] = `<div class="whitespace-pre-wrap">${e.target.result}</div>`;
+        };
+        reader.readAsText(file);
+      });
+
+      alert(`${files.length} job description(s) uploaded successfully!`);
+      // Refresh the positions view to show updated status
+      if (currentCategory && currentUnit && currentOrg) {
+        viewPositions(currentCategory, currentUnit, currentOrg);
+      }
+    }
+
+    function uploadBulkJD(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // For demo purposes, simulate bulk upload
+      // In a real implementation, you would extract and process ZIP/RAR files
+      alert('Bulk JD upload feature: Please upload individual files for now. ZIP/RAR processing requires server-side implementation.');
+      
+      // Reset file input
+      event.target.value = '';
+    }
+
+    // Logo Upload Function
+    function uploadLogo(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        // Update all logo instances
+        document.getElementById('company-logo').src = e.target.result;
+        document.getElementById('org-company-logo').src = e.target.result;
+        document.getElementById('jd-company-logo').src = e.target.result;
+        // Store in localStorage for persistence
+        localStorage.setItem('companyLogo', e.target.result);
+        alert('Logo updated successfully!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Edit Mode Functions
+    let editMode = false;
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      const btn = document.getElementById('edit-mode-btn');
+      
+      if (editMode) {
+        btn.textContent = '💾 Save Changes';
+        btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+        btn.classList.add('bg-green-600', 'hover:bg-green-700');
+        enableEditMode();
+      } else {
+        btn.textContent = '✏️ Edit Mode';
+        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+        disableEditMode();
+        alert('Changes saved successfully!');
+      }
+    }
+
+    function enableEditMode() {
+      // Make org chart nodes editable
+      const orgNodes = document.querySelectorAll('.org-node');
+      orgNodes.forEach(node => {
+        node.contentEditable = true;
+        node.style.border = '2px dashed #3b82f6';
+        node.title = 'Click to edit this position';
+      });
+
+      // Make job description items editable
+      const jdItems = document.querySelectorAll('#jd .bg-gray-100');
+      jdItems.forEach(item => {
+        item.contentEditable = true;
+        item.style.border = '2px dashed #3b82f6';
+        item.title = 'Click to edit this job title';
+      });
+    }
+
+    function disableEditMode() {
+      // Disable editing for org chart nodes
+      const orgNodes = document.querySelectorAll('.org-node');
+      orgNodes.forEach(node => {
+        node.contentEditable = false;
+        node.style.border = 'none';
+        node.title = '';
+      });
+
+      // Disable editing for job description items
+      const jdItems = document.querySelectorAll('#jd .bg-gray-100');
+      jdItems.forEach(item => {
+        item.contentEditable = false;
+        item.style.border = 'none';
+        item.title = '';
+      });
+    }
+
+    // Load saved logo on page load
+    window.addEventListener('load', function() {
+      const savedLogo = localStorage.getItem('companyLogo');
+      if (savedLogo) {
+        document.getElementById('company-logo').src = savedLogo;
+        document.getElementById('org-company-logo').src = savedLogo;
+        document.getElementById('jd-company-logo').src = savedLogo;
+      }
+    });
+
+    // Close modals when clicking outside
+    document.getElementById('jd-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeJobDescriptionModal();
+      }
+    });
+
+    document.getElementById('org-units-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeOrgUnitsModal();
+      }
+    });
+
+    document.getElementById('positions-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closePositionsModal();
+      }
+    });
   </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bf5e6a10d8dd9d',t:'MTc1NDY1OTgzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
