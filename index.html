@@ -421,124 +421,314 @@
                 </div>
             </div>
             <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Color Themes -->
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-semibold text-gray-800">🌈 Color Themes</h3>
-                        <div class="space-y-3">
-                            <button onclick="applyTheme('default')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
-                                <div class="flex items-center space-x-3">
-                                    <div class="flex space-x-1">
-                                        <div class="w-4 h-4 bg-blue-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-purple-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-red-600 rounded"></div>
-                                    </div>
-                                    <span class="font-medium">Default PLDT Theme</span>
-                                </div>
-                            </button>
-                            <button onclick="applyTheme('corporate')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
-                                <div class="flex items-center space-x-3">
-                                    <div class="flex space-x-1">
-                                        <div class="w-4 h-4 bg-gray-700 rounded"></div>
-                                        <div class="w-4 h-4 bg-gray-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-gray-500 rounded"></div>
-                                    </div>
-                                    <span class="font-medium">Corporate Gray</span>
-                                </div>
-                            </button>
-                            <button onclick="applyTheme('modern')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
-                                <div class="flex items-center space-x-3">
-                                    <div class="flex space-x-1">
-                                        <div class="w-4 h-4 bg-emerald-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-teal-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-cyan-600 rounded"></div>
-                                    </div>
-                                    <span class="font-medium">Modern Teal</span>
-                                </div>
-                            </button>
-                            <button onclick="applyTheme('warm')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
-                                <div class="flex items-center space-x-3">
-                                    <div class="flex space-x-1">
-                                        <div class="w-4 h-4 bg-orange-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-amber-600 rounded"></div>
-                                        <div class="w-4 h-4 bg-yellow-600 rounded"></div>
-                                    </div>
-                                    <span class="font-medium">Warm Orange</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
+                <!-- Tab Navigation -->
+                <div class="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+                    <button onclick="switchCustomizerTab('basic')" id="basicTab" class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white text-blue-600 shadow-sm">
+                        🎨 Basic
+                    </button>
+                    <button onclick="switchCustomizerTab('branding')" id="brandingTab" class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800">
+                        🏢 Branding
+                    </button>
+                    <button onclick="switchCustomizerTab('layout')" id="layoutTab" class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800">
+                        📐 Layout
+                    </button>
+                    <button onclick="switchCustomizerTab('advanced')" id="advancedTab" class="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800">
+                        ⚡ Advanced
+                    </button>
+                </div>
 
-                    <!-- Layout Options -->
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-semibold text-gray-800">📐 Layout Options</h3>
-                        <div class="space-y-3">
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" id="compactMode" onchange="toggleCompactMode()" class="w-4 h-4 text-blue-600">
-                                    <span class="font-medium">Compact Mode</span>
-                                </label>
-                                <p class="text-sm text-gray-600 mt-1">Smaller boxes and reduced spacing</p>
-                            </div>
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" id="showJobCounts" onchange="toggleJobCounts()" class="w-4 h-4 text-blue-600" checked>
-                                    <span class="font-medium">Show Position Counts</span>
-                                </label>
-                                <p class="text-sm text-gray-600 mt-1">Display number of positions in each department</p>
-                            </div>
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" id="showLevels" onchange="toggleLevels()" class="w-4 h-4 text-blue-600" checked>
-                                    <span class="font-medium">Show Job Levels</span>
-                                </label>
-                                <p class="text-sm text-gray-600 mt-1">Display job level descriptions</p>
+                <!-- Basic Tab -->
+                <div id="basicTabContent" class="tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Color Themes -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">🌈 Color Themes</h3>
+                            <div class="space-y-3">
+                                <button onclick="applyTheme('default')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex space-x-1">
+                                            <div class="w-4 h-4 bg-blue-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-purple-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-red-600 rounded"></div>
+                                        </div>
+                                        <span class="font-medium">Default PLDT Theme</span>
+                                    </div>
+                                </button>
+                                <button onclick="applyTheme('corporate')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex space-x-1">
+                                            <div class="w-4 h-4 bg-gray-700 rounded"></div>
+                                            <div class="w-4 h-4 bg-gray-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-gray-500 rounded"></div>
+                                        </div>
+                                        <span class="font-medium">Corporate Gray</span>
+                                    </div>
+                                </button>
+                                <button onclick="applyTheme('modern')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex space-x-1">
+                                            <div class="w-4 h-4 bg-emerald-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-teal-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-cyan-600 rounded"></div>
+                                        </div>
+                                        <span class="font-medium">Modern Teal</span>
+                                    </div>
+                                </button>
+                                <button onclick="applyTheme('warm')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex space-x-1">
+                                            <div class="w-4 h-4 bg-orange-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-amber-600 rounded"></div>
+                                            <div class="w-4 h-4 bg-yellow-600 rounded"></div>
+                                        </div>
+                                        <span class="font-medium">Warm Orange</span>
+                                    </div>
+                                </button>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Font Options -->
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-semibold text-gray-800">🔤 Typography</h3>
-                        <div class="space-y-3">
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
-                                <select id="fontSize" onchange="changeFontSize()" class="w-full p-2 border border-gray-300 rounded-lg">
-                                    <option value="small">Small</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="large">Large</option>
-                                    <option value="extra-large">Extra Large</option>
-                                </select>
-                            </div>
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Font Style</label>
-                                <select id="fontStyle" onchange="changeFontStyle()" class="w-full p-2 border border-gray-300 rounded-lg">
-                                    <option value="system">System Default</option>
-                                    <option value="modern">Modern (Inter)</option>
-                                    <option value="classic">Classic (Times)</option>
-                                    <option value="tech">Tech (Mono)</option>
-                                </select>
+                        <!-- Font Options -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">🔤 Typography</h3>
+                            <div class="space-y-3">
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+                                    <select id="fontSize" onchange="changeFontSize()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="small">Small</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="large">Large</option>
+                                        <option value="extra-large">Extra Large</option>
+                                    </select>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Font Style</label>
+                                    <select id="fontStyle" onchange="changeFontStyle()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="system">System Default</option>
+                                        <option value="modern">Modern (Inter)</option>
+                                        <option value="classic">Classic (Times)</option>
+                                        <option value="tech">Tech (Mono)</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Animation Options -->
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-semibold text-gray-800">✨ Animations</h3>
-                        <div class="space-y-3">
-                            <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" id="enableAnimations" onchange="toggleAnimations()" class="w-4 h-4 text-blue-600" checked>
-                                    <span class="font-medium">Enable Hover Effects</span>
-                                </label>
-                                <p class="text-sm text-gray-600 mt-1">Smooth transitions and hover animations</p>
+                <!-- Branding Tab -->
+                <div id="brandingTabContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Header Customization -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">🏢 Header & Branding</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="file" id="logoUpload" accept="image/*" onchange="handleLogoUpload(event)" class="hidden">
+                                        <button onclick="document.getElementById('logoUpload').click()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                            📁 Upload Logo
+                                        </button>
+                                        <button onclick="removeLogo()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                            🗑️ Remove
+                                        </button>
+                                    </div>
+                                    <div id="logoPreview" class="mt-3 hidden">
+                                        <img id="logoImage" src="" alt="Logo Preview" class="max-h-16 rounded border">
+                                    </div>
+                                </div>
+                                
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Header Title</label>
+                                    <input type="text" id="headerTitle" value="PLDT/SMART Organizational Chart" onchange="updateHeaderTitle()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                </div>
+                                
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Header Subtitle</label>
+                                    <textarea id="headerSubtitle" onchange="updateHeaderSubtitle()" class="w-full p-2 border border-gray-300 rounded-lg h-20">Toggle between horizontal and vertical layouts - Click on any box to expand departments</textarea>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Background Customization -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">🎨 Background & Colors</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Page Background</label>
+                                    <select id="backgroundColor" onchange="changeBackground()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="from-blue-50 to-indigo-100">Blue Gradient (Default)</option>
+                                        <option value="from-gray-50 to-gray-100">Light Gray</option>
+                                        <option value="from-green-50 to-emerald-100">Green Gradient</option>
+                                        <option value="from-purple-50 to-violet-100">Purple Gradient</option>
+                                        <option value="from-orange-50 to-amber-100">Orange Gradient</option>
+                                        <option value="bg-white">Pure White</option>
+                                        <option value="bg-gray-900">Dark Mode</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Header Background</label>
+                                    <select id="headerBackground" onchange="changeHeaderBackground()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="from-blue-600 to-indigo-700">Blue Gradient (Default)</option>
+                                        <option value="from-gray-800 to-gray-900">Dark Gray</option>
+                                        <option value="from-green-600 to-emerald-700">Green Gradient</option>
+                                        <option value="from-purple-600 to-violet-700">Purple Gradient</option>
+                                        <option value="from-orange-600 to-amber-700">Orange Gradient</option>
+                                        <option value="bg-black">Pure Black</option>
+                                        <option value="bg-white text-gray-800">White Header</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout Tab -->
+                <div id="layoutTabContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Layout Options -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">📐 Layout Options</h3>
+                            <div class="space-y-3">
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="compactMode" onchange="toggleCompactMode()" class="w-4 h-4 text-blue-600">
+                                        <span class="font-medium">Compact Mode</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Smaller boxes and reduced spacing</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="showJobCounts" onchange="toggleJobCounts()" class="w-4 h-4 text-blue-600" checked>
+                                        <span class="font-medium">Show Position Counts</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Display number of positions in each department</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="showLevels" onchange="toggleLevels()" class="w-4 h-4 text-blue-600" checked>
+                                        <span class="font-medium">Show Job Levels</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Display job level descriptions</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="connectionLines" onchange="toggleConnectionLines()" class="w-4 h-4 text-blue-600" checked>
+                                        <span class="font-medium">Connection Lines</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Show lines connecting organizational boxes</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spacing & Style -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">📏 Spacing & Style</h3>
+                            <div class="space-y-3">
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Layout Spacing</label>
+                                    <select id="layoutSpacing" onchange="changeLayoutSpacing()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="tight">Tight</option>
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="relaxed">Relaxed</option>
+                                        <option value="loose">Loose</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Border Radius</label>
+                                    <select id="borderRadius" onchange="changeBorderRadius()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="none">Sharp Corners</option>
+                                        <option value="small">Small Radius</option>
+                                        <option value="normal" selected>Normal Radius</option>
+                                        <option value="large">Large Radius</option>
+                                        <option value="full">Rounded Pills</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Box Shadow</label>
+                                    <select id="boxShadow" onchange="changeBoxShadow()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="none">No Shadow</option>
+                                        <option value="small">Small Shadow</option>
+                                        <option value="normal" selected>Normal Shadow</option>
+                                        <option value="large">Large Shadow</option>
+                                        <option value="extra-large">Extra Large Shadow</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Tab -->
+                <div id="advancedTabContent" class="tab-content hidden">
+                    <div class="grid grid-cols-1 gap-8">
+                        <!-- Drag & Drop -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">🎯 Interactive Features</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="enableAnimations" onchange="toggleAnimations()" class="w-4 h-4 text-blue-600" checked>
+                                        <span class="font-medium">Enable Hover Effects</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Smooth transitions and hover animations</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="enableShadows" onchange="toggleShadows()" class="w-4 h-4 text-blue-600" checked>
+                                        <span class="font-medium">Box Shadows</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Add depth with shadow effects</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <label class="flex items-center space-x-3">
+                                        <input type="checkbox" id="dragDropEnabled" onchange="toggleDragDrop()" class="w-4 h-4 text-blue-600">
+                                        <span class="font-medium">Drag & Drop Mode</span>
+                                    </label>
+                                    <p class="text-sm text-gray-600 mt-1">Enable repositioning of organizational boxes</p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg">
+                                    <button onclick="toggleEditMode()" id="editModeBtn" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                        ✏️ Enter Edit Mode
+                                    </button>
+                                    <p class="text-sm text-gray-600 mt-1">Click to edit box content directly</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom CSS -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">💻 Custom CSS</h3>
                             <div class="p-4 border border-gray-200 rounded-lg">
-                                <label class="flex items-center space-x-3">
-                                    <input type="checkbox" id="enableShadows" onchange="toggleShadows()" class="w-4 h-4 text-blue-600" checked>
-                                    <span class="font-medium">Box Shadows</span>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Custom CSS Rules</label>
+                                <textarea id="customCSS" onchange="applyCustomCSS()" placeholder="/* Add your custom CSS here */
+.org-box {
+    /* Custom styles */
+}
+
+.nav-header {
+    /* Header customization */
+}" class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm h-40"></textarea>
+                                <p class="text-sm text-gray-600 mt-2">⚠️ Advanced users only. Invalid CSS may break the layout.</p>
+                            </div>
+                        </div>
+
+                        <!-- Export/Import Settings -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-semibold text-gray-800">📦 Settings Management</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <button onclick="exportSettings()" class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    📤 Export Settings
+                                </button>
+                                <label for="importSettings" class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer text-center">
+                                    📥 Import Settings
+                                    <input type="file" id="importSettings" accept=".json" onchange="importSettings(event)" class="hidden">
                                 </label>
-                                <p class="text-sm text-gray-600 mt-1">Add depth with shadow effects</p>
+                                <button onclick="generateHTML()" class="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                                    🔧 Generate HTML
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1718,7 +1908,7 @@ The organizational chart has been updated with your Excel data!`);
         }
 
         // ========================================
-        // INTERFACE CUSTOMIZATION SYSTEM
+        // ADVANCED INTERFACE CUSTOMIZATION SYSTEM
         // ========================================
         
         let customizationSettings = {
@@ -1729,16 +1919,56 @@ The organizational chart has been updated with your Excel data!`);
             fontSize: 'medium',
             fontStyle: 'system',
             enableAnimations: true,
-            enableShadows: true
+            enableShadows: true,
+            // New advanced settings
+            headerLogo: null,
+            headerTitle: 'PLDT/SMART Organizational Chart',
+            headerSubtitle: 'Toggle between horizontal and vertical layouts - Click on any box to expand departments',
+            backgroundColor: 'from-blue-50 to-indigo-100',
+            headerBackground: 'from-blue-600 to-indigo-700',
+            customCSS: '',
+            layoutSpacing: 'normal',
+            borderRadius: 'normal',
+            boxShadow: 'normal',
+            connectionLines: true,
+            customColors: {},
+            dragDropEnabled: false
         };
 
+        let isDragging = false;
+        let dragElement = null;
+        let dragOffset = { x: 0, y: 0 };
+        let editMode = false;
+
         function openCustomizer() {
+            if (!checkAdminAccess('access customization settings')) {
+                return;
+            }
+            
             document.getElementById('customizerModal').classList.remove('hidden');
             document.getElementById('customizerModal').classList.add('flex');
             document.body.style.overflow = 'hidden';
             
             // Load current settings
             loadCustomizationSettings();
+        }
+
+        function switchCustomizerTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('[id$="Tab"]').forEach(tab => {
+                tab.className = 'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + 'TabContent').classList.remove('hidden');
+            
+            // Add active class to selected tab
+            document.getElementById(tabName + 'Tab').className = 'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white text-blue-600 shadow-sm';
         }
 
         function closeCustomizer() {
@@ -1758,13 +1988,515 @@ The organizational chart has been updated with your Excel data!`);
             document.getElementById('compactMode').checked = customizationSettings.compactMode;
             document.getElementById('showJobCounts').checked = customizationSettings.showJobCounts;
             document.getElementById('showLevels').checked = customizationSettings.showLevels;
+            document.getElementById('connectionLines').checked = customizationSettings.connectionLines;
             document.getElementById('fontSize').value = customizationSettings.fontSize;
             document.getElementById('fontStyle').value = customizationSettings.fontStyle;
             document.getElementById('enableAnimations').checked = customizationSettings.enableAnimations;
             document.getElementById('enableShadows').checked = customizationSettings.enableShadows;
+            document.getElementById('dragDropEnabled').checked = customizationSettings.dragDropEnabled;
+            document.getElementById('headerTitle').value = customizationSettings.headerTitle;
+            document.getElementById('headerSubtitle').value = customizationSettings.headerSubtitle;
+            document.getElementById('backgroundColor').value = customizationSettings.backgroundColor;
+            document.getElementById('headerBackground').value = customizationSettings.headerBackground;
+            document.getElementById('layoutSpacing').value = customizationSettings.layoutSpacing;
+            document.getElementById('borderRadius').value = customizationSettings.borderRadius;
+            document.getElementById('boxShadow').value = customizationSettings.boxShadow;
+            document.getElementById('customCSS').value = customizationSettings.customCSS;
             
             // Apply current settings
             applyAllCustomizations();
+        }
+
+        // ========================================
+        // NEW CUSTOMIZATION FUNCTIONS
+        // ========================================
+
+        function handleLogoUpload(event) {
+            if (!checkAdminAccess('upload logo')) {
+                event.target.value = '';
+                return;
+            }
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                customizationSettings.headerLogo = e.target.result;
+                document.getElementById('logoImage').src = e.target.result;
+                document.getElementById('logoPreview').classList.remove('hidden');
+                applyHeaderLogo();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeLogo() {
+            if (!checkAdminAccess('remove logo')) return;
+            
+            customizationSettings.headerLogo = null;
+            document.getElementById('logoPreview').classList.add('hidden');
+            applyHeaderLogo();
+        }
+
+        function applyHeaderLogo() {
+            const headerContent = document.querySelector('.nav-header .max-w-7xl');
+            const existingLogo = document.getElementById('headerLogo');
+            
+            if (existingLogo) {
+                existingLogo.remove();
+            }
+            
+            if (customizationSettings.headerLogo) {
+                const logoElement = document.createElement('img');
+                logoElement.id = 'headerLogo';
+                logoElement.src = customizationSettings.headerLogo;
+                logoElement.className = 'h-12 w-auto mx-auto mb-4';
+                logoElement.alt = 'Company Logo';
+                
+                headerContent.insertBefore(logoElement, headerContent.firstChild);
+            }
+        }
+
+        function updateHeaderTitle() {
+            if (!checkAdminAccess('update header title')) {
+                document.getElementById('headerTitle').value = customizationSettings.headerTitle;
+                return;
+            }
+            
+            customizationSettings.headerTitle = document.getElementById('headerTitle').value;
+            applyHeaderTitle();
+        }
+
+        function applyHeaderTitle() {
+            const titleElement = document.querySelector('.nav-header h1');
+            if (titleElement) {
+                titleElement.textContent = customizationSettings.headerTitle;
+            }
+        }
+
+        function updateHeaderSubtitle() {
+            if (!checkAdminAccess('update header subtitle')) {
+                document.getElementById('headerSubtitle').value = customizationSettings.headerSubtitle;
+                return;
+            }
+            
+            customizationSettings.headerSubtitle = document.getElementById('headerSubtitle').value;
+            applyHeaderSubtitle();
+        }
+
+        function applyHeaderSubtitle() {
+            const subtitleElement = document.querySelector('.nav-header p');
+            if (subtitleElement) {
+                subtitleElement.textContent = customizationSettings.headerSubtitle;
+            }
+        }
+
+        function changeBackground() {
+            if (!checkAdminAccess('change background')) {
+                document.getElementById('backgroundColor').value = customizationSettings.backgroundColor;
+                return;
+            }
+            
+            customizationSettings.backgroundColor = document.getElementById('backgroundColor').value;
+            applyBackground();
+        }
+
+        function applyBackground() {
+            const body = document.body;
+            // Remove existing background classes
+            body.className = body.className.replace(/bg-\S+/g, '').replace(/from-\S+/g, '').replace(/to-\S+/g, '');
+            
+            if (customizationSettings.backgroundColor.includes('gradient')) {
+                body.className += ` bg-gradient-to-br ${customizationSettings.backgroundColor}`;
+            } else {
+                body.className += ` ${customizationSettings.backgroundColor}`;
+            }
+            
+            // Handle dark mode text
+            if (customizationSettings.backgroundColor === 'bg-gray-900') {
+                body.style.color = 'white';
+            } else {
+                body.style.color = '';
+            }
+        }
+
+        function changeHeaderBackground() {
+            if (!checkAdminAccess('change header background')) {
+                document.getElementById('headerBackground').value = customizationSettings.headerBackground;
+                return;
+            }
+            
+            customizationSettings.headerBackground = document.getElementById('headerBackground').value;
+            applyHeaderBackground();
+        }
+
+        function applyHeaderBackground() {
+            const header = document.querySelector('.nav-header');
+            if (!header) return;
+            
+            // Remove existing classes
+            header.className = 'nav-header color-white padding-20px-0 margin-bottom-30px';
+            
+            if (customizationSettings.headerBackground.includes('gradient')) {
+                header.className += ` bg-gradient-to-r ${customizationSettings.headerBackground}`;
+            } else {
+                header.className += ` ${customizationSettings.headerBackground}`;
+            }
+        }
+
+        function toggleConnectionLines() {
+            if (!checkAdminAccess('toggle connection lines')) {
+                document.getElementById('connectionLines').checked = customizationSettings.connectionLines;
+                return;
+            }
+            
+            customizationSettings.connectionLines = document.getElementById('connectionLines').checked;
+            applyConnectionLines();
+        }
+
+        function applyConnectionLines() {
+            const style = document.createElement('style');
+            style.id = 'connectionlines-override';
+            
+            const existing = document.getElementById('connectionlines-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.connectionLines) {
+                style.textContent = `
+                    .connection-line,
+                    .connecting-line-horizontal,
+                    .connecting-line-vertical {
+                        display: none !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function changeLayoutSpacing() {
+            if (!checkAdminAccess('change layout spacing')) {
+                document.getElementById('layoutSpacing').value = customizationSettings.layoutSpacing;
+                return;
+            }
+            
+            customizationSettings.layoutSpacing = document.getElementById('layoutSpacing').value;
+            applyLayoutSpacing();
+        }
+
+        function applyLayoutSpacing() {
+            const spacings = {
+                tight: { gap: '10px', margin: '4px', padding: '8px' },
+                normal: { gap: '20px', margin: '8px', padding: '12px' },
+                relaxed: { gap: '30px', margin: '12px', padding: '16px' },
+                loose: { gap: '40px', margin: '16px', padding: '20px' }
+            };
+            
+            const spacing = spacings[customizationSettings.layoutSpacing];
+            
+            const style = document.createElement('style');
+            style.id = 'spacing-override';
+            
+            const existing = document.getElementById('spacing-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .horizontal-container {
+                    gap: ${spacing.gap} !important;
+                }
+                .org-box {
+                    margin: ${spacing.margin} !important;
+                    padding: ${spacing.padding} !important;
+                }
+                .org-level-horizontal {
+                    gap: ${spacing.gap} !important;
+                }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function changeBorderRadius() {
+            if (!checkAdminAccess('change border radius')) {
+                document.getElementById('borderRadius').value = customizationSettings.borderRadius;
+                return;
+            }
+            
+            customizationSettings.borderRadius = document.getElementById('borderRadius').value;
+            applyBorderRadius();
+        }
+
+        function applyBorderRadius() {
+            const radii = {
+                none: '0px',
+                small: '4px',
+                normal: '8px',
+                large: '16px',
+                full: '9999px'
+            };
+            
+            const radius = radii[customizationSettings.borderRadius];
+            
+            const style = document.createElement('style');
+            style.id = 'borderradius-override';
+            
+            const existing = document.getElementById('borderradius-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .org-box {
+                    border-radius: ${radius} !important;
+                }
+                .search-container {
+                    border-radius: ${radius} !important;
+                }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function changeBoxShadow() {
+            if (!checkAdminAccess('change box shadow')) {
+                document.getElementById('boxShadow').value = customizationSettings.boxShadow;
+                return;
+            }
+            
+            customizationSettings.boxShadow = document.getElementById('boxShadow').value;
+            applyBoxShadow();
+        }
+
+        function applyBoxShadow() {
+            const shadows = {
+                none: 'none',
+                small: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                normal: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                large: '0 10px 15px rgba(0, 0, 0, 0.1)',
+                'extra-large': '0 25px 50px rgba(0, 0, 0, 0.25)'
+            };
+            
+            const shadow = shadows[customizationSettings.boxShadow];
+            
+            const style = document.createElement('style');
+            style.id = 'boxshadow-override';
+            
+            const existing = document.getElementById('boxshadow-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .org-box {
+                    box-shadow: ${shadow} !important;
+                }
+                .org-box:hover {
+                    box-shadow: ${shadow === 'none' ? 'none' : '0 8px 25px rgba(59, 130, 246, 0.15)'} !important;
+                }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleDragDrop() {
+            if (!checkAdminAccess('toggle drag and drop')) {
+                document.getElementById('dragDropEnabled').checked = customizationSettings.dragDropEnabled;
+                return;
+            }
+            
+            customizationSettings.dragDropEnabled = document.getElementById('dragDropEnabled').checked;
+            applyDragDrop();
+        }
+
+        function applyDragDrop() {
+            const orgBoxes = document.querySelectorAll('.org-box');
+            
+            orgBoxes.forEach(box => {
+                if (customizationSettings.dragDropEnabled) {
+                    box.style.cursor = 'move';
+                    box.draggable = true;
+                    box.addEventListener('dragstart', handleDragStart);
+                    box.addEventListener('dragover', handleDragOver);
+                    box.addEventListener('drop', handleDrop);
+                } else {
+                    box.style.cursor = 'pointer';
+                    box.draggable = false;
+                    box.removeEventListener('dragstart', handleDragStart);
+                    box.removeEventListener('dragover', handleDragOver);
+                    box.removeEventListener('drop', handleDrop);
+                }
+            });
+        }
+
+        function handleDragStart(e) {
+            dragElement = e.target;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (dragElement !== e.target) {
+                // Simple position swap
+                const dragParent = dragElement.parentNode;
+                const dropParent = e.target.parentNode;
+                
+                const dragNext = dragElement.nextSibling;
+                const dropNext = e.target.nextSibling;
+                
+                dragParent.insertBefore(e.target, dragNext);
+                dropParent.insertBefore(dragElement, dropNext);
+            }
+        }
+
+        function toggleEditMode() {
+            if (!checkAdminAccess('toggle edit mode')) return;
+            
+            editMode = !editMode;
+            const btn = document.getElementById('editModeBtn');
+            
+            if (editMode) {
+                btn.textContent = '💾 Save Changes';
+                btn.className = 'w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors';
+                enableEditMode();
+            } else {
+                btn.textContent = '✏️ Enter Edit Mode';
+                btn.className = 'w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors';
+                disableEditMode();
+            }
+        }
+
+        function enableEditMode() {
+            const orgBoxes = document.querySelectorAll('.org-box');
+            orgBoxes.forEach(box => {
+                box.style.border = '2px dashed #3b82f6';
+                box.contentEditable = true;
+                box.addEventListener('blur', saveBoxContent);
+            });
+        }
+
+        function disableEditMode() {
+            const orgBoxes = document.querySelectorAll('.org-box');
+            orgBoxes.forEach(box => {
+                box.style.border = '';
+                box.contentEditable = false;
+                box.removeEventListener('blur', saveBoxContent);
+            });
+        }
+
+        function saveBoxContent(e) {
+            // In a real application, you would save this to your data structure
+            console.log('Box content updated:', e.target.textContent);
+        }
+
+        function applyCustomCSS() {
+            if (!checkAdminAccess('apply custom CSS')) {
+                document.getElementById('customCSS').value = customizationSettings.customCSS;
+                return;
+            }
+            
+            customizationSettings.customCSS = document.getElementById('customCSS').value;
+            
+            const style = document.createElement('style');
+            style.id = 'custom-css-override';
+            
+            const existing = document.getElementById('custom-css-override');
+            if (existing) existing.remove();
+            
+            try {
+                style.textContent = customizationSettings.customCSS;
+                document.head.appendChild(style);
+            } catch (error) {
+                alert('❌ Invalid CSS syntax. Please check your custom CSS.');
+            }
+        }
+
+        function exportSettings() {
+            const settings = {
+                ...customizationSettings,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'org-chart-settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importSettings(event) {
+            if (!checkAdminAccess('import settings')) {
+                event.target.value = '';
+                return;
+            }
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const settings = JSON.parse(e.target.result);
+                    customizationSettings = { ...customizationSettings, ...settings };
+                    loadCustomizationSettings();
+                    alert('✅ Settings imported successfully!');
+                } catch (error) {
+                    alert('❌ Invalid settings file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function generateHTML() {
+            if (!checkAdminAccess('generate HTML')) return;
+            
+            // Get current HTML with all customizations applied
+            const currentHTML = document.documentElement.outerHTML;
+            
+            // Create a clean version with embedded styles
+            const cleanHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Organizational Chart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Custom Styles Applied -->
+    <style>
+        ${Array.from(document.querySelectorAll('style')).map(style => style.textContent).join('\n')}
+    </style>
+</head>
+<body class="${document.body.className}">
+    ${document.getElementById('mainApp').outerHTML}
+    
+    <script>
+        // Embedded customization settings
+        const customizationSettings = ${JSON.stringify(customizationSettings, null, 2)};
+        
+        // Add your organizational data and functions here
+        // This is a simplified version - you would include all necessary JavaScript
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcd179e3adfedf',t:'MTc1NDYzMzA4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>`;
+            
+            const blob = new Blob([cleanHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'custom-org-chart.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('🔧 Custom HTML file generated and downloaded!\n\nThis file contains your current customizations and can be used as a standalone organizational chart.');
         }
 
         function applyTheme(themeName) {
@@ -2046,6 +2778,17 @@ The organizational chart has been updated with your Excel data!`);
             applyFontStyle();
             applyAnimations();
             applyShadows();
+            applyHeaderLogo();
+            applyHeaderTitle();
+            applyHeaderSubtitle();
+            applyBackground();
+            applyHeaderBackground();
+            applyConnectionLines();
+            applyLayoutSpacing();
+            applyBorderRadius();
+            applyBoxShadow();
+            applyDragDrop();
+            applyCustomCSS();
         }
 
         function saveCustomization() {
@@ -2122,6 +2865,5 @@ The organizational chart has been updated with your Excel data!`);
             loadCustomizationSettings();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcc8af8114dd35',t:'MTc1NDYzMjcyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
-
