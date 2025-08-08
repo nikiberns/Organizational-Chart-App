@@ -43,10 +43,10 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
-    .org-level-1 { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); }
-    .org-level-2 { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
-    .org-level-3 { background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%); }
-    .org-level-4 { background: linear-gradient(135deg, #3b82f6 0%, #93c5fd 100%); }
+    .org-level-1 { background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); }
+    .org-level-2 { background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); }
+    .org-level-3 { background: linear-gradient(135deg, #9ca3af 0%, #d1d5db 100%); }
+    .org-level-4 { background: linear-gradient(135deg, #d1d5db 0%, #e5e7eb 100%); }
     
     /* Dynamic color classes */
     .org-blue-1 { background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%); }
@@ -88,10 +88,37 @@
     .org-pink-2 { background: linear-gradient(135deg, #db2777 0%, #ec4899 100%); }
     .org-pink-3 { background: linear-gradient(135deg, #f472b6 0%, #f9a8d4 100%); }
     .org-pink-4 { background: linear-gradient(135deg, #f9a8d4 0%, #fbcfe8 100%); }
+    
+    .org-gray-1 { background: linear-gradient(135deg, #374151 0%, #4b5563 100%); }
+    .org-gray-2 { background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); }
+    .org-gray-3 { background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); }
+    .org-gray-4 { background: linear-gradient(135deg, #9ca3af 0%, #d1d5db 100%); }
     .org-connector {
       position: absolute;
       background: #cbd5e1;
       z-index: -1;
+    }
+    .org-connector-solid {
+      position: absolute;
+      background: #475569;
+      z-index: -1;
+    }
+    .org-connector-dashed {
+      position: absolute;
+      background: repeating-linear-gradient(
+        to right,
+        #475569 0px,
+        #475569 8px,
+        transparent 8px,
+        transparent 16px
+      );
+      z-index: -1;
+    }
+    .org-connector-vertical {
+      width: 2px;
+    }
+    .org-connector-horizontal {
+      height: 2px;
     }
     .org-container {
       display: flex;
@@ -307,20 +334,96 @@
           </nav>
         </div>
         <div class="flex items-center space-x-2">
-          <div id="positions-admin-controls" class="hidden flex space-x-2">
-            <input type="file" id="position-jd-file" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadPositionJD(event)">
-            <button onclick="document.getElementById('position-jd-file').click()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-              📁 Upload JD
-            </button>
-            <button onclick="removePositionJD()" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
-              🗑️ Remove JD
-            </button>
-          </div>
+
           <button onclick="closePositionsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
       </div>
       <div id="positions-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Positions will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Management Modal -->
+  <div id="category-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-indigo-900">🏗️ Category Management</h3>
+        <button onclick="closeCategoryManager()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Add New Category -->
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-green-900 mb-4">➕ Add New Category</h4>
+          <form onsubmit="addNewCategory(event)" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+              <input type="text" id="new-category-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., OPERATIONS" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category Color</label>
+              <select id="new-category-color" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="red">Red</option>
+                <option value="purple">Purple</option>
+                <option value="orange">Orange</option>
+                <option value="teal">Teal</option>
+                <option value="indigo">Indigo</option>
+                <option value="pink">Pink</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+              Add Category
+            </button>
+          </form>
+        </div>
+
+        <!-- Add Unit to Category -->
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-blue-900 mb-4">📋 Add Unit to Category</h4>
+          <form onsubmit="addUnitToCategory(event)" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
+              <select id="unit-category-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <!-- Categories will be populated here -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Unit Name</label>
+              <input type="text" id="new-unit-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Regional Operations" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+              Add Unit
+            </button>
+          </form>
+        </div>
+
+        <!-- Current Categories -->
+        <div class="bg-gray-50 p-4 rounded-lg lg:col-span-2">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4">📊 Current Categories & Units</h4>
+          <div id="current-categories" class="space-y-4">
+            <!-- Current categories will be displayed here -->
+          </div>
+        </div>
+
+        <!-- Bulk Operations -->
+        <div class="bg-purple-50 p-4 rounded-lg lg:col-span-2">
+          <h4 class="text-lg font-semibold text-purple-900 mb-4">⚡ Bulk Operations</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input type="file" id="categories-file" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoriesStructure(event)">
+            <button onclick="document.getElementById('categories-file').click()" class="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 text-sm">
+              📁 Upload Categories
+            </button>
+            <button onclick="downloadCategoriesTemplate()" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 text-sm">
+              📥 Download Template
+            </button>
+            <button onclick="exportCurrentStructure()" class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 text-sm" id="export-categories-btn">
+              📤 Export Current
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -337,6 +440,9 @@
       </button>
       <button onclick="navigate('jd')" id="nav-jd" class="p-3 rounded hover:bg-blue-100">
         <img id="jd-icon" src="https://img.icons8.com/ios-filled/28/000000/resume.png" alt="Job Description" />
+      </button>
+      <button onclick="navigate('admin')" id="nav-admin" class="p-3 rounded hover:bg-blue-100 hidden">
+        <img id="admin-icon" src="https://img.icons8.com/ios-filled/28/000000/admin-settings-male.png" alt="Admin Panel" />
       </button>
       <div class="flex-1"></div>
       <div class="text-center">
@@ -436,15 +542,21 @@
               </label>
             </div>
             <div id="org-admin-controls" class="space-x-2 hidden">
-              <input type="file" id="org-file" accept=".xlsx,.xls" class="hidden" onchange="uploadOrgChart(event)">
+              <input type="file" id="org-file" accept=".xlsx,.xls,.vsdx,.vsd" class="hidden" onchange="uploadOrgChart(event)">
               <button onclick="document.getElementById('org-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-                📁 Upload Org Chart
+                📁 Upload Org Chart (Excel/Visio)
               </button>
               <button onclick="removeOrgChart()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700">
                 🗑️ Remove Org Chart
               </button>
               <button onclick="downloadOrgTemplate()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
                 📥 Org Template
+              </button>
+              <button onclick="exportCurrentOrgStructure()" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700" id="export-org-btn">
+                📤 Export Current Structure
+              </button>
+              <button onclick="exportStructureWithJDs()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700" id="export-jd-btn">
+                📋 Export with JDs
               </button>
               <button onclick="toggleEditMode()" id="edit-mode-btn" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700">
                 ✏️ Edit Mode
@@ -484,6 +596,132 @@
         </div>
       </div>
 
+      <!-- Admin Panel -->
+      <div id="admin" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+          <div class="flex items-center space-x-4">
+            <img id="admin-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-8" alt="Company Logo" />
+            <h2 class="text-xl font-bold">Admin Panel</h2>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- User Management Section -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <span class="text-blue-600 mr-2">👥</span>
+              User Management
+            </h3>
+            
+            <!-- Password Reset Requests -->
+            <div class="mb-6">
+              <h4 class="font-medium text-gray-800 mb-3 flex items-center justify-between">
+                <span>🔑 Password Reset Requests</span>
+                <span id="reset-count" class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">0</span>
+              </h4>
+              <div id="admin-reset-requests" class="space-y-2 max-h-40 overflow-y-auto">
+                <p class="text-gray-500 text-sm">No pending reset requests</p>
+              </div>
+            </div>
+
+            <!-- Access Requests -->
+            <div class="mb-6">
+              <h4 class="font-medium text-gray-800 mb-3 flex items-center justify-between">
+                <span>📝 New Access Requests</span>
+                <span id="access-count" class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">0</span>
+              </h4>
+              <div id="admin-access-requests" class="space-y-2 max-h-40 overflow-y-auto">
+                <p class="text-gray-500 text-sm">No pending access requests</p>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="border-t pt-4">
+              <h4 class="font-medium text-gray-800 mb-3">⚡ Quick Actions</h4>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="refreshUserRequests()" class="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                  🔄 Refresh
+                </button>
+                <button onclick="clearAllRequests()" class="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700">
+                  🗑️ Clear All
+                </button>
+                <button onclick="exportUserList()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700">
+                  📤 Export Users
+                </button>
+                <button onclick="changeAdminPassword()" class="bg-purple-600 text-white px-3 py-2 rounded text-sm hover:bg-purple-700">
+                  🔐 Change Password
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Approved Users Section -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-between">
+              <span class="flex items-center">
+                <span class="text-green-600 mr-2">✅</span>
+                Approved Users
+              </span>
+              <span id="approved-count" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">0</span>
+            </h3>
+            
+            <div id="admin-approved-users" class="space-y-2 max-h-80 overflow-y-auto">
+              <p class="text-gray-500 text-sm">No approved users</p>
+            </div>
+          </div>
+
+          <!-- System Statistics -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <span class="text-indigo-600 mr-2">📊</span>
+              System Statistics
+            </h3>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-blue-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-blue-600" id="total-users">0</div>
+                <div class="text-sm text-blue-800">Total Users</div>
+              </div>
+              <div class="bg-green-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-green-600" id="active-sessions">1</div>
+                <div class="text-sm text-green-800">Active Sessions</div>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-purple-600" id="total-jds">0</div>
+                <div class="text-sm text-purple-800">Job Descriptions</div>
+              </div>
+              <div class="bg-orange-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-orange-600" id="org-units">0</div>
+                <div class="text-sm text-orange-800">Org Units</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- System Controls -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <span class="text-red-600 mr-2">⚙️</span>
+              System Controls
+            </h3>
+            
+            <div class="space-y-3">
+              <button onclick="backupSystemData()" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm">
+                💾 Backup System Data
+              </button>
+              <button onclick="restoreSystemData()" class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 text-sm">
+                📥 Restore System Data
+              </button>
+              <button onclick="resetSystemToDefaults()" class="w-full bg-yellow-600 text-white py-2 px-4 rounded hover:bg-yellow-700 text-sm">
+                🔄 Reset to Defaults
+              </button>
+              <button onclick="clearAllSystemData()" class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 text-sm">
+                🗑️ Clear All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- JD Database -->
       <div id="jd" class="hidden">
         <div class="flex justify-between items-center mb-6">
@@ -492,6 +730,9 @@
             <h2 class="text-xl font-bold">Job Descriptions</h2>
           </div>
           <div id="jd-admin-controls" class="space-x-2 hidden">
+            <button onclick="openCategoryManager()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">
+              🏗️ Manage Categories
+            </button>
             <input type="file" id="org-structure-file" accept=".xlsx,.xls" class="hidden" onchange="uploadOrgStructure(event)">
             <button onclick="document.getElementById('org-structure-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
               📁 Upload All Structure
@@ -515,145 +756,8 @@
           </div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Business -->
-          <div class="space-y-4">
-            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">BUSINESS</h3>
-            </div>
-            <div class="space-y-2">
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('BUSINESS', 'Consumer Business Home')">Consumer Business Home</div>
-                <div id="admin-upload-Consumer-Business-Home" class="hidden absolute top-1 right-1 flex space-x-1">
-                  <input type="file" id="file-Consumer-Business-Home" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'BUSINESS', 'Consumer Business Home')">
-                  <button onclick="document.getElementById('file-Consumer-Business-Home').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Consumer Business Home">📁</button>
-                  <button onclick="removeCategoryStructure('BUSINESS', 'Consumer Business Home')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove structure for Consumer Business Home">🗑️</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('BUSINESS', 'Consumer Business Wireless')">Consumer Business Wireless</div>
-                <div id="admin-upload-Consumer-Business-Wireless" class="hidden absolute top-1 right-1 flex space-x-1">
-                  <input type="file" id="file-Consumer-Business-Wireless" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'BUSINESS', 'Consumer Business Wireless')">
-                  <button onclick="document.getElementById('file-Consumer-Business-Wireless').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Consumer Business Wireless">📁</button>
-                  <button onclick="removeCategoryStructure('BUSINESS', 'Consumer Business Wireless')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove structure for Consumer Business Wireless">🗑️</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('BUSINESS', 'Home Sales and Development')">Home Sales and Development</div>
-                <div id="admin-upload-Home-Sales-and-Development" class="hidden absolute top-1 right-1 flex space-x-1">
-                  <input type="file" id="file-Home-Sales-and-Development" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'BUSINESS', 'Home Sales and Development')">
-                  <button onclick="document.getElementById('file-Home-Sales-and-Development').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Home Sales and Development">📁</button>
-                  <button onclick="removeCategoryStructure('BUSINESS', 'Home Sales and Development')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove structure for Home Sales and Development">🗑️</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('BUSINESS', 'Wireless Sales and Development')">Wireless Sales and Development</div>
-                <div id="admin-upload-Wireless-Sales-and-Development" class="hidden absolute top-1 right-1 flex space-x-1">
-                  <input type="file" id="file-Wireless-Sales-and-Development" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'BUSINESS', 'Wireless Sales and Development')">
-                  <button onclick="document.getElementById('file-Wireless-Sales-and-Development').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Wireless Sales and Development">📁</button>
-                  <button onclick="removeCategoryStructure('BUSINESS', 'Wireless Sales and Development')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove structure for Wireless Sales and Development">🗑️</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('BUSINESS', 'Enterprise Business')">Enterprise Business</div>
-                <div id="admin-upload-Enterprise-Business" class="hidden absolute top-1 right-1 flex space-x-1">
-                  <input type="file" id="file-Enterprise-Business" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'BUSINESS', 'Enterprise Business')">
-                  <button onclick="document.getElementById('file-Enterprise-Business').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Enterprise Business">📁</button>
-                  <button onclick="removeCategoryStructure('BUSINESS', 'Enterprise Business')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove structure for Enterprise Business">🗑️</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Technology -->
-          <div class="space-y-4">
-            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">TECHNOLOGY</h3>
-            </div>
-            <div class="space-y-2">
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('TECHNOLOGY', 'Network Group')">Network Group</div>
-                <div id="admin-upload-Network-Group" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Network-Group" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'TECHNOLOGY', 'Network Group')">
-                  <button onclick="document.getElementById('file-Network-Group').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Network Group">📁</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('TECHNOLOGY', 'Information Technology')">Information Technology</div>
-                <div id="admin-upload-Information-Technology" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Information-Technology" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'TECHNOLOGY', 'Information Technology')">
-                  <button onclick="document.getElementById('file-Information-Technology').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Information Technology">📁</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('TECHNOLOGY', 'Cybersecurity')">Cybersecurity</div>
-                <div id="admin-upload-Cybersecurity" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Cybersecurity" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'TECHNOLOGY', 'Cybersecurity')">
-                  <button onclick="document.getElementById('file-Cybersecurity').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Cybersecurity">📁</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Support -->
-          <div class="space-y-4">
-            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">SUPPORT</h3>
-            </div>
-            <div class="space-y-2">
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('SUPPORT', 'Finance Group')">Finance Group</div>
-                <div id="admin-upload-Finance-Group" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Finance-Group" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'SUPPORT', 'Finance Group')">
-                  <button onclick="document.getElementById('file-Finance-Group').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Finance Group">📁</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('SUPPORT', 'People Group')">People Group</div>
-                <div id="admin-upload-People-Group" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-People-Group" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'SUPPORT', 'People Group')">
-                  <button onclick="document.getElementById('file-People-Group').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for People Group">📁</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('SUPPORT', 'Supply Chain Management and Privacy Office')">Supply Chain Management and Privacy Office</div>
-                <div id="admin-upload-Supply-Chain-Management-and-Privacy-Office" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Supply-Chain-Management-and-Privacy-Office" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'SUPPORT', 'Supply Chain Management and Privacy Office')">
-                  <button onclick="document.getElementById('file-Supply-Chain-Management-and-Privacy-Office').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Supply Chain Management and Privacy Office">📁</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('SUPPORT', 'Legal and Regulatory')">Legal and Regulatory</div>
-                <div id="admin-upload-Legal-and-Regulatory" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Legal-and-Regulatory" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'SUPPORT', 'Legal and Regulatory')">
-                  <button onclick="document.getElementById('file-Legal-and-Regulatory').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Legal and Regulatory">📁</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Governance -->
-          <div class="space-y-4">
-            <div class="bg-blue-900 text-white p-4 rounded-lg text-center">
-              <h3 class="font-bold text-lg">GOVERNANCE</h3>
-            </div>
-            <div class="space-y-2">
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('GOVERNANCE', 'Internal Audit')">Internal Audit</div>
-                <div id="admin-upload-Internal-Audit" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Internal-Audit" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'GOVERNANCE', 'Internal Audit')">
-                  <button onclick="document.getElementById('file-Internal-Audit').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Internal Audit">📁</button>
-                </div>
-              </div>
-              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
-                <div class="cursor-pointer" onclick="viewOrgUnits('GOVERNANCE', 'Corporate Governance')">Corporate Governance</div>
-                <div id="admin-upload-Corporate-Governance" class="hidden absolute top-1 right-1">
-                  <input type="file" id="file-Corporate-Governance" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoryStructure(event, 'GOVERNANCE', 'Corporate Governance')">
-                  <button onclick="document.getElementById('file-Corporate-Governance').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload structure for Corporate Governance">📁</button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div id="categories-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Categories will be dynamically generated here -->
         </div>
       </div>
     </div>
@@ -711,15 +815,7 @@
           </nav>
         </div>
         <div class="flex items-center space-x-2">
-          <div id="positions-admin-controls" class="hidden flex space-x-2">
-            <input type="file" id="position-jd-file" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadPositionJD(event)">
-            <button onclick="document.getElementById('position-jd-file').click()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-              📁 Upload JD
-            </button>
-            <button onclick="removePositionJD()" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
-              🗑️ Remove JD
-            </button>
-          </div>
+
           <button onclick="closePositionsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
         </div>
       </div>
@@ -729,23 +825,109 @@
     </div>
   </div>
 
+  <!-- Category Management Modal -->
+  <div id="category-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-indigo-900">🏗️ Category Management</h3>
+        <button onclick="closeCategoryManager()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Add New Category -->
+        <div class="bg-green-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-green-900 mb-4">➕ Add New Category</h4>
+          <form onsubmit="addNewCategory(event)" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+              <input type="text" id="new-category-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., OPERATIONS" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category Color</label>
+              <select id="new-category-color" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="red">Red</option>
+                <option value="purple">Purple</option>
+                <option value="orange">Orange</option>
+                <option value="teal">Teal</option>
+                <option value="indigo">Indigo</option>
+                <option value="pink">Pink</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">
+              Add Category
+            </button>
+          </form>
+        </div>
+
+        <!-- Add Unit to Category -->
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h4 class="text-lg font-semibold text-blue-900 mb-4">📋 Add Unit to Category</h4>
+          <form onsubmit="addUnitToCategory(event)" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Select Category</label>
+              <select id="unit-category-select" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <!-- Categories will be populated here -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Unit Name</label>
+              <input type="text" id="new-unit-name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Regional Operations" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+              Add Unit
+            </button>
+          </form>
+        </div>
+
+        <!-- Current Categories -->
+        <div class="bg-gray-50 p-4 rounded-lg lg:col-span-2">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4">📊 Current Categories & Units</h4>
+          <div id="current-categories" class="space-y-4">
+            <!-- Current categories will be displayed here -->
+          </div>
+        </div>
+
+        <!-- Bulk Operations -->
+        <div class="bg-purple-50 p-4 rounded-lg lg:col-span-2">
+          <h4 class="text-lg font-semibold text-purple-900 mb-4">⚡ Bulk Operations</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input type="file" id="categories-file" accept=".xlsx,.xls" class="hidden" onchange="uploadCategoriesStructure(event)">
+            <button onclick="document.getElementById('categories-file').click()" class="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 text-sm">
+              📁 Upload Categories
+            </button>
+            <button onclick="downloadCategoriesTemplate()" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 text-sm">
+              📥 Download Template
+            </button>
+            <button onclick="exportCurrentStructure()" class="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 text-sm" id="export-categories-btn">
+              📤 Export Current
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentUser = null;
     let jobDescriptions = {};
     let orgChartData = [
-      { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'blue', Id: 'board' },
-      { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'blue', Id: 'ceo' },
-      { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo' },
-      { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo' },
-      { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology' },
-      { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people' },
-      { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance' },
-      { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer' },
-      { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise' },
-      { Level: 4, Position: 'Mobile Services', Parent: 'smart-coo', Color: 'orange', Id: 'mobile' },
-      { Level: 4, Position: 'Network Operations', Parent: 'smart-coo', Color: 'orange', Id: 'network' },
-      { Level: 4, Position: 'IT Operations', Parent: 'technology', Color: 'purple', Id: 'it-ops' },
-      { Level: 4, Position: 'Digital Innovation', Parent: 'technology', Color: 'purple', Id: 'digital' }
+      { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'gray', Id: 'board', ReportsTo: '', FunctionalReportsTo: '' },
+      { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'gray', Id: 'ceo', ReportsTo: 'board', FunctionalReportsTo: '' },
+      { Level: 2.5, Position: 'Internal Audit', Parent: 'board', Color: 'red', Id: 'internal-audit', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+      { Level: 2.5, Position: 'Corporate Governance', Parent: 'board', Color: 'red', Id: 'corp-governance', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+      { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+      { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+      { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+      { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+      { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+      { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
+      { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
+      { Level: 4, Position: 'Mobile Services', Parent: 'smart-coo', Color: 'orange', Id: 'mobile', ReportsTo: 'smart-coo', FunctionalReportsTo: '' },
+      { Level: 4, Position: 'Network Operations', Parent: 'smart-coo', Color: 'orange', Id: 'network', ReportsTo: 'smart-coo', FunctionalReportsTo: '' },
+      { Level: 4, Position: 'IT Operations', Parent: 'technology', Color: 'purple', Id: 'it-ops', ReportsTo: 'technology', FunctionalReportsTo: '' },
+      { Level: 4, Position: 'Digital Innovation', Parent: 'technology', Color: 'purple', Id: 'digital', ReportsTo: 'technology', FunctionalReportsTo: '' }
     ];
     let orgStructure = {
       'BUSINESS': {
@@ -833,6 +1015,12 @@
     let pendingUser = null;
     let orgFunctions = {};
     let selectedOrgUnit = null;
+    let categoryColors = {
+      'BUSINESS': 'blue',
+      'TECHNOLOGY': 'blue', 
+      'SUPPORT': 'blue',
+      'GOVERNANCE': 'blue'
+    };
 
     // User Management System
     let userManagement = {
@@ -857,15 +1045,16 @@
         accessLevel = 'admin';
         isValid = password === userManagement.adminPassword;
       } else if (username === 'ntbernal') {
-        // Specific viewer account
+        // Specific viewer account - your credentials
         accessLevel = 'viewer';
         isValid = password === 'PLDT_HR_OD';
       } else {
-        // Regular viewer authentication
+        // Check approved users first
         if (username && userManagement.approvedUsers[username]) {
           isValid = password === userManagement.approvedUsers[username].password;
         } else {
-          isValid = password === 'PLDTSMART_HR_OD'; // Default viewer password
+          // Default viewer password for any other username
+          isValid = password === 'PLDTSMART_HR_OD';
         }
       }
 
@@ -881,7 +1070,11 @@
           document.getElementById('jd-admin-controls').classList.remove('hidden');
           document.getElementById('logo-admin-controls').classList.remove('hidden');
           document.getElementById('positions-admin-controls').classList.remove('hidden');
+          document.getElementById('nav-admin').classList.remove('hidden');
           showCategoryUploadButtons();
+          showExportButtons();
+        } else {
+          hideExportButtons();
         }
         
         navigate('home');
@@ -1080,7 +1273,13 @@
       userManagement.resetRequests = userManagement.resetRequests.filter(r => r.id !== requestId);
       localStorage.setItem('resetRequests', JSON.stringify(userManagement.resetRequests));
       
-      loadUserManagementData();
+      // Refresh both modal and admin panel if open
+      if (document.getElementById('user-management-modal').classList.contains('hidden') === false) {
+        loadUserManagementData();
+      }
+      if (document.getElementById('admin').classList.contains('hidden') === false) {
+        loadAdminData();
+      }
     }
 
     function approveAccess(username, requestId) {
@@ -1101,7 +1300,13 @@
       };
       localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
       
-      loadUserManagementData();
+      // Refresh both modal and admin panel if open
+      if (document.getElementById('user-management-modal').classList.contains('hidden') === false) {
+        loadUserManagementData();
+      }
+      if (document.getElementById('admin').classList.contains('hidden') === false) {
+        loadAdminData();
+      }
     }
 
     function denyRequest(type, requestId) {
@@ -1112,7 +1317,14 @@
         userManagement.accessRequests = userManagement.accessRequests.filter(r => r.id !== requestId);
         localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
       }
-      loadUserManagementData();
+      
+      // Refresh both modal and admin panel if open
+      if (document.getElementById('user-management-modal').classList.contains('hidden') === false) {
+        loadUserManagementData();
+      }
+      if (document.getElementById('admin').classList.contains('hidden') === false) {
+        loadAdminData();
+      }
     }
 
     function resetUserPassword(username) {
@@ -1153,6 +1365,11 @@
     }
 
     function exportUserList() {
+      if (currentUser !== 'admin') {
+        alert('Export functionality is only available for administrators.');
+        return;
+      }
+      
       const userData = {
         approvedUsers: userManagement.approvedUsers,
         resetRequests: userManagement.resetRequests,
@@ -1189,12 +1406,14 @@
       document.getElementById('org-admin-controls').classList.add('hidden');
       document.getElementById('jd-admin-controls').classList.add('hidden');
       document.getElementById('logo-admin-controls').classList.add('hidden');
+      document.getElementById('nav-admin').classList.add('hidden');
+      hideExportButtons();
     }
 
     // Navigation
     function navigate(section) {
-      const sections = ['home', 'org', 'jd'];
-      const navButtons = ['nav-home', 'nav-org', 'nav-jd'];
+      const sections = ['home', 'org', 'jd', 'admin'];
+      const navButtons = ['nav-home', 'nav-org', 'nav-jd', 'nav-admin'];
 
       sections.forEach(s => {
         document.getElementById(s).classList.add('hidden');
@@ -1211,12 +1430,27 @@
       if (section === 'org') {
         renderOrgChart();
       }
+      
+      // Render categories when navigating to JD section
+      if (section === 'jd') {
+        renderCategories();
+      }
+      
+      // Load admin data when navigating to admin section
+      if (section === 'admin') {
+        loadAdminData();
+      }
     }
 
     // Org Chart Rendering
     function renderOrgChart() {
       const chartContainer = document.getElementById('org-chart');
       chartContainer.innerHTML = '';
+      
+      // Create main container with relative positioning for connectors
+      const mainContainer = document.createElement('div');
+      mainContainer.className = 'relative';
+      mainContainer.style.minHeight = '600px';
       
       // Group nodes by level
       const levels = {};
@@ -1253,7 +1487,14 @@
         });
       });
       
-      chartContainer.appendChild(container);
+      mainContainer.appendChild(container);
+      
+      // Add connectors after DOM is rendered
+      setTimeout(() => {
+        addOrgConnectors();
+      }, 100);
+      
+      chartContainer.appendChild(mainContainer);
     }
 
     function createOrgNode(node) {
@@ -1262,15 +1503,42 @@
       
       const nodeDiv = document.createElement('div');
       nodeDiv.className = `org-node org-${node.Color}-${node.Level}`;
-      nodeDiv.textContent = node.Position;
-      nodeDiv.onclick = () => {
+      nodeDiv.id = `node-${node.Id}`;
+      
+      // Create main content area
+      const mainContent = document.createElement('div');
+      mainContent.textContent = node.Position;
+      mainContent.onclick = () => {
         if (document.getElementById('show-functions').checked) {
           selectOrgUnit(node);
         } else {
           toggleOrgNode(node.Id);
         }
       };
-      nodeDiv.id = `node-${node.Id}`;
+      mainContent.style.cursor = 'pointer';
+      
+      // Create functions plus sign
+      const functionsLink = document.createElement('div');
+      functionsLink.innerHTML = '<span style="font-size: 12px; opacity: 0.6; position: absolute; bottom: 4px; left: 6px; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.8); border-radius: 50%; font-weight: bold;">+</span>';
+      functionsLink.style.cursor = 'pointer';
+      functionsLink.style.transition = 'all 0.2s ease';
+      functionsLink.onclick = (e) => {
+        e.stopPropagation();
+        showOrgFunctions(node);
+      };
+      functionsLink.onmouseover = () => {
+        functionsLink.style.opacity = '1';
+        functionsLink.querySelector('span').style.background = 'rgba(255,255,255,1)';
+        functionsLink.querySelector('span').style.transform = 'scale(1.1)';
+      };
+      functionsLink.onmouseout = () => {
+        functionsLink.style.opacity = '0.6';
+        functionsLink.querySelector('span').style.background = 'rgba(255,255,255,0.8)';
+        functionsLink.querySelector('span').style.transform = 'scale(1)';
+      };
+      
+      nodeDiv.appendChild(mainContent);
+      nodeDiv.appendChild(functionsLink);
       
       container.appendChild(nodeDiv);
       return container;
@@ -1278,6 +1546,67 @@
 
     function findParentElement(parentId) {
       return document.querySelector(`#node-${parentId}`)?.parentElement;
+    }
+
+    function addOrgConnectors() {
+      // Clear existing connectors
+      document.querySelectorAll('.org-connector-solid, .org-connector-dashed').forEach(el => el.remove());
+      
+      orgChartData.forEach(node => {
+        // Draw solid line to direct report
+        if (node.ReportsTo) {
+          drawConnector(node.Id, node.ReportsTo, 'solid');
+        }
+        
+        // Draw dashed line to functional report
+        if (node.FunctionalReportsTo) {
+          drawConnector(node.Id, node.FunctionalReportsTo, 'dashed');
+        }
+      });
+    }
+
+    function drawConnector(fromId, toId, lineType) {
+      const fromElement = document.getElementById(`node-${fromId}`);
+      const toElement = document.getElementById(`node-${toId}`);
+      
+      if (!fromElement || !toElement) return;
+      
+      const fromRect = fromElement.getBoundingClientRect();
+      const toRect = toElement.getBoundingClientRect();
+      const containerRect = document.getElementById('org-chart').getBoundingClientRect();
+      
+      // Calculate positions relative to the chart container
+      const fromX = fromRect.left - containerRect.left + fromRect.width / 2;
+      const fromY = fromRect.top - containerRect.top;
+      const toX = toRect.left - containerRect.left + toRect.width / 2;
+      const toY = toRect.top - containerRect.top + toRect.height;
+      
+      // Create vertical line from parent
+      const verticalLine = document.createElement('div');
+      verticalLine.className = `org-connector-${lineType} org-connector-vertical`;
+      verticalLine.style.left = `${toX - 1}px`;
+      verticalLine.style.top = `${toY}px`;
+      verticalLine.style.height = `${Math.abs(fromY - toY) / 2}px`;
+      
+      // Create horizontal line
+      const horizontalLine = document.createElement('div');
+      horizontalLine.className = `org-connector-${lineType} org-connector-horizontal`;
+      horizontalLine.style.left = `${Math.min(fromX, toX)}px`;
+      horizontalLine.style.top = `${toY + Math.abs(fromY - toY) / 2 - 1}px`;
+      horizontalLine.style.width = `${Math.abs(fromX - toX)}px`;
+      
+      // Create vertical line to child
+      const verticalLine2 = document.createElement('div');
+      verticalLine2.className = `org-connector-${lineType} org-connector-vertical`;
+      verticalLine2.style.left = `${fromX - 1}px`;
+      verticalLine2.style.top = `${toY + Math.abs(fromY - toY) / 2}px`;
+      verticalLine2.style.height = `${Math.abs(fromY - toY) / 2}px`;
+      
+      // Add lines to chart container
+      const chartContainer = document.getElementById('org-chart');
+      chartContainer.appendChild(verticalLine);
+      chartContainer.appendChild(horizontalLine);
+      chartContainer.appendChild(verticalLine2);
     }
 
     // Org Chart Functions
@@ -1292,23 +1621,87 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, {type: 'array'});
-          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const fileName = file.name.toLowerCase();
+      
+      if (fileName.endsWith('.vsdx') || fileName.endsWith('.vsd')) {
+        // Handle Visio files
+        alert('Visio file detected! Please note:\n\n' +
+              '• Visio files will be processed for basic org chart structure\n' +
+              '• For best results, ensure your Visio diagram has:\n' +
+              '  - Clear position titles in text boxes\n' +
+              '  - Consistent connector lines for reporting relationships\n' +
+              '  - Proper hierarchical layout\n\n' +
+              'Processing may take a moment...');
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            // Basic Visio processing - extract text content
+            processVisioFile(e.target.result);
+          } catch (error) {
+            alert('Error processing Visio file. For complex diagrams, please export to Excel format using the template structure.');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        // Handle Excel files
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            // Process and update org chart
+            updateOrgChart(jsonData);
+            renderOrgChart();
+            alert('Organizational chart updated successfully!');
+          } catch (error) {
+            alert('Error reading Excel file. Please check the format.');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    }
+
+    function processVisioFile(arrayBuffer) {
+      try {
+        // Convert ArrayBuffer to text for basic processing
+        const decoder = new TextDecoder('utf-8');
+        const text = decoder.decode(arrayBuffer);
+        
+        // Extract potential position titles (this is a simplified approach)
+        const positions = [];
+        const textMatches = text.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) || [];
+        
+        // Filter for likely position titles
+        const positionKeywords = ['Director', 'Manager', 'CEO', 'COO', 'President', 'Vice', 'Senior', 'Chief', 'Head', 'Lead', 'Supervisor', 'Coordinator'];
+        const likelyPositions = textMatches.filter(match => 
+          positionKeywords.some(keyword => match.includes(keyword)) && match.length > 5
+        );
+        
+        if (likelyPositions.length > 0) {
+          // Create basic org structure from detected positions
+          const orgData = likelyPositions.map((position, index) => ({
+            Level: index === 0 ? 1 : (index < 3 ? 2 : 3),
+            Position: position,
+            Parent: index === 0 ? '' : (index < 3 ? likelyPositions[0] : likelyPositions[1]),
+            Color: 'blue',
+            Id: `pos-${index}`,
+            ReportsTo: index === 0 ? '' : (index < 3 ? `pos-0` : `pos-1`),
+            FunctionalReportsTo: ''
+          }));
           
-          // Process and update org chart
-          updateOrgChart(jsonData);
+          updateOrgChart(orgData);
           renderOrgChart();
-          alert('Organizational chart updated successfully!');
-        } catch (error) {
-          alert('Error reading Excel file. Please check the format.');
+          alert(`Visio file processed! Detected ${likelyPositions.length} positions.\n\nNote: This is a basic extraction. For precise org charts, please use the Excel template format.`);
+        } else {
+          alert('Could not extract organizational structure from Visio file.\n\nPlease export your Visio diagram to Excel format using our template structure for best results.');
         }
-      };
-      reader.readAsArrayBuffer(file);
+      } catch (error) {
+        alert('Error processing Visio file. Please try exporting to Excel format instead.');
+      }
     }
 
     function updateOrgChart(data) {
@@ -1317,7 +1710,9 @@
         Position: row.Position || 'Untitled Position',
         Parent: row.Parent || '',
         Color: row.Color || 'blue',
-        Id: row.Id || `node-${index}`
+        Id: row.Id || `node-${index}`,
+        ReportsTo: row.ReportsTo || row.Parent || '',
+        FunctionalReportsTo: row.FunctionalReportsTo || ''
       }));
       // Save to localStorage for persistence
       localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
@@ -1325,19 +1720,228 @@
 
     function downloadOrgTemplate() {
       const templateData = [
-        { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'blue', Id: 'board' },
-        { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'blue', Id: 'ceo' },
-        { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo' },
-        { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo' },
-        { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology' },
-        { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer' },
-        { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise' }
+        { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'gray', Id: 'board', ReportsTo: '', FunctionalReportsTo: '' },
+        { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'gray', Id: 'ceo', ReportsTo: 'board', FunctionalReportsTo: '' },
+        { Level: 2.5, Position: 'Internal Audit', Parent: 'board', Color: 'red', Id: 'internal-audit', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+        { Level: 2.5, Position: 'Corporate Governance', Parent: 'board', Color: 'red', Id: 'corp-governance', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+        { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+        { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+        { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+        { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
+        { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' }
       ];
 
       const ws = XLSX.utils.json_to_sheet(templateData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'PLDT_OrgChart_Template.xlsx');
+      XLSX.utils.book_append_sheet(wb, ws, 'OrgChart Template');
       XLSX.writeFile(wb, 'PLDT_OrgChart_Template.xlsx');
+    }
+
+    function exportCurrentOrgStructure() {
+      if (currentUser !== 'admin') {
+        alert('Export functionality is only available for administrators.');
+        return;
+      }
+      
+      const exportData = [];
+      
+      // Export org chart data
+      orgChartData.forEach(node => {
+        exportData.push({
+          Level: node.Level,
+          Position: node.Position,
+          Parent: node.Parent,
+          Color: node.Color,
+          Id: node.Id,
+          ReportsTo: node.ReportsTo,
+          FunctionalReportsTo: node.FunctionalReportsTo,
+          Category: determineNodeCategory(node.Position),
+          Unit: determineNodeUnit(node.Position),
+          OrgUnit: determineNodeOrgUnit(node.Position)
+        });
+      });
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Current Org Structure');
+      XLSX.writeFile(wb, `PLDT_Current_OrgStructure_${new Date().toISOString().split('T')[0]}.xlsx`);
+      
+      alert('Current organizational structure exported successfully!');
+    }
+
+    function exportStructureWithJDs() {
+      if (currentUser !== 'admin') {
+        alert('Export functionality is only available for administrators.');
+        return;
+      }
+      
+      const wb = XLSX.utils.book_new();
+      
+      // Sheet 1: Org Chart Structure
+      const orgChartData_export = orgChartData.map(node => ({
+        Level: node.Level,
+        Position: node.Position,
+        Parent: node.Parent,
+        Color: node.Color,
+        Id: node.Id,
+        ReportsTo: node.ReportsTo,
+        FunctionalReportsTo: node.FunctionalReportsTo,
+        HasJD: jobDescriptions[node.Position] ? 'Yes' : 'No'
+      }));
+      
+      const ws1 = XLSX.utils.json_to_sheet(orgChartData_export);
+      XLSX.utils.book_append_sheet(wb, ws1, 'Org Chart');
+      
+      // Sheet 2: JD Structure
+      const jdStructureData = [];
+      Object.keys(orgStructure).forEach(category => {
+        Object.keys(orgStructure[category]).forEach(unit => {
+          Object.keys(orgStructure[category][unit]).forEach(orgUnit => {
+            orgStructure[category][unit][orgUnit].forEach(position => {
+              jdStructureData.push({
+                Category: category,
+                Unit: unit,
+                OrgUnit: orgUnit,
+                Position: position,
+                HasJD: jobDescriptions[position] ? 'Yes' : 'No',
+                JDStatus: jobDescriptions[position] ? 'Available' : 'Missing'
+              });
+            });
+          });
+        });
+      });
+      
+      const ws2 = XLSX.utils.json_to_sheet(jdStructureData);
+      XLSX.utils.book_append_sheet(wb, ws2, 'JD Structure');
+      
+      // Sheet 3: JD Summary
+      const jdSummary = [];
+      const totalPositions = jdStructureData.length;
+      const positionsWithJD = jdStructureData.filter(pos => pos.HasJD === 'Yes').length;
+      const positionsWithoutJD = totalPositions - positionsWithJD;
+      
+      // Category-wise summary
+      Object.keys(orgStructure).forEach(category => {
+        let categoryTotal = 0;
+        let categoryWithJD = 0;
+        
+        Object.keys(orgStructure[category]).forEach(unit => {
+          Object.keys(orgStructure[category][unit]).forEach(orgUnit => {
+            categoryTotal += orgStructure[category][unit][orgUnit].length;
+            categoryWithJD += orgStructure[category][unit][orgUnit].filter(pos => jobDescriptions[pos]).length;
+          });
+        });
+        
+        jdSummary.push({
+          Category: category,
+          TotalPositions: categoryTotal,
+          WithJD: categoryWithJD,
+          WithoutJD: categoryTotal - categoryWithJD,
+          CompletionRate: categoryTotal > 0 ? `${Math.round((categoryWithJD / categoryTotal) * 100)}%` : '0%'
+        });
+      });
+      
+      // Overall summary
+      jdSummary.unshift({
+        Category: 'OVERALL SUMMARY',
+        TotalPositions: totalPositions,
+        WithJD: positionsWithJD,
+        WithoutJD: positionsWithoutJD,
+        CompletionRate: totalPositions > 0 ? `${Math.round((positionsWithJD / totalPositions) * 100)}%` : '0%'
+      });
+      
+      const ws3 = XLSX.utils.json_to_sheet(jdSummary);
+      XLSX.utils.book_append_sheet(wb, ws3, 'JD Summary');
+      
+      // Sheet 4: Missing JDs List
+      const missingJDs = jdStructureData
+        .filter(pos => pos.HasJD === 'No')
+        .map(pos => ({
+          Category: pos.Category,
+          Unit: pos.Unit,
+          OrgUnit: pos.OrgUnit,
+          Position: pos.Position,
+          Priority: determinePriority(pos.Position),
+          Notes: 'JD Required'
+        }));
+      
+      const ws4 = XLSX.utils.json_to_sheet(missingJDs);
+      XLSX.utils.book_append_sheet(wb, ws4, 'Missing JDs');
+      
+      // Sheet 5: Reporting Lines
+      const reportingLines = [];
+      orgChartData.forEach(node => {
+        if (node.ReportsTo) {
+          const parentNode = orgChartData.find(n => n.Id === node.ReportsTo);
+          reportingLines.push({
+            Position: node.Position,
+            ReportsTo: parentNode ? parentNode.Position : node.ReportsTo,
+            ReportingType: 'Direct',
+            Level: node.Level
+          });
+        }
+        
+        if (node.FunctionalReportsTo) {
+          const functionalParent = orgChartData.find(n => n.Id === node.FunctionalReportsTo);
+          reportingLines.push({
+            Position: node.Position,
+            ReportsTo: functionalParent ? functionalParent.Position : node.FunctionalReportsTo,
+            ReportingType: 'Functional',
+            Level: node.Level
+          });
+        }
+      });
+      
+      const ws5 = XLSX.utils.json_to_sheet(reportingLines);
+      XLSX.utils.book_append_sheet(wb, ws5, 'Reporting Lines');
+      
+      XLSX.writeFile(wb, `PLDT_Complete_Structure_with_JDs_${new Date().toISOString().split('T')[0]}.xlsx`);
+      
+      alert(`Complete structure exported successfully!\n\nIncludes:\n• Org Chart Structure\n• JD Structure\n• JD Completion Summary\n• Missing JDs List\n• Reporting Lines\n\nTotal Positions: ${totalPositions}\nWith JDs: ${positionsWithJD}\nCompletion Rate: ${Math.round((positionsWithJD / totalPositions) * 100)}%`);
+    }
+
+    function determineNodeCategory(position) {
+      if (/Finance|Financial|Accounting|Treasury|Budget/i.test(position)) return 'SUPPORT';
+      if (/Technology|IT|Digital|Cyber|Network|Engineering/i.test(position)) return 'TECHNOLOGY';
+      if (/Sales|Marketing|Business|Customer|Consumer|Enterprise/i.test(position)) return 'BUSINESS';
+      if (/Legal|Compliance|Audit|Governance/i.test(position)) return 'GOVERNANCE';
+      if (/HR|Human Resources|People|Talent/i.test(position)) return 'SUPPORT';
+      return 'OPERATIONS';
+    }
+
+    function determineNodeUnit(position) {
+      if (/Consumer/i.test(position)) return 'Consumer Business';
+      if (/Enterprise/i.test(position)) return 'Enterprise Business';
+      if (/Network/i.test(position)) return 'Network Group';
+      if (/Technology|IT/i.test(position)) return 'Technology Group';
+      if (/Finance|Financial/i.test(position)) return 'Finance Group';
+      if (/HR|Human Resources|People/i.test(position)) return 'People Group';
+      if (/Legal/i.test(position)) return 'Legal Group';
+      if (/Audit/i.test(position)) return 'Internal Audit';
+      return 'General Operations';
+    }
+
+    function determineNodeOrgUnit(position) {
+      if (/Regional|Area|District/i.test(position)) return 'Regional Operations';
+      if (/Sales/i.test(position)) return 'Sales Division';
+      if (/Marketing/i.test(position)) return 'Marketing Division';
+      if (/Customer/i.test(position)) return 'Customer Service';
+      if (/Network/i.test(position)) return 'Network Operations';
+      if (/Infrastructure/i.test(position)) return 'Infrastructure';
+      if (/Security|Cyber/i.test(position)) return 'Security Operations';
+      if (/Financial|Finance/i.test(position)) return 'Financial Planning';
+      if (/Accounting/i.test(position)) return 'Accounting';
+      if (/HR|Human Resources/i.test(position)) return 'Human Resources';
+      if (/Legal/i.test(position)) return 'Legal Affairs';
+      if (/Compliance/i.test(position)) return 'Compliance';
+      if (/Audit/i.test(position)) return 'Audit Operations';
+      return 'General Operations';
+    }
+
+    function determinePriority(position) {
+      if (/CEO|President|Chief|Director|Head/i.test(position)) return 'High';
+      if (/Manager|Supervisor/i.test(position)) return 'Medium';
+      return 'Low';
     }
 
     // Hierarchical Job Description Functions
@@ -1399,13 +2003,7 @@
               <span class="text-sm ${statusColor} font-medium">${statusText}</span>
               <span class="text-xs text-blue-600">Click to view →</span>
             </div>
-            ${currentUser === 'admin' ? `
-            <div class="flex space-x-1 mt-2">
-              <input type="file" id="individual-jd-${position.replace(/\s+/g, '-')}" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadIndividualJD(event, '${position}')">
-              <button onclick="document.getElementById('individual-jd-${position.replace(/\s+/g, '-')}').click()" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Upload JD for ${position}">📁 Upload</button>
-              ${hasJD ? `<button onclick="removeIndividualJD('${position}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove JD for ${position}">🗑️</button>` : ''}
-            </div>
-            ` : ''}
+
           `;
           div.querySelector('h4, .flex:first-of-type').onclick = () => viewJobDescription(position);
           content.appendChild(div);
@@ -1616,6 +2214,38 @@
       });
     }
 
+    function showExportButtons() {
+      // Show export buttons for admin
+      const exportButtons = [
+        'export-org-btn',
+        'export-jd-btn', 
+        'export-categories-btn'
+      ];
+      
+      exportButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.classList.remove('hidden');
+        }
+      });
+    }
+
+    function hideExportButtons() {
+      // Hide export buttons for viewers
+      const exportButtons = [
+        'export-org-btn',
+        'export-jd-btn',
+        'export-categories-btn'
+      ];
+      
+      exportButtons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.classList.add('hidden');
+        }
+      });
+    }
+
     function uploadCategoryStructure(event, category, unit) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1758,19 +2388,21 @@
     function removeOrgChart() {
       if (confirm('Are you sure you want to remove the current organizational chart and restore the default structure?')) {
         orgChartData = [
-          { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'blue', Id: 'board' },
-          { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'blue', Id: 'ceo' },
-          { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo' },
-          { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo' },
-          { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology' },
-          { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people' },
-          { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance' },
-          { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer' },
-          { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise' },
-          { Level: 4, Position: 'Mobile Services', Parent: 'smart-coo', Color: 'orange', Id: 'mobile' },
-          { Level: 4, Position: 'Network Operations', Parent: 'smart-coo', Color: 'orange', Id: 'network' },
-          { Level: 4, Position: 'IT Operations', Parent: 'technology', Color: 'purple', Id: 'it-ops' },
-          { Level: 4, Position: 'Digital Innovation', Parent: 'technology', Color: 'purple', Id: 'digital' }
+          { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'gray', Id: 'board', ReportsTo: '', FunctionalReportsTo: '' },
+          { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'gray', Id: 'ceo', ReportsTo: 'board', FunctionalReportsTo: '' },
+          { Level: 2.5, Position: 'Internal Audit', Parent: 'board', Color: 'red', Id: 'internal-audit', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+          { Level: 2.5, Position: 'Corporate Governance', Parent: 'board', Color: 'red', Id: 'corp-governance', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+          { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+          { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+          { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+          { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+          { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance', ReportsTo: 'ceo', FunctionalReportsTo: '' },
+          { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
+          { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
+          { Level: 4, Position: 'Mobile Services', Parent: 'smart-coo', Color: 'orange', Id: 'mobile', ReportsTo: 'smart-coo', FunctionalReportsTo: '' },
+          { Level: 4, Position: 'Network Operations', Parent: 'smart-coo', Color: 'orange', Id: 'network', ReportsTo: 'smart-coo', FunctionalReportsTo: '' },
+          { Level: 4, Position: 'IT Operations', Parent: 'technology', Color: 'purple', Id: 'it-ops', ReportsTo: 'technology', FunctionalReportsTo: '' },
+          { Level: 4, Position: 'Digital Innovation', Parent: 'technology', Color: 'purple', Id: 'digital', ReportsTo: 'technology', FunctionalReportsTo: '' }
         ];
         localStorage.removeItem('orgChartData');
         renderOrgChart();
@@ -2117,6 +2749,19 @@
           console.log('Error loading saved organizational functions');
         }
       }
+
+      // Load saved category colors
+      const savedCategoryColors = localStorage.getItem('categoryColors');
+      if (savedCategoryColors) {
+        try {
+          categoryColors = JSON.parse(savedCategoryColors);
+        } catch (error) {
+          console.log('Error loading saved category colors');
+        }
+      }
+
+      // Initial render of categories
+      renderCategories();
     });
 
     // Function View Toggle
@@ -2143,6 +2788,99 @@
         // Clear selection
         clearOrgSelection();
       }
+    }
+
+    // Show functions in popup
+    function showOrgFunctions(node) {
+      const unitFunctions = orgFunctions[node.Id] || orgFunctions[node.Position];
+      
+      let content = `<h3 class="text-lg font-bold text-blue-900 mb-4">${node.Position} - Functions & AO</h3>`;
+      
+      if (!unitFunctions) {
+        content += `
+          <div class="text-center text-gray-500 py-8">
+            <div class="text-4xl mb-2">📋</div>
+            <p class="mb-2">No functions/AO data available</p>
+            <p class="text-sm">Upload functions file to populate this data</p>
+          </div>
+        `;
+      } else {
+        // Core Functions
+        if (unitFunctions.functions && unitFunctions.functions.length > 0) {
+          content += `
+            <div class="mb-4">
+              <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
+                <span class="text-blue-600 mr-2">🎯</span>
+                Core Functions
+              </h4>
+              <div class="space-y-1">
+          `;
+          unitFunctions.functions.forEach(func => {
+            content += `<div class="bg-blue-50 p-2 rounded text-sm">${func}</div>`;
+          });
+          content += '</div></div>';
+        }
+
+        // Administrative Orders
+        if (unitFunctions.administrativeOrders && unitFunctions.administrativeOrders.length > 0) {
+          content += `
+            <div class="mb-4">
+              <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
+                <span class="text-green-600 mr-2">📜</span>
+                Administrative Orders
+              </h4>
+              <div class="space-y-1">
+          `;
+          unitFunctions.administrativeOrders.forEach(ao => {
+            content += `
+              <div class="bg-green-50 p-2 rounded text-sm">
+                <div class="font-medium">${ao.number || 'AO Number'}</div>
+                <div class="text-gray-700">${ao.title || ao.description || 'Administrative Order'}</div>
+                ${ao.date ? `<div class="text-xs text-gray-500">Date: ${ao.date}</div>` : ''}
+              </div>
+            `;
+          });
+          content += '</div></div>';
+        }
+
+        // Key Responsibilities
+        if (unitFunctions.responsibilities && unitFunctions.responsibilities.length > 0) {
+          content += `
+            <div class="mb-4">
+              <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
+                <span class="text-purple-600 mr-2">✅</span>
+                Key Responsibilities
+              </h4>
+              <div class="space-y-1">
+          `;
+          unitFunctions.responsibilities.forEach(resp => {
+            content += `<div class="bg-purple-50 p-2 rounded text-sm">${resp}</div>`;
+          });
+          content += '</div></div>';
+        }
+      }
+      
+      // Create and show popup
+      const popup = document.createElement('div');
+      popup.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      popup.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-2xl max-h-[70vh] overflow-y-auto m-4 w-full">
+          <div class="flex justify-between items-center mb-4">
+            <div></div>
+            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          </div>
+          ${content}
+        </div>
+      `;
+      
+      // Close on background click
+      popup.onclick = (e) => {
+        if (e.target === popup) {
+          popup.remove();
+        }
+      };
+      
+      document.body.appendChild(popup);
     }
 
     // Org Unit Selection for Functions
@@ -2391,6 +3129,541 @@
       XLSX.writeFile(wb, 'PLDT_OrgFunctions_Template.xlsx');
     }
 
+    // Category Management Functions
+    function renderCategories() {
+      const container = document.getElementById('categories-container');
+      container.innerHTML = '';
+      
+      Object.keys(orgStructure).forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'space-y-4';
+        
+        const color = categoryColors[category] || 'blue';
+        const colorClass = `bg-${color}-900`;
+        
+        categoryDiv.innerHTML = `
+          <div class="${colorClass} text-white p-4 rounded-lg text-center relative">
+            <h3 class="font-bold text-lg">${category}</h3>
+
+          </div>
+          <div class="space-y-2">
+            ${Object.keys(orgStructure[category]).map(unit => `
+              <div class="bg-gray-100 p-3 rounded hover:bg-gray-200 relative group">
+                <div class="cursor-pointer" onclick="viewOrgUnits('${category}', '${unit}')">${unit}</div>
+
+              </div>
+            `).join('')}
+          </div>
+        `;
+        
+        container.appendChild(categoryDiv);
+      });
+    }
+
+    function openCategoryManager() {
+      document.getElementById('category-manager-modal').classList.remove('hidden');
+      loadCategoryManager();
+    }
+
+    function closeCategoryManager() {
+      document.getElementById('category-manager-modal').classList.add('hidden');
+    }
+
+    function loadCategoryManager() {
+      // Populate category select dropdown
+      const categorySelect = document.getElementById('unit-category-select');
+      categorySelect.innerHTML = '';
+      Object.keys(orgStructure).forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
+      });
+
+      // Display current categories
+      const currentCategoriesDiv = document.getElementById('current-categories');
+      currentCategoriesDiv.innerHTML = '';
+      
+      Object.keys(orgStructure).forEach(category => {
+        const categoryDiv = document.createElement('div');
+        const color = categoryColors[category] || 'blue';
+        const unitCount = Object.keys(orgStructure[category]).length;
+        
+        categoryDiv.className = 'bg-white p-4 rounded-lg border';
+        categoryDiv.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <h5 class="font-semibold text-lg text-${color}-900">${category}</h5>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs bg-${color}-100 text-${color}-800 px-2 py-1 rounded">${unitCount} units</span>
+              <button onclick="removeCategory('${category}')" class="text-red-600 hover:text-red-800 text-sm" title="Remove Category">
+                🗑️
+              </button>
+            </div>
+          </div>
+          <div class="text-sm text-gray-600">
+            ${Object.keys(orgStructure[category]).slice(0, 3).join(', ')}
+            ${unitCount > 3 ? `... and ${unitCount - 3} more` : ''}
+          </div>
+        `;
+        currentCategoriesDiv.appendChild(categoryDiv);
+      });
+    }
+
+    function addNewCategory(event) {
+      event.preventDefault();
+      const categoryName = document.getElementById('new-category-name').value.toUpperCase();
+      const categoryColor = document.getElementById('new-category-color').value;
+      
+      if (orgStructure[categoryName]) {
+        alert('Category already exists!');
+        return;
+      }
+      
+      orgStructure[categoryName] = {};
+      categoryColors[categoryName] = categoryColor;
+      
+      // Save to localStorage
+      localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+      localStorage.setItem('categoryColors', JSON.stringify(categoryColors));
+      
+      // Reset form
+      document.getElementById('new-category-name').value = '';
+      document.getElementById('new-category-color').value = 'blue';
+      
+      // Refresh displays
+      loadCategoryManager();
+      renderCategories();
+      
+      alert(`Category "${categoryName}" added successfully!`);
+    }
+
+    function addUnitToCategory(event) {
+      event.preventDefault();
+      const category = document.getElementById('unit-category-select').value;
+      const unitName = document.getElementById('new-unit-name').value;
+      
+      if (orgStructure[category][unitName]) {
+        alert('Unit already exists in this category!');
+        return;
+      }
+      
+      orgStructure[category][unitName] = {};
+      
+      // Save to localStorage
+      localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+      
+      // Reset form
+      document.getElementById('new-unit-name').value = '';
+      
+      // Refresh displays
+      loadCategoryManager();
+      renderCategories();
+      
+      alert(`Unit "${unitName}" added to ${category} successfully!`);
+    }
+
+    function removeCategory(category) {
+      if (confirm(`Are you sure you want to remove the entire "${category}" category? This will delete all units and positions within it.`)) {
+        delete orgStructure[category];
+        delete categoryColors[category];
+        
+        // Save to localStorage
+        localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+        localStorage.setItem('categoryColors', JSON.stringify(categoryColors));
+        
+        // Refresh displays
+        loadCategoryManager();
+        renderCategories();
+        
+        alert(`Category "${category}" removed successfully!`);
+      }
+    }
+
+    function uploadCategoriesStructure(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          // Process categories data
+          jsonData.forEach(row => {
+            const category = row.Category;
+            const color = row.Color || 'blue';
+            const unit = row.Unit;
+            
+            if (category) {
+              if (!orgStructure[category]) {
+                orgStructure[category] = {};
+              }
+              if (!categoryColors[category]) {
+                categoryColors[category] = color;
+              }
+              if (unit && !orgStructure[category][unit]) {
+                orgStructure[category][unit] = {};
+              }
+            }
+          });
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          localStorage.setItem('categoryColors', JSON.stringify(categoryColors));
+          
+          // Refresh displays
+          loadCategoryManager();
+          renderCategories();
+          
+          alert('Categories structure uploaded successfully!');
+        } catch (error) {
+          alert('Error reading Excel file. Please check the format.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      
+      // Reset file input
+      event.target.value = '';
+    }
+
+    function downloadCategoriesTemplate() {
+      const templateData = [
+        { Category: 'BUSINESS', Color: 'blue', Unit: 'Consumer Business Home' },
+        { Category: 'BUSINESS', Color: 'blue', Unit: 'Consumer Business Wireless' },
+        { Category: 'BUSINESS', Color: 'blue', Unit: 'Enterprise Business' },
+        { Category: 'TECHNOLOGY', Color: 'purple', Unit: 'Network Group' },
+        { Category: 'TECHNOLOGY', Color: 'purple', Unit: 'Information Technology' },
+        { Category: 'SUPPORT', Color: 'green', Unit: 'Finance Group' },
+        { Category: 'SUPPORT', Color: 'green', Unit: 'People Group' },
+        { Category: 'GOVERNANCE', Color: 'orange', Unit: 'Internal Audit' },
+        { Category: 'OPERATIONS', Color: 'teal', Unit: 'Regional Operations' },
+        { Category: 'OPERATIONS', Color: 'teal', Unit: 'Field Operations' }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Categories Template');
+      XLSX.writeFile(wb, 'PLDT_Categories_Template.xlsx');
+    }
+
+    function exportCurrentStructure() {
+      if (currentUser !== 'admin') {
+        alert('Export functionality is only available for administrators.');
+        return;
+      }
+      
+      const exportData = [];
+      
+      Object.keys(orgStructure).forEach(category => {
+        const color = categoryColors[category] || 'blue';
+        Object.keys(orgStructure[category]).forEach(unit => {
+          exportData.push({
+            Category: category,
+            Color: color,
+            Unit: unit,
+            UnitsCount: Object.keys(orgStructure[category][unit]).length
+          });
+        });
+      });
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Current Structure');
+      XLSX.writeFile(wb, 'PLDT_Current_Structure_Export.xlsx');
+    }
+
+    // Admin Panel Functions
+    function loadAdminData() {
+      loadAdminUserRequests();
+      loadAdminApprovedUsers();
+      updateSystemStatistics();
+    }
+
+    function loadAdminUserRequests() {
+      // Load reset requests
+      const resetContainer = document.getElementById('admin-reset-requests');
+      const resetCount = document.getElementById('reset-count');
+      
+      resetContainer.innerHTML = '';
+      
+      if (userManagement.resetRequests.length === 0) {
+        resetContainer.innerHTML = '<p class="text-gray-500 text-sm">No pending reset requests</p>';
+        resetCount.textContent = '0';
+      } else {
+        resetCount.textContent = userManagement.resetRequests.length;
+        userManagement.resetRequests.forEach(request => {
+          const div = document.createElement('div');
+          div.className = 'bg-red-50 p-3 rounded border border-red-200';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-medium text-sm">${request.username}</p>
+                <p class="text-xs text-gray-500">${new Date(request.timestamp).toLocaleDateString()}</p>
+              </div>
+              <div class="flex space-x-1">
+                <button onclick="approveReset('${request.username}', ${request.id})" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600">✓</button>
+                <button onclick="denyRequest('reset', ${request.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">✗</button>
+              </div>
+            </div>
+          `;
+          resetContainer.appendChild(div);
+        });
+      }
+
+      // Load access requests
+      const accessContainer = document.getElementById('admin-access-requests');
+      const accessCount = document.getElementById('access-count');
+      
+      accessContainer.innerHTML = '';
+      
+      if (userManagement.accessRequests.length === 0) {
+        accessContainer.innerHTML = '<p class="text-gray-500 text-sm">No pending access requests</p>';
+        accessCount.textContent = '0';
+      } else {
+        accessCount.textContent = userManagement.accessRequests.length;
+        userManagement.accessRequests.forEach(request => {
+          const div = document.createElement('div');
+          div.className = 'bg-green-50 p-3 rounded border border-green-200';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-medium text-sm">${request.username}</p>
+                <p class="text-xs text-gray-500">${new Date(request.timestamp).toLocaleDateString()}</p>
+              </div>
+              <div class="flex space-x-1">
+                <button onclick="approveAccess('${request.username}', ${request.id})" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600">✓</button>
+                <button onclick="denyRequest('access', ${request.id})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">✗</button>
+              </div>
+            </div>
+          `;
+          accessContainer.appendChild(div);
+        });
+      }
+    }
+
+    function loadAdminApprovedUsers() {
+      const approvedContainer = document.getElementById('admin-approved-users');
+      const approvedCount = document.getElementById('approved-count');
+      
+      approvedContainer.innerHTML = '';
+      
+      const approvedUsersList = Object.keys(userManagement.approvedUsers);
+      approvedCount.textContent = approvedUsersList.length;
+      
+      if (approvedUsersList.length === 0) {
+        approvedContainer.innerHTML = '<p class="text-gray-500 text-sm">No approved users</p>';
+      } else {
+        approvedUsersList.forEach(username => {
+          const user = userManagement.approvedUsers[username];
+          const div = document.createElement('div');
+          div.className = 'bg-blue-50 p-3 rounded border border-blue-200';
+          div.innerHTML = `
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-medium text-sm">${username}</p>
+                <p class="text-xs text-gray-500">Approved: ${new Date(user.approvedDate).toLocaleDateString()}</p>
+              </div>
+              <div class="flex space-x-1">
+                <button onclick="resetUserPassword('${username}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" title="Reset Password">🔑</button>
+                <button onclick="removeUser('${username}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" title="Remove User">🗑️</button>
+              </div>
+            </div>
+          `;
+          approvedContainer.appendChild(div);
+        });
+      }
+    }
+
+    function updateSystemStatistics() {
+      // Update total users
+      document.getElementById('total-users').textContent = Object.keys(userManagement.approvedUsers).length;
+      
+      // Update total job descriptions
+      document.getElementById('total-jds').textContent = Object.keys(jobDescriptions).length;
+      
+      // Update org units count
+      let orgUnitsCount = 0;
+      Object.keys(orgStructure).forEach(category => {
+        Object.keys(orgStructure[category]).forEach(unit => {
+          orgUnitsCount += Object.keys(orgStructure[category][unit]).length;
+        });
+      });
+      document.getElementById('org-units').textContent = orgUnitsCount;
+    }
+
+    function refreshUserRequests() {
+      loadAdminUserRequests();
+      loadAdminApprovedUsers();
+      updateSystemStatistics();
+      alert('User data refreshed successfully!');
+    }
+
+    function backupSystemData() {
+      if (currentUser !== 'admin') {
+        alert('Backup functionality is only available for administrators.');
+        return;
+      }
+      
+      const backupData = {
+        userManagement: userManagement,
+        jobDescriptions: jobDescriptions,
+        orgChartData: orgChartData,
+        orgStructure: orgStructure,
+        orgFunctions: orgFunctions,
+        categoryColors: categoryColors,
+        backupDate: new Date().toISOString(),
+        version: '1.0'
+      };
+      
+      const dataStr = JSON.stringify(backupData, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `PLDT_System_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      
+      alert('System backup downloaded successfully!');
+    }
+
+    function restoreSystemData() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const backupData = JSON.parse(e.target.result);
+            
+            if (confirm('This will restore all system data from the backup file. Current data will be overwritten. Continue?')) {
+              // Restore all data
+              if (backupData.userManagement) {
+                userManagement = backupData.userManagement;
+                localStorage.setItem('resetRequests', JSON.stringify(userManagement.resetRequests));
+                localStorage.setItem('accessRequests', JSON.stringify(userManagement.accessRequests));
+                localStorage.setItem('approvedUsers', JSON.stringify(userManagement.approvedUsers));
+                localStorage.setItem('adminPassword', userManagement.adminPassword);
+              }
+              
+              if (backupData.jobDescriptions) {
+                jobDescriptions = backupData.jobDescriptions;
+                localStorage.setItem('jobDescriptions', JSON.stringify(jobDescriptions));
+              }
+              
+              if (backupData.orgChartData) {
+                orgChartData = backupData.orgChartData;
+                localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+              }
+              
+              if (backupData.orgStructure) {
+                orgStructure = backupData.orgStructure;
+                localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+              }
+              
+              if (backupData.orgFunctions) {
+                orgFunctions = backupData.orgFunctions;
+                localStorage.setItem('orgFunctions', JSON.stringify(orgFunctions));
+              }
+              
+              if (backupData.categoryColors) {
+                categoryColors = backupData.categoryColors;
+                localStorage.setItem('categoryColors', JSON.stringify(categoryColors));
+              }
+              
+              alert('System data restored successfully! Please refresh the page.');
+              location.reload();
+            }
+          } catch (error) {
+            alert('Error reading backup file. Please check the file format.');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function resetSystemToDefaults() {
+      if (confirm('This will reset all system data to default values. This cannot be undone. Continue?')) {
+        // Clear all localStorage
+        localStorage.clear();
+        
+        // Reset all variables to defaults
+        userManagement = {
+          resetRequests: [],
+          accessRequests: [],
+          approvedUsers: {},
+          adminPassword: 'Hunter542639'
+        };
+        
+        jobDescriptions = {};
+        
+        orgChartData = [
+          { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'gray', Id: 'board' },
+          { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'gray', Id: 'ceo' },
+          { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo' },
+          { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo' },
+          { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology' },
+          { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people' },
+          { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance' }
+        ];
+        
+        // Reset org structure to default
+        orgStructure = {
+          'BUSINESS': {
+            'Consumer Business Home': {
+              'Regional Operations': ['Manager - Regional Operations', 'Senior Specialist - Customer Relations'],
+              'Sales Division': ['Sales Manager', 'Senior Sales Representative']
+            }
+          },
+          'TECHNOLOGY': {
+            'Network Group': {
+              'Infrastructure': ['Network Infrastructure Manager', 'Senior Network Engineer'],
+              'Operations': ['Network Operations Manager', 'NOC Specialist']
+            }
+          },
+          'SUPPORT': {
+            'Finance Group': {
+              'Financial Planning': ['Finance Manager', 'Financial Analyst'],
+              'Accounting': ['Accounting Manager', 'Senior Accountant']
+            }
+          },
+          'GOVERNANCE': {
+            'Internal Audit': {
+              'Audit Operations': ['Chief Audit Executive', 'Senior Auditor']
+            }
+          }
+        };
+        
+        orgFunctions = {};
+        categoryColors = {
+          'BUSINESS': 'blue',
+          'TECHNOLOGY': 'blue', 
+          'SUPPORT': 'blue',
+          'GOVERNANCE': 'blue'
+        };
+        
+        alert('System reset to defaults successfully! Please refresh the page.');
+        location.reload();
+      }
+    }
+
+    function clearAllSystemData() {
+      if (confirm('This will permanently delete ALL system data including users, job descriptions, and organizational data. This cannot be undone. Continue?')) {
+        if (confirm('Are you absolutely sure? This will delete everything and cannot be recovered.')) {
+          localStorage.clear();
+          alert('All system data cleared successfully! Please refresh the page.');
+          location.reload();
+        }
+      }
+    }
+
     // Close modals when clicking outside
     document.getElementById('jd-modal').addEventListener('click', function(e) {
       if (e.target === this) {
@@ -2410,5 +3683,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bfac7fb43edd3c',t:'MTc1NDY2MzAzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bfd9e013ddfec5',t:'MTc1NDY2NDg4OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
