@@ -4,9 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Org Chart App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .unit {
+      background: white;
+      border-left: 8px solid gray;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+    }
+    .unit.pldt { border-left-color: red; }
+    .unit.smart { border-left-color: green; }
+    .unit.shared { border-left-color: #ccc; }
+
+    .position {
+      margin: 0.5rem 0;
+    }
+    .jd {
+      display: none;
+      margin-left: 1.5rem;
+      font-size: 0.9rem;
+      color: #333;
+      background: #f9f9f9;
+      padding: 0.5rem;
+      border-left: 4px solid #ccc;
+    }
+    .position:hover {
+      cursor: pointer;
+      background-color: #eef;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Org Chart App</h1>
-  <p>This is where your interactive org chart will go.</p>
+  <h1>Organizational Chart Viewer</h1>
+
+  <div class="unit shared">
+    <h2>Finance and Corporate Sustainability</h2>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L4: Head, Financial Reporting</strong>
+      <div class="jd">Responsible for overseeing the company's external financial reports, audit coordination, and regulatory compliance.</div>
+    </div>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L5: Manager, External Reporting</strong>
+      <div class="jd">Prepares consolidated financial statements, ensures SEC filings, and supports internal and external audit requirements.</div>
+    </div>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L6: Analyst, Wireless Reporting</strong>
+      <div class="jd">Performs data analysis and reporting specific to wireless segment performance and transactions.</div>
+    </div>
+  </div>
+
+  <div class="unit pldt">
+    <h2>PLDT Network Implementation</h2>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L4: VP, Network Implementation</strong>
+      <div class="jd">Leads fixed and wireless build initiatives, oversees permitting and installation, and ensures on-time delivery.</div>
+    </div>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L5: Manager, Fixed Access Build</strong>
+      <div class="jd">Manages regional teams deploying fixed broadband infrastructure projects.</div>
+    </div>
+  </div>
+
+  <div class="unit smart">
+    <h2>SMART Field Operations</h2>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L4: AVP, Network Quality</strong>
+      <div class="jd">Drives service assurance efforts and manages KPIs to ensure consistent customer experience across SMART network.</div>
+    </div>
+    <div class="position" onclick="toggleJD(this)">
+      <strong>L5: Specialist, Field Ops Support</strong>
+      <div class="jd">Supports field operations logistics, repairs, and escalation coordination.</div>
+    </div>
+  </div>
+
+  <script>
+    function toggleJD(el) {
+      const jd = el.querySelector('.jd');
+      jd.style.display = jd.style.display === 'block' ? 'none' : 'block';
+    }
+  </script>
 </body>
 </html>
+
