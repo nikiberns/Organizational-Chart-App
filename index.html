@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Horizontal Organizational Chart</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .org-box {
             position: relative;
@@ -253,6 +254,12 @@
             margin: 0 -2px;
         }
         
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
         @media (max-width: 768px) {
             .horizontal-container {
                 flex-direction: column;
@@ -277,8 +284,58 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Navigation Header -->
-    <div class="nav-header">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🏢</div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">PLDT/SMART</h1>
+                <h2 class="text-xl text-gray-600">Organizational Chart</h2>
+                <p class="text-sm text-gray-500 mt-2">Please enter your access code to continue</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Access Code</label>
+                    <input type="password" id="passwordInput" placeholder="Enter your access code" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-widest"
+                           onkeypress="handlePasswordKeyPress(event)">
+                </div>
+                
+                <button onclick="checkPassword()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg">
+                    🔓 Access Chart
+                </button>
+                
+                <div id="loginError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-center">
+                    <div class="flex items-center justify-center">
+                        <span class="text-xl mr-2">❌</span>
+                        <span>Invalid access code. Please try again.</span>
+                    </div>
+                </div>
+                
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden until login) -->
+    <div id="mainApp" class="hidden">
+        <!-- Access Level Indicator -->
+        <div id="accessIndicator" class="fixed top-4 right-4 z-40 bg-white rounded-lg shadow-lg px-4 py-2 border-l-4">
+            <div class="flex items-center space-x-2">
+                <span id="accessIcon"></span>
+                <div>
+                    <div id="accessLevel" class="font-medium text-sm"></div>
+                    <div class="text-xs text-gray-500">
+                        <span id="accessUser"></span> • 
+                        <button onclick="logout()" class="text-blue-600 hover:text-blue-800">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Header -->
+        <div class="nav-header">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <h1 class="text-4xl font-bold mb-2">🏢 PLDT/SMART Organizational Chart</h1>
             <p class="text-blue-100 text-lg">Toggle between horizontal and vertical layouts - Click on any box to expand departments</p>
@@ -318,6 +375,15 @@
                     <button onclick="exportChart()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         📤 Export
                     </button>
+                    <div id="adminControls" class="hidden">
+                        <label for="excelUpload" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer">
+                            📁 Upload Excel
+                            <input type="file" id="excelUpload" accept=".xlsx,.xls" class="hidden" onchange="handleExcelUpload(event)">
+                        </label>
+                        <button onclick="downloadTemplate()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                            📋 Download Template
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="mt-4 text-center">
@@ -332,6 +398,7 @@
                 <!-- Chart will be generated here -->
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Job Description Modal -->
@@ -970,6 +1037,103 @@
         };
 
         // ========================================
+        // PASSWORD AUTHENTICATION SYSTEM
+        // ========================================
+        
+        const ACCESS_CODES = {
+            'PLDTSMART_HR_OD': {
+                level: 'viewer',
+                name: 'Viewer',
+                icon: '👀',
+                color: 'border-blue-500',
+                canEdit: false
+            },
+            'Hunter542639': {
+                level: 'admin',
+                name: 'Administrator',
+                icon: '⚙️',
+                color: 'border-green-500',
+                canEdit: true
+            }
+        };
+
+        let currentUser = null;
+
+        function handlePasswordKeyPress(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (ACCESS_CODES[password]) {
+                // Valid password
+                currentUser = ACCESS_CODES[password];
+                showMainApp();
+                errorDiv.classList.add('hidden');
+            } else {
+                // Invalid password
+                errorDiv.classList.remove('hidden');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+                
+                // Shake animation
+                const loginScreen = document.getElementById('loginScreen');
+                loginScreen.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    loginScreen.style.animation = '';
+                }, 500);
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update access indicator
+            const indicator = document.getElementById('accessIndicator');
+            const icon = document.getElementById('accessIcon');
+            const level = document.getElementById('accessLevel');
+            const user = document.getElementById('accessUser');
+            
+            indicator.className = `fixed top-4 right-4 z-40 bg-white rounded-lg shadow-lg px-4 py-2 border-l-4 ${currentUser.color}`;
+            icon.textContent = currentUser.icon;
+            level.textContent = currentUser.name + ' Access';
+            user.textContent = currentUser.level.toUpperCase();
+            
+            // Show/hide admin controls
+            const adminControls = document.getElementById('adminControls');
+            if (currentUser.canEdit) {
+                adminControls.classList.remove('hidden');
+            } else {
+                adminControls.classList.add('hidden');
+            }
+            
+            // Initialize the chart
+            generateChart();
+            setupSearch();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordInput').focus();
+        }
+
+        function checkAdminAccess(action) {
+            if (!currentUser || !currentUser.canEdit) {
+                alert(`🔒 Access Denied\n\nThis action requires Administrator access.\n\nYou are currently logged in as: ${currentUser ? currentUser.name : 'Unknown'}\n\nPlease contact your system administrator for admin access.`);
+                return false;
+            }
+            return true;
+        }
+
+        // ========================================
         // WEB APP FUNCTIONALITY
         // ========================================
 
@@ -1206,10 +1370,195 @@
             URL.revokeObjectURL(url);
         }
 
+        function downloadTemplate() {
+            // Create sample data for Excel template
+            const templateData = [
+                ['Position ID', 'Position Title', 'Level', 'Type', 'Parent ID', 'Department', 'Description'],
+                ['board', 'Board of Directors', 'Board Level', 'board', '', 'Governance', 'Top level governance body'],
+                ['president-ceo', 'President & CEO', 'Chief Executive', 'executive', 'board', 'Executive Office', 'Chief executive officer'],
+                ['finance-head', 'Head - Finance', 'Department Head', 'avp', 'president-ceo', 'Finance', 'Finance department head'],
+                ['finance-manager', 'Finance Manager', 'Manager', 'senior-manager', 'finance-head', 'Finance', 'Finance operations manager'],
+                ['finance-officer', 'Finance Officer', 'Officer', 'officer', 'finance-manager', 'Finance', 'Finance operations officer'],
+                ['finance-staff', 'Finance Staff', 'Staff', 'staff', 'finance-officer', 'Finance', 'Finance support staff']
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Org Chart Template');
+            
+            // Set column widths
+            ws['!cols'] = [
+                { width: 15 }, // Position ID
+                { width: 30 }, // Position Title
+                { width: 20 }, // Level
+                { width: 15 }, // Type
+                { width: 15 }, // Parent ID
+                { width: 20 }, // Department
+                { width: 40 }  // Description
+            ];
+            
+            XLSX.writeFile(wb, 'org-chart-template.xlsx');
+            
+            // Show instructions
+            alert(`📋 Template Downloaded!
+
+Instructions for using the Excel template:
+
+1. Position ID: Unique identifier (no spaces, use hyphens)
+2. Position Title: Display name for the position
+3. Level: Job level description
+4. Type: Choose from: board, executive, pldt-ops, smart-ops, shared-services, sub-function, avp, senior-manager, officer, staff
+5. Parent ID: The Position ID of the direct supervisor (leave empty for top level)
+6. Department: Department name
+7. Description: Job description (optional)
+
+Save as .xlsx and upload using the "Upload Excel" button!`);
+        }
+
+        function handleExcelUpload(event) {
+            if (!checkAdminAccess('upload Excel file')) {
+                event.target.value = ''; // Reset file input
+                return;
+            }
+            
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    processExcelData(jsonData);
+                } catch (error) {
+                    alert('❌ Error reading Excel file: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processExcelData(data) {
+            if (data.length < 2) {
+                alert('❌ Excel file must have at least a header row and one data row');
+                return;
+            }
+
+            const headers = data[0];
+            const requiredHeaders = ['Position ID', 'Position Title', 'Level', 'Type', 'Parent ID'];
+            
+            // Check if required headers exist
+            const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+            if (missingHeaders.length > 0) {
+                alert(`❌ Missing required columns: ${missingHeaders.join(', ')}`);
+                return;
+            }
+
+            // Get column indices
+            const idIndex = headers.indexOf('Position ID');
+            const titleIndex = headers.indexOf('Position Title');
+            const levelIndex = headers.indexOf('Level');
+            const typeIndex = headers.indexOf('Type');
+            const parentIndex = headers.indexOf('Parent ID');
+            const deptIndex = headers.indexOf('Department');
+            const descIndex = headers.indexOf('Description');
+
+            // Clear existing data
+            Object.keys(organizationalData).forEach(key => delete organizationalData[key]);
+            Object.keys(jobDescriptions).forEach(key => delete jobDescriptions[key]);
+
+            // Process each row
+            const newOrgData = {};
+            const newJobDescs = {};
+            
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row[idIndex] || !row[titleIndex]) continue; // Skip empty rows
+
+                const positionId = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
+                const parentId = row[parentIndex] ? String(row[parentIndex]).toLowerCase().replace(/\s+/g, '-') : '';
+                
+                // Create position data
+                newOrgData[positionId] = {
+                    id: positionId,
+                    title: row[titleIndex] || '',
+                    level: row[levelIndex] || 'Position',
+                    type: row[typeIndex] || 'staff',
+                    children: []
+                };
+
+                // Create job description if description provided
+                if (row[descIndex]) {
+                    newJobDescs[positionId] = {
+                        title: row[titleIndex] || '',
+                        level: row[levelIndex] || 'Position',
+                        department: row[deptIndex] || 'Department',
+                        content: `
+                            <div class="space-y-6">
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
+                                    <p class="text-gray-700 leading-relaxed">${row[descIndex]}</p>
+                                </div>
+                            </div>
+                        `
+                    };
+                }
+            }
+
+            // Build parent-child relationships
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row[idIndex]) continue;
+
+                const positionId = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
+                const parentId = row[parentIndex] ? String(row[parentIndex]).toLowerCase().replace(/\s+/g, '-') : '';
+                
+                if (parentId && newOrgData[parentId]) {
+                    if (!newOrgData[parentId].children.includes(positionId)) {
+                        newOrgData[parentId].children.push(positionId);
+                    }
+                }
+            }
+
+            // Update global data
+            Object.assign(organizationalData, newOrgData);
+            Object.assign(jobDescriptions, newJobDescs);
+
+            // Find root node (position with no parent)
+            let rootNode = null;
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row[parentIndex] || row[parentIndex] === '') {
+                    rootNode = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
+                    break;
+                }
+            }
+
+            // Regenerate chart
+            expandedNodes.clear();
+            generateChart();
+
+            // Show success message
+            const totalPositions = Object.keys(organizationalData).length;
+            alert(`✅ Excel file processed successfully!
+
+📊 Imported ${totalPositions} positions
+🏢 Root position: ${rootNode ? organizationalData[rootNode].title : 'Not found'}
+📋 Job descriptions: ${Object.keys(jobDescriptions).length}
+
+The organizational chart has been updated with your Excel data!`);
+
+            // Reset file input
+            event.target.value = '';
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            generateChart();
-            setupSearch();
+            // Focus on password input
+            document.getElementById('passwordInput').focus();
             
             // Close modal when clicking outside
             document.getElementById('jobModal').addEventListener('click', function(e) {
@@ -1226,6 +1575,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bc896f13d1fec4',t:'MTc1NDYzMDEzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcbd16000afed0',t:'MTc1NDYzMjI1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
