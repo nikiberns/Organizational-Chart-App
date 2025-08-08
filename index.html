@@ -279,6 +279,16 @@
                         <span>Invalid access code. Please try again.</span>
                     </div>
                 </div>
+                
+                <!-- Login Help -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">🔑 Access Information:</h3>
+                    <div class="space-y-2 text-sm text-blue-700">
+                        <p>• Enter your assigned access code to continue</p>
+                        <p>• Contact your administrator if you need access</p>
+                        <p>• Different access levels provide different capabilities</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -906,14 +916,19 @@
         }
 
         function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
+            const password = document.getElementById('passwordInput').value.trim();
             const errorDiv = document.getElementById('loginError');
             
+            console.log('Attempting login with password:', password);
+            console.log('Available access codes:', Object.keys(ACCESS_CODES));
+            
             if (ACCESS_CODES[password]) {
+                console.log('Login successful for:', password);
                 currentUser = ACCESS_CODES[password];
                 showMainApp();
                 errorDiv.classList.add('hidden');
             } else {
+                console.log('Login failed for:', password);
                 errorDiv.classList.remove('hidden');
                 document.getElementById('passwordInput').value = '';
                 document.getElementById('passwordInput').focus();
@@ -2085,7 +2100,7 @@ The organizational chart has been updated with your multi-layer data!`);
         const customizationSettings = ${JSON.stringify(customizationSettings, null, 2)};
         const organizationalData = ${JSON.stringify(organizationalData, null, 2)};
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bce33ad0effee0',t:'MTc1NDYzMzgxNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bce81595bd219a',t:'MTc1NDYzNDAxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>`;
             
             const blob = new Blob([cleanHTML], { type: 'text/html' });
