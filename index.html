@@ -375,6 +375,9 @@
                     <button onclick="exportChart()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         📤 Export
                     </button>
+                    <button onclick="openCustomizer()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                        🎨 Customize
+                    </button>
                     <div id="adminControls" class="hidden">
                         <label for="excelUpload" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer">
                             📁 Upload Excel
@@ -399,6 +402,165 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Interface Customizer Modal -->
+    <div id="customizerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">🎨 Interface Customizer</h2>
+                        <p class="text-lg text-gray-600">Customize the appearance without changing code</p>
+                        <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 border border-green-200">
+                            <span class="mr-1">⚙️</span>
+                            <span class="font-medium">Administrator Access Required</span>
+                        </div>
+                    </div>
+                    <button onclick="closeCustomizer()" class="text-gray-500 hover:text-gray-700 text-3xl font-light">×</button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Color Themes -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-800">🌈 Color Themes</h3>
+                        <div class="space-y-3">
+                            <button onclick="applyTheme('default')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex space-x-1">
+                                        <div class="w-4 h-4 bg-blue-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-purple-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-red-600 rounded"></div>
+                                    </div>
+                                    <span class="font-medium">Default PLDT Theme</span>
+                                </div>
+                            </button>
+                            <button onclick="applyTheme('corporate')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex space-x-1">
+                                        <div class="w-4 h-4 bg-gray-700 rounded"></div>
+                                        <div class="w-4 h-4 bg-gray-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-gray-500 rounded"></div>
+                                    </div>
+                                    <span class="font-medium">Corporate Gray</span>
+                                </div>
+                            </button>
+                            <button onclick="applyTheme('modern')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex space-x-1">
+                                        <div class="w-4 h-4 bg-emerald-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-teal-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-cyan-600 rounded"></div>
+                                    </div>
+                                    <span class="font-medium">Modern Teal</span>
+                                </div>
+                            </button>
+                            <button onclick="applyTheme('warm')" class="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 transition-colors text-left">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex space-x-1">
+                                        <div class="w-4 h-4 bg-orange-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-amber-600 rounded"></div>
+                                        <div class="w-4 h-4 bg-yellow-600 rounded"></div>
+                                    </div>
+                                    <span class="font-medium">Warm Orange</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Layout Options -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-800">📐 Layout Options</h3>
+                        <div class="space-y-3">
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="compactMode" onchange="toggleCompactMode()" class="w-4 h-4 text-blue-600">
+                                    <span class="font-medium">Compact Mode</span>
+                                </label>
+                                <p class="text-sm text-gray-600 mt-1">Smaller boxes and reduced spacing</p>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="showJobCounts" onchange="toggleJobCounts()" class="w-4 h-4 text-blue-600" checked>
+                                    <span class="font-medium">Show Position Counts</span>
+                                </label>
+                                <p class="text-sm text-gray-600 mt-1">Display number of positions in each department</p>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="showLevels" onchange="toggleLevels()" class="w-4 h-4 text-blue-600" checked>
+                                    <span class="font-medium">Show Job Levels</span>
+                                </label>
+                                <p class="text-sm text-gray-600 mt-1">Display job level descriptions</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Font Options -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-800">🔤 Typography</h3>
+                        <div class="space-y-3">
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Font Size</label>
+                                <select id="fontSize" onchange="changeFontSize()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                    <option value="extra-large">Extra Large</option>
+                                </select>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Font Style</label>
+                                <select id="fontStyle" onchange="changeFontStyle()" class="w-full p-2 border border-gray-300 rounded-lg">
+                                    <option value="system">System Default</option>
+                                    <option value="modern">Modern (Inter)</option>
+                                    <option value="classic">Classic (Times)</option>
+                                    <option value="tech">Tech (Mono)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Animation Options -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-semibold text-gray-800">✨ Animations</h3>
+                        <div class="space-y-3">
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="enableAnimations" onchange="toggleAnimations()" class="w-4 h-4 text-blue-600" checked>
+                                    <span class="font-medium">Enable Hover Effects</span>
+                                </label>
+                                <p class="text-sm text-gray-600 mt-1">Smooth transitions and hover animations</p>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="enableShadows" onchange="toggleShadows()" class="w-4 h-4 text-blue-600" checked>
+                                    <span class="font-medium">Box Shadows</span>
+                                </label>
+                                <p class="text-sm text-gray-600 mt-1">Add depth with shadow effects</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <button onclick="resetToDefault()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                            🔄 Reset to Default
+                        </button>
+                        <div class="space-x-3">
+                            <button onclick="saveCustomization()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                                💾 Save Settings
+                            </button>
+                            <button onclick="closeCustomizer()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                ✅ Apply & Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Job Description Modal -->
@@ -1555,25 +1717,411 @@ The organizational chart has been updated with your Excel data!`);
             event.target.value = '';
         }
 
+        // ========================================
+        // INTERFACE CUSTOMIZATION SYSTEM
+        // ========================================
+        
+        let customizationSettings = {
+            theme: 'default',
+            compactMode: false,
+            showJobCounts: true,
+            showLevels: true,
+            fontSize: 'medium',
+            fontStyle: 'system',
+            enableAnimations: true,
+            enableShadows: true
+        };
+
+        function openCustomizer() {
+            document.getElementById('customizerModal').classList.remove('hidden');
+            document.getElementById('customizerModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            // Load current settings
+            loadCustomizationSettings();
+        }
+
+        function closeCustomizer() {
+            document.getElementById('customizerModal').classList.add('hidden');
+            document.getElementById('customizerModal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function loadCustomizationSettings() {
+            // Load from localStorage if available
+            const saved = localStorage.getItem('orgChartCustomization');
+            if (saved) {
+                customizationSettings = { ...customizationSettings, ...JSON.parse(saved) };
+            }
+            
+            // Update UI controls
+            document.getElementById('compactMode').checked = customizationSettings.compactMode;
+            document.getElementById('showJobCounts').checked = customizationSettings.showJobCounts;
+            document.getElementById('showLevels').checked = customizationSettings.showLevels;
+            document.getElementById('fontSize').value = customizationSettings.fontSize;
+            document.getElementById('fontStyle').value = customizationSettings.fontStyle;
+            document.getElementById('enableAnimations').checked = customizationSettings.enableAnimations;
+            document.getElementById('enableShadows').checked = customizationSettings.enableShadows;
+            
+            // Apply current settings
+            applyAllCustomizations();
+        }
+
+        function applyTheme(themeName) {
+            customizationSettings.theme = themeName;
+            
+            const themes = {
+                default: {
+                    board: 'linear-gradient(135deg, #1e3a8a, #1e40af)',
+                    executive: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                    pldtOps: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                    smartOps: 'linear-gradient(135deg, #16a34a, #15803d)',
+                    sharedServices: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    subFunction: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    avp: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    seniorManager: 'linear-gradient(135deg, #64748b, #475569)',
+                    officer: 'linear-gradient(135deg, #a16207, #92400e)'
+                },
+                corporate: {
+                    board: 'linear-gradient(135deg, #374151, #1f2937)',
+                    executive: 'linear-gradient(135deg, #4b5563, #374151)',
+                    pldtOps: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    smartOps: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    sharedServices: 'linear-gradient(135deg, #9ca3af, #6b7280)',
+                    subFunction: 'linear-gradient(135deg, #9ca3af, #6b7280)',
+                    avp: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    seniorManager: 'linear-gradient(135deg, #9ca3af, #6b7280)',
+                    officer: 'linear-gradient(135deg, #d1d5db, #9ca3af)'
+                },
+                modern: {
+                    board: 'linear-gradient(135deg, #065f46, #047857)',
+                    executive: 'linear-gradient(135deg, #0d9488, #0f766e)',
+                    pldtOps: 'linear-gradient(135deg, #0891b2, #0e7490)',
+                    smartOps: 'linear-gradient(135deg, #0891b2, #0e7490)',
+                    sharedServices: 'linear-gradient(135deg, #0d9488, #0f766e)',
+                    subFunction: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    avp: 'linear-gradient(135deg, #0d9488, #0f766e)',
+                    seniorManager: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    officer: 'linear-gradient(135deg, #22d3ee, #06b6d4)'
+                },
+                warm: {
+                    board: 'linear-gradient(135deg, #c2410c, #ea580c)',
+                    executive: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                    pldtOps: 'linear-gradient(135deg, #dc2626, #f59e0b)',
+                    smartOps: 'linear-gradient(135deg, #dc2626, #f59e0b)',
+                    sharedServices: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                    subFunction: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                    avp: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                    seniorManager: 'linear-gradient(135deg, #fbbf24, #facc15)',
+                    officer: 'linear-gradient(135deg, #facc15, #fde047)'
+                }
+            };
+            
+            const theme = themes[themeName];
+            const style = document.createElement('style');
+            style.id = 'theme-override';
+            
+            // Remove existing theme
+            const existing = document.getElementById('theme-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .org-box.board { background: ${theme.board} !important; }
+                .org-box.executive { background: ${theme.executive} !important; }
+                .org-box.pldt-ops { background: ${theme.pldtOps} !important; }
+                .org-box.smart-ops { background: ${theme.smartOps} !important; }
+                .org-box.shared-services { background: ${theme.sharedServices} !important; }
+                .org-box.sub-function { background: ${theme.subFunction} !important; }
+                .org-box.avp { background: ${theme.avp} !important; }
+                .org-box.senior-manager { background: ${theme.seniorManager} !important; }
+                .org-box.officer { background: ${theme.officer} !important; }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleCompactMode() {
+            customizationSettings.compactMode = document.getElementById('compactMode').checked;
+            applyCompactMode();
+        }
+
+        function applyCompactMode() {
+            const style = document.createElement('style');
+            style.id = 'compact-override';
+            
+            // Remove existing
+            const existing = document.getElementById('compact-override');
+            if (existing) existing.remove();
+            
+            if (customizationSettings.compactMode) {
+                style.textContent = `
+                    .org-box {
+                        min-width: 140px !important;
+                        max-width: 180px !important;
+                        padding: 8px !important;
+                        margin: 4px !important;
+                        font-size: 0.8rem !important;
+                    }
+                    .org-box .font-bold {
+                        font-size: 0.75rem !important;
+                    }
+                    .horizontal-container {
+                        gap: 20px !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleJobCounts() {
+            customizationSettings.showJobCounts = document.getElementById('showJobCounts').checked;
+            applyJobCountsVisibility();
+        }
+
+        function applyJobCountsVisibility() {
+            const style = document.createElement('style');
+            style.id = 'jobcounts-override';
+            
+            // Remove existing
+            const existing = document.getElementById('jobcounts-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.showJobCounts) {
+                style.textContent = `
+                    .job-count {
+                        display: none !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleLevels() {
+            customizationSettings.showLevels = document.getElementById('showLevels').checked;
+            applyLevelsVisibility();
+        }
+
+        function applyLevelsVisibility() {
+            const style = document.createElement('style');
+            style.id = 'levels-override';
+            
+            // Remove existing
+            const existing = document.getElementById('levels-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.showLevels) {
+                style.textContent = `
+                    .org-box .text-xs.mt-2.opacity-80 {
+                        display: none !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function changeFontSize() {
+            customizationSettings.fontSize = document.getElementById('fontSize').value;
+            applyFontSize();
+        }
+
+        function applyFontSize() {
+            const sizes = {
+                small: '0.75rem',
+                medium: '0.875rem',
+                large: '1rem',
+                'extra-large': '1.125rem'
+            };
+            
+            const style = document.createElement('style');
+            style.id = 'fontsize-override';
+            
+            // Remove existing
+            const existing = document.getElementById('fontsize-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .org-box {
+                    font-size: ${sizes[customizationSettings.fontSize]} !important;
+                }
+                .org-box .font-bold {
+                    font-size: calc(${sizes[customizationSettings.fontSize]} + 0.125rem) !important;
+                }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function changeFontStyle() {
+            customizationSettings.fontStyle = document.getElementById('fontStyle').value;
+            applyFontStyle();
+        }
+
+        function applyFontStyle() {
+            const fonts = {
+                system: 'system-ui, -apple-system, sans-serif',
+                modern: 'Inter, system-ui, sans-serif',
+                classic: 'Times, "Times New Roman", serif',
+                tech: 'Monaco, "Cascadia Code", monospace'
+            };
+            
+            const style = document.createElement('style');
+            style.id = 'fontstyle-override';
+            
+            // Remove existing
+            const existing = document.getElementById('fontstyle-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .org-box {
+                    font-family: ${fonts[customizationSettings.fontStyle]} !important;
+                }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleAnimations() {
+            customizationSettings.enableAnimations = document.getElementById('enableAnimations').checked;
+            applyAnimations();
+        }
+
+        function applyAnimations() {
+            const style = document.createElement('style');
+            style.id = 'animations-override';
+            
+            // Remove existing
+            const existing = document.getElementById('animations-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.enableAnimations) {
+                style.textContent = `
+                    .org-box {
+                        transition: none !important;
+                    }
+                    .org-box:hover {
+                        transform: none !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleShadows() {
+            customizationSettings.enableShadows = document.getElementById('enableShadows').checked;
+            applyShadows();
+        }
+
+        function applyShadows() {
+            const style = document.createElement('style');
+            style.id = 'shadows-override';
+            
+            // Remove existing
+            const existing = document.getElementById('shadows-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.enableShadows) {
+                style.textContent = `
+                    .org-box:hover {
+                        box-shadow: none !important;
+                    }
+                    .search-container {
+                        box-shadow: none !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function applyAllCustomizations() {
+            applyTheme(customizationSettings.theme);
+            applyCompactMode();
+            applyJobCountsVisibility();
+            applyLevelsVisibility();
+            applyFontSize();
+            applyFontStyle();
+            applyAnimations();
+            applyShadows();
+        }
+
+        function saveCustomization() {
+            localStorage.setItem('orgChartCustomization', JSON.stringify(customizationSettings));
+            
+            // Show success message
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Saved!';
+            button.style.background = '#10b981';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+        }
+
+        function resetToDefault() {
+            // Reset settings
+            customizationSettings = {
+                theme: 'default',
+                compactMode: false,
+                showJobCounts: true,
+                showLevels: true,
+                fontSize: 'medium',
+                fontStyle: 'system',
+                enableAnimations: true,
+                enableShadows: true
+            };
+            
+            // Remove all custom styles
+            ['theme-override', 'compact-override', 'jobcounts-override', 'levels-override', 
+             'fontsize-override', 'fontstyle-override', 'animations-override', 'shadows-override'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.remove();
+            });
+            
+            // Update UI controls
+            loadCustomizationSettings();
+            
+            // Clear localStorage
+            localStorage.removeItem('orgChartCustomization');
+            
+            alert('🔄 Interface reset to default settings!');
+        }
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             // Focus on password input
             document.getElementById('passwordInput').focus();
             
-            // Close modal when clicking outside
+            // Close modals when clicking outside
             document.getElementById('jobModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     closeJobModal();
                 }
             });
             
-            // Close modal with Escape key
+            document.getElementById('customizerModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCustomizer();
+                }
+            });
+            
+            // Close modals with Escape key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeJobModal();
+                    closeCustomizer();
                 }
             });
+            
+            // Load saved customizations
+            loadCustomizationSettings();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcbd16000afed0',t:'MTc1NDYzMjI1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcc8af8114dd35',t:'MTc1NDYzMjcyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
