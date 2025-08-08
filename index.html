@@ -1,97 +1,1231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Org Chart App</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      background-color: #f4f4f4;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    .unit {
-      background: white;
-      border-left: 8px solid gray;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 6px;
-    }
-    .unit.pldt { border-left-color: red; }
-    .unit.smart { border-left-color: green; }
-    .unit.shared { border-left-color: #ccc; }
-
-    .position {
-      margin: 0.5rem 0;
-    }
-    .jd {
-      display: none;
-      margin-left: 1.5rem;
-      font-size: 0.9rem;
-      color: #333;
-      background: #f9f9f9;
-      padding: 0.5rem;
-      border-left: 4px solid #ccc;
-    }
-    .position:hover {
-      cursor: pointer;
-      background-color: #eef;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Organizational Chart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .org-box {
+            position: relative;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 180px;
+            max-width: 220px;
+            text-align: center;
+        }
+        
+        .org-box:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .org-box.board {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            color: white;
+            border-color: #1e40af;
+            font-weight: bold;
+        }
+        
+        .org-box.executive {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border-color: #7c3aed;
+        }
+        
+        .org-box.pldt-ops {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            border-color: #b91c1c;
+        }
+        
+        .org-box.smart-ops {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            border-color: #15803d;
+        }
+        
+        .org-box.shared-services {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border-color: #4b5563;
+        }
+        
+        .org-box.sub-function {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        .org-box.avp {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: #d97706;
+        }
+        
+        .org-box.senior-manager {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border-color: #475569;
+        }
+        
+        .org-box.officer {
+            background: linear-gradient(135deg, #a16207, #92400e);
+            color: white;
+            border-color: #92400e;
+        }
+        
+        .org-box.staff {
+            background: white;
+            color: #374151;
+            border: 2px solid #d1d5db;
+        }
+        
+        .horizontal-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 40px;
+            padding: 20px;
+            overflow-x: auto;
+            min-height: 100vh;
+        }
+        
+        .vertical-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .org-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 240px;
+            position: relative;
+        }
+        
+        .org-level-horizontal {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+            margin: 0 20px;
+        }
+        
+        .org-level-vertical {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            position: relative;
+            gap: 20px;
+        }
+        
+        .connecting-line-horizontal {
+            position: absolute;
+            background: #9ca3af;
+            z-index: 1;
+        }
+        
+        .horizontal-line {
+            height: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .vertical-line-horizontal {
+            width: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .expandable-content-horizontal {
+            max-width: 0;
+            overflow: hidden;
+            transition: max-width 0.3s ease-out;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .expandable-content-horizontal.expanded {
+            max-width: 2000px;
+        }
+        
+        .expandable-content-vertical {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .expandable-content-vertical.expanded {
+            max-height: 2000px;
+        }
+        
+        .org-container-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .connecting-line-vertical {
+            position: absolute;
+            background: #9ca3af;
+            z-index: 1;
+        }
+        
+        .vertical-line-down {
+            width: 2px;
+            height: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 100%;
+        }
+        
+        .expand-indicator {
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .expand-indicator:hover {
+            background: #2563eb;
+            transform: scale(1.1);
+        }
+        
+        .job-count {
+            background: #ef4444;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        
+        .nav-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .search-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .org-node-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .connection-line {
+            width: 40px;
+            height: 2px;
+            background: #9ca3af;
+            margin: 0 -2px;
+        }
+        
+        @media (max-width: 768px) {
+            .horizontal-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .org-column {
+                min-width: 200px;
+            }
+            
+            .org-box {
+                min-width: 160px;
+                max-width: 200px;
+                padding: 10px;
+            }
+            
+            .connection-line {
+                display: none;
+            }
+        }
+    </style>
 </head>
-<body>
-  <h1>Organizational Chart Viewer</h1>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navigation Header -->
+    <div class="nav-header">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h1 class="text-4xl font-bold mb-2">🏢 PLDT/SMART Organizational Chart</h1>
+            <p class="text-blue-100 text-lg">Toggle between horizontal and vertical layouts - Click on any box to expand departments</p>
+        </div>
+    </div>
 
-  <div class="unit shared">
-    <h2>Finance and Corporate Sustainability</h2>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L4: Head, Financial Reporting</strong>
-      <div class="jd">Responsible for overseeing the company's external financial reports, audit coordination, and regulatory compliance.</div>
-    </div>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L5: Manager, External Reporting</strong>
-      <div class="jd">Prepares consolidated financial statements, ensures SEC filings, and supports internal and external audit requirements.</div>
-    </div>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L6: Analyst, Wireless Reporting</strong>
-      <div class="jd">Performs data analysis and reporting specific to wireless segment performance and transactions.</div>
-    </div>
-  </div>
+    <!-- Search and Controls -->
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="search-container">
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="flex-1 max-w-md">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search positions, departments..." 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 flex-wrap">
+                    <div class="flex bg-gray-100 rounded-lg p-1">
+                        <button id="horizontalBtn" onclick="setLayout('horizontal')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white">
+                            ↔️ Horizontal
+                        </button>
+                        <button id="verticalBtn" onclick="setLayout('vertical')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800">
+                            ↕️ Vertical
+                        </button>
+                    </div>
+                    <button onclick="expandAll()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        📈 Expand All
+                    </button>
+                    <button onclick="collapseAll()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                        📉 Collapse All
+                    </button>
+                    <button onclick="exportChart()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        📤 Export
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <span class="text-gray-600">Total Positions: </span>
+                <span id="totalCount" class="font-bold text-blue-600">0</span>
+            </div>
+        </div>
 
-  <div class="unit pldt">
-    <h2>PLDT Network Implementation</h2>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L4: VP, Network Implementation</strong>
-      <div class="jd">Leads fixed and wireless build initiatives, oversees permitting and installation, and ensures on-time delivery.</div>
+        <!-- Horizontal Organizational Chart -->
+        <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+            <div id="orgChart" class="horizontal-container">
+                <!-- Chart will be generated here -->
+            </div>
+        </div>
     </div>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L5: Manager, Fixed Access Build</strong>
-      <div class="jd">Manages regional teams deploying fixed broadband infrastructure projects.</div>
-    </div>
-  </div>
 
-  <div class="unit smart">
-    <h2>SMART Field Operations</h2>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L4: AVP, Network Quality</strong>
-      <div class="jd">Drives service assurance efforts and manages KPIs to ensure consistent customer experience across SMART network.</div>
+    <!-- Job Description Modal -->
+    <div id="jobModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 id="jobTitle" class="text-2xl font-bold text-gray-800 mb-2"></h2>
+                        <p id="jobLevel" class="text-lg text-gray-600"></p>
+                    </div>
+                    <button onclick="closeJobModal()" class="text-gray-500 hover:text-gray-700 text-3xl font-light">×</button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="jobContent" class="prose max-w-none">
+                    <!-- Job description content will be inserted here -->
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="position" onclick="toggleJD(this)">
-      <strong>L5: Specialist, Field Ops Support</strong>
-      <div class="jd">Supports field operations logistics, repairs, and escalation coordination.</div>
-    </div>
-  </div>
 
-  <script>
-    function toggleJD(el) {
-      const jd = el.querySelector('.jd');
-      jd.style.display = jd.style.display === 'block' ? 'none' : 'block';
-    }
-  </script>
-</body>
+    <script>
+        // ========================================
+        // PLDT/SMART ORGANIZATIONAL DATA
+        // ========================================
+        
+        const organizationalData = {
+            // Top Level - Board of Directors
+            board: {
+                id: 'board',
+                title: '📦 Board of Directors',
+                level: 'Board Level',
+                type: 'board',
+                children: ['internal-audit', 'corporate-governance', 'president-ceo']
+            },
+            
+            // Governance Units reporting to Board
+            'internal-audit': {
+                id: 'internal-audit',
+                title: 'Internal Audit',
+                level: 'Governance Unit',
+                type: 'shared-services',
+                children: ['internal-audit-head']
+            },
+            
+            'corporate-governance': {
+                id: 'corporate-governance',
+                title: 'Corporate Governance',
+                level: 'Governance Unit',
+                type: 'shared-services',
+                children: ['corp-gov-head']
+            },
+            
+            // Second Level - President & CEO
+            'president-ceo': {
+                id: 'president-ceo',
+                title: '📦 President & CEO',
+                level: 'Chief Executive',
+                type: 'executive',
+                children: ['leadership-transition', 'pldt-coo', 'smart-coo', 'consumer-home', 'fixed-sales', 'consumer-wireless', 'wireless-sales', 'enterprise-business', 'technology', 'supply-chain', 'finance-sustainability', 'people-group', 'corporate-communications', 'legal-regulatory']
+            },
+            
+            // Vertical positions under President & CEO
+            'leadership-transition': {
+                id: 'leadership-transition',
+                title: 'Leadership Transition Officer',
+                level: 'Executive Position',
+                type: 'executive',
+                children: ['lt-manager', 'lt-specialist']
+            },
+            
+            'pldt-coo': {
+                id: 'pldt-coo',
+                title: 'PLDT Chief Operations Officer',
+                level: 'Chief Operations Officer',
+                type: 'pldt-ops',
+                children: ['pldt-ops-head', 'pldt-strategy-head']
+            },
+            
+            'smart-coo': {
+                id: 'smart-coo',
+                title: 'SMART Chief Operations Officer',
+                level: 'Chief Operations Officer',
+                type: 'smart-ops',
+                children: ['smart-ops-head', 'smart-strategy-head']
+            },
+            
+            // Horizontal Business Units under President & CEO (with example hierarchies)
+            'consumer-home': {
+                id: 'consumer-home',
+                title: 'Consumer Business Home',
+                level: 'Business Unit',
+                type: 'pldt-ops',
+                children: ['cbh-head', 'cbh-marketing', 'cbh-operations']
+            },
+            
+            'fixed-sales': {
+                id: 'fixed-sales',
+                title: 'Fixed Sales and Development',
+                level: 'Business Unit',
+                type: 'pldt-ops',
+                children: ['fsd-head', 'fsd-sales-manager', 'fsd-dev-manager']
+            },
+            
+            'consumer-wireless': {
+                id: 'consumer-wireless',
+                title: 'Consumer Business Wireless',
+                level: 'Business Unit',
+                type: 'smart-ops',
+                children: ['cbw-head', 'cbw-marketing', 'cbw-operations']
+            },
+            
+            'wireless-sales': {
+                id: 'wireless-sales',
+                title: 'Wireless Sales and Development',
+                level: 'Business Unit',
+                type: 'smart-ops',
+                children: ['wsd-head', 'wsd-sales-manager', 'wsd-dev-manager']
+            },
+            
+            'enterprise-business': {
+                id: 'enterprise-business',
+                title: 'Enterprise Business',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['eb-head', 'eb-sales-head', 'eb-solutions-head']
+            },
+            
+            // Technology with complete hierarchy example
+            technology: {
+                id: 'technology',
+                title: 'Technology',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['network-group', 'information-technology', 'cyber-security-ops']
+            },
+            
+            'network-group': {
+                id: 'network-group',
+                title: 'Network Group',
+                level: 'Technology Unit',
+                type: 'sub-function',
+                children: ['ng-head', 'ng-planning', 'ng-operations']
+            },
+            
+            'information-technology': {
+                id: 'information-technology',
+                title: 'Information Technology',
+                level: 'Technology Unit',
+                type: 'sub-function',
+                children: ['it-head', 'it-infrastructure', 'it-applications']
+            },
+            
+            'cyber-security-ops': {
+                id: 'cyber-security-ops',
+                title: 'Cyber Security Operations',
+                level: 'Technology Unit',
+                type: 'sub-function',
+                children: ['cso-head', 'cso-analyst', 'cso-engineer']
+            },
+            
+            'supply-chain': {
+                id: 'supply-chain',
+                title: 'Supply Chain Management and Privacy Office',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['scm-head', 'privacy-officer']
+            },
+            
+            'finance-sustainability': {
+                id: 'finance-sustainability',
+                title: 'Finance and Corporate Sustainability',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['finance-head', 'sustainability-head', 'fp-and-a', 'accounting']
+            },
+            
+            'people-group': {
+                id: 'people-group',
+                title: 'People Group',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['hr-head', 'talent-acquisition', 'learning-dev', 'compensation']
+            },
+            
+            'corporate-communications': {
+                id: 'corporate-communications',
+                title: 'Corporate Communications',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['comms-head', 'internal-comms', 'external-comms']
+            },
+            
+            'legal-regulatory': {
+                id: 'legal-regulatory',
+                title: 'Legal and Regulatory',
+                level: 'Business Unit',
+                type: 'shared-services',
+                children: ['legal-head', 'regulatory-head', 'compliance-officer']
+            },
+            
+            // ========================================
+            // EXAMPLE HIERARCHIES - LEVEL 2 POSITIONS
+            // ========================================
+            
+            // Internal Audit hierarchy
+            'internal-audit-head': {
+                id: 'internal-audit-head',
+                title: 'Head - Internal Audit',
+                level: 'Department Head',
+                type: 'avp',
+                children: ['ia-senior-manager', 'ia-risk-manager']
+            },
+            
+            'corp-gov-head': {
+                id: 'corp-gov-head',
+                title: 'Head - Corporate Governance',
+                level: 'Department Head',
+                type: 'avp',
+                children: ['cg-manager', 'cg-analyst']
+            },
+            
+            // Leadership Transition hierarchy
+            'lt-manager': {
+                id: 'lt-manager',
+                title: 'Manager - Leadership Development',
+                level: 'Manager',
+                type: 'senior-manager',
+                children: ['lt-specialist-1', 'lt-specialist-2']
+            },
+            
+            'lt-specialist': {
+                id: 'lt-specialist',
+                title: 'Leadership Transition Specialist',
+                level: 'Specialist',
+                type: 'officer',
+                children: []
+            },
+            
+            // PLDT COO hierarchy
+            'pldt-ops-head': {
+                id: 'pldt-ops-head',
+                title: 'Head - PLDT Operations',
+                level: 'Operations Head',
+                type: 'avp',
+                children: ['pldt-ops-manager-1', 'pldt-ops-manager-2']
+            },
+            
+            'pldt-strategy-head': {
+                id: 'pldt-strategy-head',
+                title: 'Head - PLDT Strategy',
+                level: 'Strategy Head',
+                type: 'avp',
+                children: ['pldt-strategy-manager']
+            },
+            
+            // SMART COO hierarchy
+            'smart-ops-head': {
+                id: 'smart-ops-head',
+                title: 'Head - SMART Operations',
+                level: 'Operations Head',
+                type: 'avp',
+                children: ['smart-ops-manager-1', 'smart-ops-manager-2']
+            },
+            
+            'smart-strategy-head': {
+                id: 'smart-strategy-head',
+                title: 'Head - SMART Strategy',
+                level: 'Strategy Head',
+                type: 'avp',
+                children: ['smart-strategy-manager']
+            },
+            
+            // Consumer Business Home hierarchy
+            'cbh-head': {
+                id: 'cbh-head',
+                title: 'Head - Consumer Business Home',
+                level: 'Business Head',
+                type: 'avp',
+                children: ['cbh-avp-marketing', 'cbh-avp-operations']
+            },
+            
+            'cbh-marketing': {
+                id: 'cbh-marketing',
+                title: 'Marketing Manager - Home',
+                level: 'Marketing Manager',
+                type: 'senior-manager',
+                children: ['cbh-marketing-officer-1', 'cbh-marketing-officer-2']
+            },
+            
+            'cbh-operations': {
+                id: 'cbh-operations',
+                title: 'Operations Manager - Home',
+                level: 'Operations Manager',
+                type: 'senior-manager',
+                children: ['cbh-ops-officer-1', 'cbh-ops-officer-2']
+            },
+            
+            // Finance complete hierarchy example
+            'finance-head': {
+                id: 'finance-head',
+                title: 'Head - Finance',
+                level: 'Finance Head',
+                type: 'avp',
+                children: ['finance-controller', 'finance-treasury']
+            },
+            
+            'sustainability-head': {
+                id: 'sustainability-head',
+                title: 'Head - Corporate Sustainability',
+                level: 'Sustainability Head',
+                type: 'avp',
+                children: ['sustainability-manager']
+            },
+            
+            'fp-and-a': {
+                id: 'fp-and-a',
+                title: 'Financial Planning & Analysis',
+                level: 'FP&A Department',
+                type: 'senior-manager',
+                children: ['fpa-manager', 'fpa-analyst-1', 'fpa-analyst-2']
+            },
+            
+            'accounting': {
+                id: 'accounting',
+                title: 'Accounting Department',
+                level: 'Accounting Department',
+                type: 'senior-manager',
+                children: ['accounting-manager', 'accounting-officer-1', 'accounting-officer-2']
+            },
+            
+            // ========================================
+            // EXAMPLE HIERARCHIES - LEVEL 3 POSITIONS
+            // ========================================
+            
+            // Internal Audit Level 3
+            'ia-senior-manager': {
+                id: 'ia-senior-manager',
+                title: 'Senior Manager - Internal Audit',
+                level: 'Senior Manager',
+                type: 'senior-manager',
+                children: ['ia-officer-1', 'ia-officer-2', 'ia-staff-1']
+            },
+            
+            'ia-risk-manager': {
+                id: 'ia-risk-manager',
+                title: 'Risk Manager',
+                level: 'Risk Manager',
+                type: 'senior-manager',
+                children: ['ia-risk-officer', 'ia-risk-analyst']
+            },
+            
+            // Finance Level 3
+            'finance-controller': {
+                id: 'finance-controller',
+                title: 'Finance Controller',
+                level: 'Controller',
+                type: 'senior-manager',
+                children: ['controller-officer-1', 'controller-officer-2']
+            },
+            
+            'finance-treasury': {
+                id: 'finance-treasury',
+                title: 'Treasury Manager',
+                level: 'Treasury Manager',
+                type: 'senior-manager',
+                children: ['treasury-officer', 'treasury-analyst']
+            },
+            
+            'fpa-manager': {
+                id: 'fpa-manager',
+                title: 'Manager - Financial Planning',
+                level: 'Manager',
+                type: 'senior-manager',
+                children: ['fpa-officer-1', 'fpa-officer-2']
+            },
+            
+            // ========================================
+            // EXAMPLE HIERARCHIES - LEVEL 4 POSITIONS (Staff Level)
+            // ========================================
+            
+            // Internal Audit Staff
+            'ia-officer-1': {
+                id: 'ia-officer-1',
+                title: 'Officer - Internal Audit',
+                level: 'Officer',
+                type: 'officer',
+                children: ['ia-staff-audit-1', 'ia-staff-audit-2']
+            },
+            
+            'ia-officer-2': {
+                id: 'ia-officer-2',
+                title: 'Officer - Compliance Audit',
+                level: 'Officer',
+                type: 'officer',
+                children: ['ia-staff-compliance-1']
+            },
+            
+            'ia-staff-1': {
+                id: 'ia-staff-1',
+                title: 'Staff - Audit Assistant',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            // Finance Staff
+            'controller-officer-1': {
+                id: 'controller-officer-1',
+                title: 'Officer - Financial Reporting',
+                level: 'Officer',
+                type: 'officer',
+                children: ['fr-staff-1', 'fr-staff-2']
+            },
+            
+            'fpa-officer-1': {
+                id: 'fpa-officer-1',
+                title: 'Officer - Budget Planning',
+                level: 'Officer',
+                type: 'officer',
+                children: ['budget-staff-1', 'budget-staff-2']
+            },
+            
+            // ========================================
+            // LEVEL 5 POSITIONS (Individual Contributors)
+            // ========================================
+            
+            'ia-staff-audit-1': {
+                id: 'ia-staff-audit-1',
+                title: 'Staff - Junior Auditor',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            'ia-staff-audit-2': {
+                id: 'ia-staff-audit-2',
+                title: 'Staff - Audit Analyst',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            'fr-staff-1': {
+                id: 'fr-staff-1',
+                title: 'Staff - Financial Analyst',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            'fr-staff-2': {
+                id: 'fr-staff-2',
+                title: 'Staff - Reporting Specialist',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            'budget-staff-1': {
+                id: 'budget-staff-1',
+                title: 'Staff - Budget Analyst',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            'budget-staff-2': {
+                id: 'budget-staff-2',
+                title: 'Staff - Planning Analyst',
+                level: 'Staff',
+                type: 'staff',
+                children: []
+            },
+            
+            // Placeholder positions for other departments (you can expand these)
+            'ng-head': { id: 'ng-head', title: 'Head - Network Group', level: 'Department Head', type: 'avp', children: [] },
+            'it-head': { id: 'it-head', title: 'Head - Information Technology', level: 'Department Head', type: 'avp', children: [] },
+            'cso-head': { id: 'cso-head', title: 'Head - Cyber Security', level: 'Department Head', type: 'avp', children: [] },
+            'hr-head': { id: 'hr-head', title: 'Head - People Group', level: 'Department Head', type: 'avp', children: [] },
+            'comms-head': { id: 'comms-head', title: 'Head - Corporate Communications', level: 'Department Head', type: 'avp', children: [] },
+            'legal-head': { id: 'legal-head', title: 'Head - Legal', level: 'Department Head', type: 'avp', children: [] },
+            
+            // Add more positions as needed - just follow the same pattern!
+            // Each position needs: id, title, level, type, children (array of child IDs)
+            
+            // Additional missing positions
+            'lt-specialist-1': { id: 'lt-specialist-1', title: 'Leadership Specialist 1', level: 'Specialist', type: 'staff', children: [] },
+            'lt-specialist-2': { id: 'lt-specialist-2', title: 'Leadership Specialist 2', level: 'Specialist', type: 'staff', children: [] },
+            'pldt-ops-manager-1': { id: 'pldt-ops-manager-1', title: 'PLDT Operations Manager 1', level: 'Manager', type: 'senior-manager', children: [] },
+            'pldt-ops-manager-2': { id: 'pldt-ops-manager-2', title: 'PLDT Operations Manager 2', level: 'Manager', type: 'senior-manager', children: [] },
+            'pldt-strategy-manager': { id: 'pldt-strategy-manager', title: 'PLDT Strategy Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'smart-ops-manager-1': { id: 'smart-ops-manager-1', title: 'SMART Operations Manager 1', level: 'Manager', type: 'senior-manager', children: [] },
+            'smart-ops-manager-2': { id: 'smart-ops-manager-2', title: 'SMART Operations Manager 2', level: 'Manager', type: 'senior-manager', children: [] },
+            'smart-strategy-manager': { id: 'smart-strategy-manager', title: 'SMART Strategy Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'cbh-avp-marketing': { id: 'cbh-avp-marketing', title: 'AVP - Home Marketing', level: 'AVP', type: 'avp', children: [] },
+            'cbh-avp-operations': { id: 'cbh-avp-operations', title: 'AVP - Home Operations', level: 'AVP', type: 'avp', children: [] },
+            'cbh-marketing-officer-1': { id: 'cbh-marketing-officer-1', title: 'Marketing Officer 1', level: 'Officer', type: 'officer', children: [] },
+            'cbh-marketing-officer-2': { id: 'cbh-marketing-officer-2', title: 'Marketing Officer 2', level: 'Officer', type: 'officer', children: [] },
+            'cbh-ops-officer-1': { id: 'cbh-ops-officer-1', title: 'Operations Officer 1', level: 'Officer', type: 'officer', children: [] },
+            'cbh-ops-officer-2': { id: 'cbh-ops-officer-2', title: 'Operations Officer 2', level: 'Officer', type: 'officer', children: [] },
+            'fsd-head': { id: 'fsd-head', title: 'Head - Fixed Sales', level: 'Department Head', type: 'avp', children: [] },
+            'fsd-sales-manager': { id: 'fsd-sales-manager', title: 'Sales Manager - Fixed', level: 'Manager', type: 'senior-manager', children: [] },
+            'fsd-dev-manager': { id: 'fsd-dev-manager', title: 'Development Manager - Fixed', level: 'Manager', type: 'senior-manager', children: [] },
+            'cbw-head': { id: 'cbw-head', title: 'Head - Consumer Wireless', level: 'Department Head', type: 'avp', children: [] },
+            'cbw-marketing': { id: 'cbw-marketing', title: 'Marketing Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
+            'cbw-operations': { id: 'cbw-operations', title: 'Operations Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
+            'wsd-head': { id: 'wsd-head', title: 'Head - Wireless Sales', level: 'Department Head', type: 'avp', children: [] },
+            'wsd-sales-manager': { id: 'wsd-sales-manager', title: 'Sales Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
+            'wsd-dev-manager': { id: 'wsd-dev-manager', title: 'Development Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
+            'eb-head': { id: 'eb-head', title: 'Head - Enterprise Business', level: 'Department Head', type: 'avp', children: [] },
+            'eb-sales-head': { id: 'eb-sales-head', title: 'Head - Enterprise Sales', level: 'Sales Head', type: 'avp', children: [] },
+            'eb-solutions-head': { id: 'eb-solutions-head', title: 'Head - Enterprise Solutions', level: 'Solutions Head', type: 'avp', children: [] },
+            'ng-planning': { id: 'ng-planning', title: 'Network Planning Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'ng-operations': { id: 'ng-operations', title: 'Network Operations Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'it-infrastructure': { id: 'it-infrastructure', title: 'IT Infrastructure Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'it-applications': { id: 'it-applications', title: 'IT Applications Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'cso-analyst': { id: 'cso-analyst', title: 'Cyber Security Analyst', level: 'Analyst', type: 'officer', children: [] },
+            'cso-engineer': { id: 'cso-engineer', title: 'Cyber Security Engineer', level: 'Engineer', type: 'officer', children: [] },
+            'scm-head': { id: 'scm-head', title: 'Head - Supply Chain', level: 'Department Head', type: 'avp', children: [] },
+            'privacy-officer': { id: 'privacy-officer', title: 'Privacy Officer', level: 'Officer', type: 'officer', children: [] },
+            'sustainability-manager': { id: 'sustainability-manager', title: 'Sustainability Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'fpa-analyst-1': { id: 'fpa-analyst-1', title: 'FP&A Analyst 1', level: 'Analyst', type: 'staff', children: [] },
+            'fpa-analyst-2': { id: 'fpa-analyst-2', title: 'FP&A Analyst 2', level: 'Analyst', type: 'staff', children: [] },
+            'accounting-manager': { id: 'accounting-manager', title: 'Accounting Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'accounting-officer-1': { id: 'accounting-officer-1', title: 'Accounting Officer 1', level: 'Officer', type: 'officer', children: [] },
+            'accounting-officer-2': { id: 'accounting-officer-2', title: 'Accounting Officer 2', level: 'Officer', type: 'officer', children: [] },
+            'talent-acquisition': { id: 'talent-acquisition', title: 'Talent Acquisition Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'learning-dev': { id: 'learning-dev', title: 'Learning & Development Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'compensation': { id: 'compensation', title: 'Compensation Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'internal-comms': { id: 'internal-comms', title: 'Internal Communications Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'external-comms': { id: 'external-comms', title: 'External Communications Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'regulatory-head': { id: 'regulatory-head', title: 'Head - Regulatory Affairs', level: 'Department Head', type: 'avp', children: [] },
+            'compliance-officer': { id: 'compliance-officer', title: 'Compliance Officer', level: 'Officer', type: 'officer', children: [] },
+            'cg-manager': { id: 'cg-manager', title: 'Corporate Governance Manager', level: 'Manager', type: 'senior-manager', children: [] },
+            'cg-analyst': { id: 'cg-analyst', title: 'Corporate Governance Analyst', level: 'Analyst', type: 'staff', children: [] },
+            'ia-risk-officer': { id: 'ia-risk-officer', title: 'Risk Officer', level: 'Officer', type: 'officer', children: [] },
+            'ia-risk-analyst': { id: 'ia-risk-analyst', title: 'Risk Analyst', level: 'Analyst', type: 'staff', children: [] },
+            'controller-officer-2': { id: 'controller-officer-2', title: 'Officer - Management Reporting', level: 'Officer', type: 'officer', children: [] },
+            'treasury-officer': { id: 'treasury-officer', title: 'Treasury Officer', level: 'Officer', type: 'officer', children: [] },
+            'treasury-analyst': { id: 'treasury-analyst', title: 'Treasury Analyst', level: 'Analyst', type: 'staff', children: [] },
+            'fpa-officer-2': { id: 'fpa-officer-2', title: 'Officer - Financial Analysis', level: 'Officer', type: 'officer', children: [] },
+            'ia-staff-compliance-1': { id: 'ia-staff-compliance-1', title: 'Staff - Compliance Specialist', level: 'Staff', type: 'staff', children: [] }
+        };
+
+        // ========================================
+        // JOB DESCRIPTIONS
+        // ========================================
+        
+        const jobDescriptions = {
+            'president-ceo': {
+                title: 'President & CEO',
+                level: 'Chief Executive Officer',
+                department: 'Executive Office',
+                content: `
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
+                            <p class="text-gray-700 leading-relaxed">The President & CEO provides strategic leadership for PLDT and SMART Communications, driving digital transformation and sustainable growth across telecommunications and digital services.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Key Responsibilities</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Lead strategic direction for PLDT Group companies</li>
+                                <li>Oversee business units and shared services</li>
+                                <li>Drive digital transformation initiatives</li>
+                                <li>Ensure regulatory compliance and stakeholder relations</li>
+                                <li>Champion innovation and technology advancement</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Requirements</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Advanced degree in Business, Engineering, or related field</li>
+                                <li>20+ years of telecommunications industry experience</li>
+                                <li>Proven track record in digital transformation</li>
+                                <li>Strong leadership and strategic planning skills</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            
+            'leadership-transition': {
+                title: 'Leadership Transition Officer',
+                level: 'Executive Position',
+                department: 'Executive Office',
+                content: `
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
+                            <p class="text-gray-700 leading-relaxed">The Leadership Transition Officer manages executive succession planning and leadership development initiatives across PLDT Group.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Key Responsibilities</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Develop and execute leadership succession plans</li>
+                                <li>Coordinate executive development programs</li>
+                                <li>Manage leadership transition processes</li>
+                                <li>Support organizational change initiatives</li>
+                                <li>Facilitate leadership assessments and coaching</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            },
+            
+            'internal-audit': {
+                title: 'Internal Audit',
+                level: 'Governance Unit',
+                department: 'Board Governance',
+                content: `
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
+                            <p class="text-gray-700 leading-relaxed">Internal Audit provides independent assurance and consulting services to improve PLDT Group's operations and governance processes.</p>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Key Responsibilities</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Conduct risk-based internal audits</li>
+                                <li>Evaluate internal controls and compliance</li>
+                                <li>Report findings to Board and Audit Committee</li>
+                                <li>Monitor management action plans</li>
+                                <li>Provide advisory services on governance</li>
+                            </ul>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        // ========================================
+        // WEB APP FUNCTIONALITY
+        // ========================================
+
+        let expandedNodes = new Set();
+        let currentLayout = 'horizontal';
+
+        function createHorizontalOrgBox(nodeId, data, level = 0) {
+            const hasChildren = data.children && data.children.length > 0;
+            const childCount = hasChildren ? countAllChildren(nodeId) : 0;
+            const isExpanded = expandedNodes.has(nodeId);
+            
+            return `
+                <div class="org-node-container" data-node="${nodeId}">
+                    <div class="org-column">
+                        <div class="org-box ${data.type}" onclick="handleBoxClick('${nodeId}', '${data.type}')">
+                            <div class="font-bold text-sm">${data.title}</div>
+                            ${data.subtitle ? `<div class="text-xs opacity-90 mt-1">${data.subtitle}</div>` : ''}
+                            <div class="text-xs mt-2 opacity-80">${data.level}</div>
+                            ${childCount > 0 ? `<div class="job-count">${childCount} positions</div>` : ''}
+                            ${hasChildren ? `<div class="expand-indicator" onclick="event.stopPropagation(); toggleExpand('${nodeId}')">${isExpanded ? '−' : '+'}</div>` : ''}
+                        </div>
+                    </div>
+                    ${hasChildren ? `
+                        <div class="connection-line"></div>
+                        <div class="expandable-content-horizontal ${isExpanded ? 'expanded' : ''}" id="content-${nodeId}">
+                            <div class="org-level-horizontal">
+                                ${data.children.map(childId => createHorizontalOrgBox(childId, organizationalData[childId], level + 1)).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function createVerticalOrgBox(nodeId, data) {
+            const hasChildren = data.children && data.children.length > 0;
+            const childCount = hasChildren ? countAllChildren(nodeId) : 0;
+            const isExpanded = expandedNodes.has(nodeId);
+            
+            return `
+                <div class="org-container-vertical" data-node="${nodeId}">
+                    <div class="org-box ${data.type}" onclick="handleBoxClick('${nodeId}', '${data.type}')">
+                        <div class="font-bold text-lg">${data.title}</div>
+                        ${data.subtitle ? `<div class="text-sm opacity-90 mt-1">${data.subtitle}</div>` : ''}
+                        <div class="text-sm mt-2 opacity-80">${data.level}</div>
+                        ${childCount > 0 ? `<div class="job-count">${childCount} positions</div>` : ''}
+                        ${hasChildren ? `<div class="expand-indicator" onclick="event.stopPropagation(); toggleExpand('${nodeId}')">${isExpanded ? '−' : '+'}</div>` : ''}
+                    </div>
+                    ${hasChildren ? `
+                        <div class="expandable-content-vertical ${isExpanded ? 'expanded' : ''}" id="content-${nodeId}">
+                            <div class="connecting-line-vertical vertical-line-down"></div>
+                            <div class="org-level-vertical" style="margin-top: 30px;">
+                                ${data.children.map(childId => createVerticalOrgBox(childId, organizationalData[childId])).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function countAllChildren(nodeId) {
+            const node = organizationalData[nodeId];
+            if (!node || !node.children) return 0;
+            
+            let count = 0;
+            node.children.forEach(childId => {
+                const child = organizationalData[childId];
+                if (child.type === 'position') {
+                    count++;
+                }
+                count += countAllChildren(childId);
+            });
+            return count;
+        }
+
+        function handleBoxClick(nodeId, type) {
+            if (type === 'position') {
+                showJobDescription(nodeId);
+            } else {
+                toggleExpand(nodeId);
+            }
+        }
+
+        function toggleExpand(nodeId) {
+            const content = document.getElementById(`content-${nodeId}`);
+            const indicator = content.parentElement.querySelector('.expand-indicator');
+            
+            if (expandedNodes.has(nodeId)) {
+                expandedNodes.delete(nodeId);
+                content.classList.remove('expanded');
+                indicator.textContent = '+';
+            } else {
+                expandedNodes.add(nodeId);
+                content.classList.add('expanded');
+                indicator.textContent = '−';
+            }
+        }
+
+        function setLayout(layout) {
+            currentLayout = layout;
+            
+            // Update button styles
+            const horizontalBtn = document.getElementById('horizontalBtn');
+            const verticalBtn = document.getElementById('verticalBtn');
+            
+            if (layout === 'horizontal') {
+                horizontalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white';
+                verticalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
+            } else {
+                verticalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white';
+                horizontalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
+            }
+            
+            generateChart();
+        }
+
+        function expandAll() {
+            Object.keys(organizationalData).forEach(nodeId => {
+                const node = organizationalData[nodeId];
+                if (node.children && node.children.length > 0) {
+                    expandedNodes.add(nodeId);
+                }
+            });
+            generateChart();
+        }
+
+        function collapseAll() {
+            expandedNodes.clear();
+            generateChart();
+        }
+
+        function generateChart() {
+            const chartContainer = document.getElementById('orgChart');
+            
+            if (currentLayout === 'horizontal') {
+                chartContainer.className = 'horizontal-container';
+                chartContainer.innerHTML = createHorizontalOrgBox('board', organizationalData['board']);
+            } else {
+                chartContainer.className = 'vertical-container';
+                chartContainer.innerHTML = createVerticalOrgBox('board', organizationalData['board']);
+            }
+            
+            updateTotalCount();
+        }
+
+        function updateTotalCount() {
+            const totalPositions = Object.keys(organizationalData).length;
+            document.getElementById('totalCount').textContent = totalPositions;
+        }
+
+        function showJobDescription(jobId) {
+            const job = jobDescriptions[jobId];
+            const nodeData = organizationalData[jobId];
+            
+            if (!job) {
+                document.getElementById('jobTitle').textContent = nodeData.title;
+                document.getElementById('jobLevel').textContent = `${nodeData.level} • Professional Position`;
+                document.getElementById('jobContent').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-6xl mb-4">📋</div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Job Description Coming Soon</h3>
+                        <p class="text-gray-600">Detailed job description for this position is being prepared and will be available shortly.</p>
+                        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                            <p class="text-sm text-blue-800"><strong>Note:</strong> This is a sample organizational chart. In a real implementation, all positions would have detailed job descriptions.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('jobTitle').textContent = job.title;
+                document.getElementById('jobLevel').textContent = `${job.level} • ${job.department}`;
+                document.getElementById('jobContent').innerHTML = job.content;
+            }
+            
+            document.getElementById('jobModal').classList.remove('hidden');
+            document.getElementById('jobModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeJobModal() {
+            document.getElementById('jobModal').classList.add('hidden');
+            document.getElementById('jobModal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const allBoxes = document.querySelectorAll('.org-box');
+                
+                allBoxes.forEach(box => {
+                    const text = box.textContent.toLowerCase();
+                    const container = box.closest('.org-node-container');
+                    
+                    if (searchTerm === '' || text.includes(searchTerm)) {
+                        container.style.display = '';
+                        // Highlight matching text
+                        if (searchTerm !== '') {
+                            const titleElement = box.querySelector('.font-bold');
+                            if (titleElement) {
+                                const originalText = titleElement.textContent;
+                                const highlightedText = originalText.replace(
+                                    new RegExp(`(${searchTerm})`, 'gi'),
+                                    '<span style="background-color: #fef3c7; padding: 2px 4px; border-radius: 4px;">$1</span>'
+                                );
+                                titleElement.innerHTML = highlightedText;
+                            }
+                        }
+                    } else {
+                        container.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function exportChart() {
+            const data = {
+                organizationalData,
+                jobDescriptions,
+                expandedNodes: Array.from(expandedNodes),
+                exportDate: new Date().toISOString(),
+                totalPositions: document.getElementById('totalCount').textContent,
+                layout: 'horizontal'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'horizontal-org-chart-export.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            generateChart();
+            setupSearch();
+            
+            // Close modal when clicking outside
+            document.getElementById('jobModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeJobModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeJobModal();
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bc896f13d1fec4',t:'MTc1NDYzMDEzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
 
