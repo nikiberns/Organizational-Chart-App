@@ -110,30 +110,30 @@
 </head>
 <body class="bg-white text-gray-800 font-sans">
   <!-- Login Screen -->
-  <div id="login-screen" class="min-h-screen bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-96">
-      <div class="text-center mb-6">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-12 mx-auto mb-4" alt="PLDT Logo" />
-        <h2 class="text-2xl font-bold text-gray-800">Organization Design Portal</h2>
-        <p class="text-gray-600 mt-2">Please enter your credentials</p>
+  <div id="login-screen" class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+    <div class="bg-white p-10 rounded-2xl shadow-xl w-96 border border-blue-200">
+      <div class="text-center mb-8">
+        <img id="login-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-16 mx-auto mb-6" alt="Company Logo" />
+        <h2 class="text-3xl font-bold text-blue-900 mb-2">Organization Design Portal</h2>
+        <p class="text-blue-600 text-sm">Please enter your credentials to continue</p>
       </div>
       <form onsubmit="login(event)">
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2">Access Level</label>
-          <select id="access-level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500">
+        <div class="mb-5">
+          <label class="block text-blue-900 text-sm font-semibold mb-2">Access Level</label>
+          <select id="access-level" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50">
             <option value="admin">Administrator</option>
             <option value="viewer">Viewer</option>
           </select>
         </div>
         <div class="mb-6">
-          <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
-          <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500" required>
+          <label class="block text-blue-900 text-sm font-semibold mb-2">Password</label>
+          <input type="password" id="password" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-blue-50" required>
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
-          Sign In
+        <button type="submit" class="w-full bg-blue-900 text-white py-3 px-4 rounded-lg hover:bg-blue-800 transition duration-200 font-semibold text-lg shadow-md">
+          Log In
         </button>
       </form>
-      <div id="login-error" class="mt-4 text-red-600 text-sm text-center hidden">
+      <div id="login-error" class="mt-4 text-red-600 text-sm text-center hidden bg-red-50 p-3 rounded-lg border border-red-200">
         Invalid credentials. Please try again.
       </div>
     </div>
@@ -211,19 +211,19 @@
     <!-- Sidebar -->
     <div class="w-20 bg-white border-r flex flex-col items-center py-6 space-y-8 shadow-md h-full">
       <button onclick="navigate('home')" id="nav-home" class="p-3 rounded hover:bg-blue-100">
-        <img src="https://img.icons8.com/ios-filled/28/000000/home.png" alt="Home" />
+        <img id="home-icon" src="https://img.icons8.com/ios-filled/28/000000/home.png" alt="Home" />
       </button>
       <button onclick="navigate('org')" id="nav-org" class="p-3 rounded hover:bg-blue-100">
-        <img src="https://img.icons8.com/ios-filled/28/000000/organization.png" alt="Org Chart" />
+        <img id="org-icon" src="https://img.icons8.com/ios-filled/28/000000/organization.png" alt="Org Chart" />
       </button>
       <button onclick="navigate('jd')" id="nav-jd" class="p-3 rounded hover:bg-blue-100">
-        <img src="https://img.icons8.com/ios-filled/28/000000/resume.png" alt="Job Description" />
+        <img id="jd-icon" src="https://img.icons8.com/ios-filled/28/000000/resume.png" alt="Job Description" />
       </button>
       <div class="flex-1"></div>
       <div class="text-center">
         <div class="text-xs text-gray-500 mb-3" id="user-role">Admin</div>
         <button onclick="logout()" class="p-3 rounded hover:bg-red-100">
-          <img src="https://img.icons8.com/ios-filled/28/000000/logout-rounded.png" alt="Logout" />
+          <img id="logout-icon" src="https://img.icons8.com/ios-filled/28/000000/logout-rounded.png" alt="Logout" />
         </button>
       </div>
     </div>
@@ -233,11 +233,27 @@
       <!-- Home -->
       <div id="home" class="space-y-8 h-full flex flex-col">
         <div class="flex items-center justify-between">
-          <img id="company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-12" alt="Company Logo" />
-          <div id="logo-admin-controls" class="hidden">
+          <img id="company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-20" alt="Company Logo" />
+          <div id="logo-admin-controls" class="hidden space-x-2">
             <input type="file" id="logo-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadLogo(event)">
             <button onclick="document.getElementById('logo-file').click()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
               📷 Change Logo
+            </button>
+            <input type="file" id="home-icon-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadIcon(event, 'home')">
+            <button onclick="document.getElementById('home-icon-file').click()" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">
+              🏠 Home Icon
+            </button>
+            <input type="file" id="org-icon-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadIcon(event, 'org')">
+            <button onclick="document.getElementById('org-icon-file').click()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700">
+              🏢 Org Icon
+            </button>
+            <input type="file" id="jd-icon-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadIcon(event, 'jd')">
+            <button onclick="document.getElementById('jd-icon-file').click()" class="bg-orange-600 text-white px-4 py-2 rounded text-sm hover:bg-orange-700">
+              📋 JD Icon
+            </button>
+            <input type="file" id="logout-icon-file" accept=".png,.jpg,.jpeg,.svg" class="hidden" onchange="uploadIcon(event, 'logout')">
+            <button onclick="document.getElementById('logout-icon-file').click()" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
+              🚪 Logout Icon
             </button>
           </div>
         </div>
@@ -914,9 +930,26 @@
         document.getElementById('company-logo').src = e.target.result;
         document.getElementById('org-company-logo').src = e.target.result;
         document.getElementById('jd-company-logo').src = e.target.result;
+        document.getElementById('login-logo').src = e.target.result;
         // Store in localStorage for persistence
         localStorage.setItem('companyLogo', e.target.result);
         alert('Logo updated successfully!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Icon Upload Function
+    function uploadIcon(event, iconType) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        // Update the specific icon
+        document.getElementById(iconType + '-icon').src = e.target.result;
+        // Store in localStorage for persistence
+        localStorage.setItem(iconType + 'Icon', e.target.result);
+        alert(`${iconType.charAt(0).toUpperCase() + iconType.slice(1)} icon updated successfully!`);
       };
       reader.readAsDataURL(file);
     }
@@ -978,14 +1011,24 @@
       });
     }
 
-    // Load saved logo on page load
+    // Load saved logo and icons on page load
     window.addEventListener('load', function() {
       const savedLogo = localStorage.getItem('companyLogo');
       if (savedLogo) {
         document.getElementById('company-logo').src = savedLogo;
         document.getElementById('org-company-logo').src = savedLogo;
         document.getElementById('jd-company-logo').src = savedLogo;
+        document.getElementById('login-logo').src = savedLogo;
       }
+
+      // Load saved icons
+      const iconTypes = ['home', 'org', 'jd', 'logout'];
+      iconTypes.forEach(iconType => {
+        const savedIcon = localStorage.getItem(iconType + 'Icon');
+        if (savedIcon) {
+          document.getElementById(iconType + '-icon').src = savedIcon;
+        }
+      });
     });
 
     // Close modals when clicking outside
@@ -1007,5 +1050,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bf5e6a10d8dd9d',t:'MTc1NDY1OTgzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bf72bbb509fed4',t:'MTc1NDY2MDY2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
