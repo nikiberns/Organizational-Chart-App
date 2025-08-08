@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horizontal Organizational Chart</title>
+    <title>PLDT/SMART Organizational Chart</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -97,14 +97,6 @@
             min-height: 100vh;
         }
         
-        .vertical-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
         .org-column {
             display: flex;
             flex-direction: column;
@@ -121,34 +113,6 @@
             margin: 0 20px;
         }
         
-        .org-level-vertical {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            margin: 20px 0;
-            position: relative;
-            gap: 20px;
-        }
-        
-        .connecting-line-horizontal {
-            position: absolute;
-            background: #9ca3af;
-            z-index: 1;
-        }
-        
-        .horizontal-line {
-            height: 2px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .vertical-line-horizontal {
-            width: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
         .expandable-content-horizontal {
             max-width: 0;
             overflow: hidden;
@@ -161,35 +125,17 @@
             max-width: 2000px;
         }
         
-        .expandable-content-vertical {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        
-        .expandable-content-vertical.expanded {
-            max-height: 2000px;
-        }
-        
-        .org-container-vertical {
+        .org-node-container {
             display: flex;
-            flex-direction: column;
             align-items: center;
             position: relative;
         }
         
-        .connecting-line-vertical {
-            position: absolute;
+        .connection-line {
+            width: 40px;
+            height: 2px;
             background: #9ca3af;
-            z-index: 1;
-        }
-        
-        .vertical-line-down {
-            width: 2px;
-            height: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            top: 100%;
+            margin: 0 -2px;
         }
         
         .expand-indicator {
@@ -240,20 +186,7 @@
             margin-bottom: 30px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-        
-        .org-node-container {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-        
-        .connection-line {
-            width: 40px;
-            height: 2px;
-            background: #9ca3af;
-            margin: 0 -2px;
-        }
-        
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -281,6 +214,40 @@
                 display: none;
             }
         }
+
+        .file-upload-section {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-section:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .file-upload-section.active {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .layer-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .layer-1 { background: #dbeafe; color: #1e40af; }
+        .layer-2 { background: #dcfce7; color: #166534; }
+        .layer-3 { background: #fef3c7; color: #92400e; }
+        .layer-4 { background: #fce7f3; color: #be185d; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -312,13 +279,11 @@
                         <span>Invalid access code. Please try again.</span>
                     </div>
                 </div>
-                
-
             </div>
         </div>
     </div>
 
-    <!-- Main Application (Hidden until login) -->
+    <!-- Main Application -->
     <div id="mainApp" class="hidden">
         <!-- Access Level Indicator -->
         <div id="accessIndicator" class="fixed top-4 right-4 z-40 bg-white rounded-lg shadow-lg px-4 py-2 border-l-4">
@@ -336,72 +301,174 @@
 
         <!-- Navigation Header -->
         <div class="nav-header">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <h1 class="text-4xl font-bold mb-2">🏢 PLDT/SMART Organizational Chart</h1>
-            <p class="text-blue-100 text-lg">Toggle between horizontal and vertical layouts - Click on any box to expand departments</p>
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h1 class="text-4xl font-bold mb-2">🏢 PLDT/SMART Organizational Chart</h1>
+                <p class="text-blue-100 text-lg">Click on any box to expand departments and view details</p>
+            </div>
         </div>
-    </div>
 
-    <!-- Search and Controls -->
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="search-container">
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div class="flex-1 max-w-md">
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search positions, departments..." 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+        <!-- Search and Controls -->
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="search-container">
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div class="flex-1 max-w-md">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search positions, departments..." 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 flex-wrap">
+                        <button onclick="expandAll()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                            📈 Expand All
+                        </button>
+                        <button onclick="collapseAll()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                            📉 Collapse All
+                        </button>
+                        <button onclick="exportChart()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            📤 Export
+                        </button>
+                        <button onclick="openCustomizer()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                            🎨 Customize
+                        </button>
+                        <div id="adminControls" class="hidden">
+                            <button onclick="openFileManager()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                                📁 Manage Files
+                            </button>
+                            <button onclick="downloadTemplate()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                                📋 Download Template
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="flex gap-3 flex-wrap">
-                    <div class="flex bg-gray-100 rounded-lg p-1">
-                        <button id="horizontalBtn" onclick="setLayout('horizontal')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white">
-                            ↔️ Horizontal
-                        </button>
-                        <button id="verticalBtn" onclick="setLayout('vertical')" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800">
-                            ↕️ Vertical
-                        </button>
-                    </div>
-                    <button onclick="expandAll()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                        📈 Expand All
-                    </button>
-                    <button onclick="collapseAll()" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
-                        📉 Collapse All
-                    </button>
-                    <button onclick="exportChart()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                        📤 Export
-                    </button>
-                    <button onclick="openCustomizer()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
-                        🎨 Customize
-                    </button>
-                    <div id="adminControls" class="hidden">
-                        <label for="excelUpload" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer">
-                            📁 Upload Excel
-                            <input type="file" id="excelUpload" accept=".xlsx,.xls" class="hidden" onchange="handleExcelUpload(event)">
-                        </label>
-                        <button onclick="downloadTemplate()" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
-                            📋 Download Template
-                        </button>
-                    </div>
+                <div class="mt-4 text-center">
+                    <span class="text-gray-600">Total Positions: </span>
+                    <span id="totalCount" class="font-bold text-blue-600">0</span>
+                    <span class="ml-4 text-gray-600">Active Layers: </span>
+                    <span id="layerCount" class="font-bold text-green-600">0</span>
                 </div>
             </div>
-            <div class="mt-4 text-center">
-                <span class="text-gray-600">Total Positions: </span>
-                <span id="totalCount" class="font-bold text-blue-600">0</span>
-            </div>
-        </div>
 
-        <!-- Horizontal Organizational Chart -->
-        <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
-            <div id="orgChart" class="horizontal-container">
-                <!-- Chart will be generated here -->
+            <!-- Organizational Chart -->
+            <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+                <div id="orgChart" class="horizontal-container">
+                    <!-- Chart will be generated here -->
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- File Manager Modal -->
+    <div id="fileManagerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">📁 Multi-Layer File Manager</h2>
+                        <p class="text-lg text-gray-600">Upload different Excel files for each organizational layer</p>
+                    </div>
+                    <button onclick="closeFileManager()" class="text-gray-500 hover:text-gray-700 text-3xl font-light">×</button>
+                </div>
+            </div>
+            <div class="p-6">
+                <!-- Layer 1: Top Level -->
+                <div class="file-upload-section" id="layer1Section">
+                    <div class="layer-indicator layer-1">Layer 1 - Executive Level</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">🏛️ Board & Executive Leadership</h3>
+                    <p class="text-gray-600 mb-4">Upload the top-level organizational structure including Board of Directors, Governance units, President/CEO and direct reports.</p>
+                    <div class="flex items-center gap-4">
+                        <label for="layer1Upload" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
+                            📤 Upload Layer 1 File
+                            <input type="file" id="layer1Upload" accept=".xlsx,.xls" class="hidden" onchange="handleLayerUpload(event, 1)">
+                        </label>
+                        <div id="layer1Status" class="text-sm text-gray-500">No file uploaded</div>
+                    </div>
+                    <div id="layer1Preview" class="mt-4 hidden">
+                        <h4 class="font-medium text-gray-700 mb-2">Preview:</h4>
+                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-600" id="layer1Content"></div>
+                    </div>
+                </div>
+
+                <!-- Layer 2: Department Heads -->
+                <div class="file-upload-section" id="layer2Section">
+                    <div class="layer-indicator layer-2">Layer 2 - Department Level</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">🏢 Department Heads & AVPs</h3>
+                    <p class="text-gray-600 mb-4">Upload department-level positions including AVPs, Department Heads, and their direct reports.</p>
+                    <div class="flex items-center gap-4">
+                        <label for="layer2Upload" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer">
+                            📤 Upload Layer 2 File
+                            <input type="file" id="layer2Upload" accept=".xlsx,.xls" class="hidden" onchange="handleLayerUpload(event, 2)">
+                        </label>
+                        <div id="layer2Status" class="text-sm text-gray-500">No file uploaded</div>
+                    </div>
+                    <div id="layer2Preview" class="mt-4 hidden">
+                        <h4 class="font-medium text-gray-700 mb-2">Preview:</h4>
+                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-600" id="layer2Content"></div>
+                    </div>
+                </div>
+
+                <!-- Layer 3: Managers -->
+                <div class="file-upload-section" id="layer3Section">
+                    <div class="layer-indicator layer-3">Layer 3 - Management Level</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">👥 Managers & Senior Staff</h3>
+                    <p class="text-gray-600 mb-4">Upload management-level positions including Senior Managers, Managers, and their teams.</p>
+                    <div class="flex items-center gap-4">
+                        <label for="layer3Upload" class="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium cursor-pointer">
+                            📤 Upload Layer 3 File
+                            <input type="file" id="layer3Upload" accept=".xlsx,.xls" class="hidden" onchange="handleLayerUpload(event, 3)">
+                        </label>
+                        <div id="layer3Status" class="text-sm text-gray-500">No file uploaded</div>
+                    </div>
+                    <div id="layer3Preview" class="mt-4 hidden">
+                        <h4 class="font-medium text-gray-700 mb-2">Preview:</h4>
+                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-600" id="layer3Content"></div>
+                    </div>
+                </div>
+
+                <!-- Layer 4: Staff -->
+                <div class="file-upload-section" id="layer4Section">
+                    <div class="layer-indicator layer-4">Layer 4 - Staff Level</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">👤 Officers & Staff</h3>
+                    <p class="text-gray-600 mb-4">Upload staff-level positions including Officers, Specialists, and individual contributors.</p>
+                    <div class="flex items-center gap-4">
+                        <label for="layer4Upload" class="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium cursor-pointer">
+                            📤 Upload Layer 4 File
+                            <input type="file" id="layer4Upload" accept=".xlsx,.xls" class="hidden" onchange="handleLayerUpload(event, 4)">
+                        </label>
+                        <div id="layer4Status" class="text-sm text-gray-500">No file uploaded</div>
+                    </div>
+                    <div id="layer4Preview" class="mt-4 hidden">
+                        <h4 class="font-medium text-gray-700 mb-2">Preview:</h4>
+                        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-600" id="layer4Content"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-600">
+                            <p><strong>💡 Tip:</strong> Upload files in order (Layer 1 first) for best results</p>
+                            <p>Each file should have columns: Position ID, Position Title, Level, Type, Parent ID</p>
+                        </div>
+                        <div class="space-x-3">
+                            <button onclick="clearAllLayers()" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                                🗑️ Clear All
+                            </button>
+                            <button onclick="processAllLayers()" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                                ⚡ Process & Apply
+                            </button>
+                            <button onclick="closeFileManager()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                                ✅ Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Interface Customizer Modal -->
@@ -411,7 +478,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">🎨 Interface Customizer</h2>
-                        <p class="text-lg text-gray-600">Customize the appearance without changing code</p>
+                        <p class="text-lg text-gray-600">Customize the appearance and functionality</p>
                         <div class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 border border-green-200">
                             <span class="mr-1">⚙️</span>
                             <span class="font-medium">Administrator Access Required</span>
@@ -544,7 +611,7 @@
                                 
                                 <div class="p-4 border border-gray-200 rounded-lg">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Header Subtitle</label>
-                                    <textarea id="headerSubtitle" onchange="updateHeaderSubtitle()" class="w-full p-2 border border-gray-300 rounded-lg h-20">Toggle between horizontal and vertical layouts - Click on any box to expand departments</textarea>
+                                    <textarea id="headerSubtitle" onchange="updateHeaderSubtitle()" class="w-full p-2 border border-gray-300 rounded-lg h-20">Click on any box to expand departments and view details</textarea>
                                 </div>
                             </div>
                         </div>
@@ -664,7 +731,7 @@
                 <!-- Advanced Tab -->
                 <div id="advancedTabContent" class="tab-content hidden">
                     <div class="grid grid-cols-1 gap-8">
-                        <!-- Drag & Drop -->
+                        <!-- Interactive Features -->
                         <div class="space-y-4">
                             <h3 class="text-xl font-semibold text-gray-800">🎯 Interactive Features</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -681,19 +748,6 @@
                                         <span class="font-medium">Box Shadows</span>
                                     </label>
                                     <p class="text-sm text-gray-600 mt-1">Add depth with shadow effects</p>
-                                </div>
-                                <div class="p-4 border border-gray-200 rounded-lg">
-                                    <label class="flex items-center space-x-3">
-                                        <input type="checkbox" id="dragDropEnabled" onchange="toggleDragDrop()" class="w-4 h-4 text-blue-600">
-                                        <span class="font-medium">Drag & Drop Mode</span>
-                                    </label>
-                                    <p class="text-sm text-gray-600 mt-1">Enable repositioning of organizational boxes</p>
-                                </div>
-                                <div class="p-4 border border-gray-200 rounded-lg">
-                                    <button onclick="toggleEditMode()" id="editModeBtn" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                                        ✏️ Enter Edit Mode
-                                    </button>
-                                    <p class="text-sm text-gray-600 mt-1">Click to edit box content directly</p>
                                 </div>
                             </div>
                         </div>
@@ -775,623 +829,46 @@
 
     <script>
         // ========================================
-        // PLDT/SMART ORGANIZATIONAL DATA
+        // ORGANIZATIONAL DATA & AUTHENTICATION
         // ========================================
         
         const organizationalData = {
-            // Top Level - Board of Directors
             board: {
                 id: 'board',
                 title: '📦 Board of Directors',
                 level: 'Board Level',
                 type: 'board',
+                layer: 1,
                 children: ['internal-audit', 'corporate-governance', 'president-ceo']
             },
-            
-            // Governance Units reporting to Board
             'internal-audit': {
                 id: 'internal-audit',
                 title: 'Internal Audit',
                 level: 'Governance Unit',
                 type: 'shared-services',
-                children: ['internal-audit-head']
+                layer: 1,
+                children: []
             },
-            
             'corporate-governance': {
                 id: 'corporate-governance',
                 title: 'Corporate Governance',
                 level: 'Governance Unit',
                 type: 'shared-services',
-                children: ['corp-gov-head']
+                layer: 1,
+                children: []
             },
-            
-            // Second Level - President & CEO
             'president-ceo': {
                 id: 'president-ceo',
                 title: '📦 President & CEO',
                 level: 'Chief Executive',
                 type: 'executive',
-                children: ['leadership-transition', 'pldt-coo', 'smart-coo', 'consumer-home', 'fixed-sales', 'consumer-wireless', 'wireless-sales', 'enterprise-business', 'technology', 'supply-chain', 'finance-sustainability', 'people-group', 'corporate-communications', 'legal-regulatory']
-            },
-            
-            // Vertical positions under President & CEO
-            'leadership-transition': {
-                id: 'leadership-transition',
-                title: 'Leadership Transition Officer',
-                level: 'Executive Position',
-                type: 'executive',
-                children: ['lt-manager', 'lt-specialist']
-            },
-            
-            'pldt-coo': {
-                id: 'pldt-coo',
-                title: 'PLDT Chief Operations Officer',
-                level: 'Chief Operations Officer',
-                type: 'pldt-ops',
-                children: ['pldt-ops-head', 'pldt-strategy-head']
-            },
-            
-            'smart-coo': {
-                id: 'smart-coo',
-                title: 'SMART Chief Operations Officer',
-                level: 'Chief Operations Officer',
-                type: 'smart-ops',
-                children: ['smart-ops-head', 'smart-strategy-head']
-            },
-            
-            // Horizontal Business Units under President & CEO (with example hierarchies)
-            'consumer-home': {
-                id: 'consumer-home',
-                title: 'Consumer Business Home',
-                level: 'Business Unit',
-                type: 'pldt-ops',
-                children: ['cbh-head', 'cbh-marketing', 'cbh-operations']
-            },
-            
-            'fixed-sales': {
-                id: 'fixed-sales',
-                title: 'Fixed Sales and Development',
-                level: 'Business Unit',
-                type: 'pldt-ops',
-                children: ['fsd-head', 'fsd-sales-manager', 'fsd-dev-manager']
-            },
-            
-            'consumer-wireless': {
-                id: 'consumer-wireless',
-                title: 'Consumer Business Wireless',
-                level: 'Business Unit',
-                type: 'smart-ops',
-                children: ['cbw-head', 'cbw-marketing', 'cbw-operations']
-            },
-            
-            'wireless-sales': {
-                id: 'wireless-sales',
-                title: 'Wireless Sales and Development',
-                level: 'Business Unit',
-                type: 'smart-ops',
-                children: ['wsd-head', 'wsd-sales-manager', 'wsd-dev-manager']
-            },
-            
-            'enterprise-business': {
-                id: 'enterprise-business',
-                title: 'Enterprise Business',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['eb-head', 'eb-sales-head', 'eb-solutions-head']
-            },
-            
-            // Technology with complete hierarchy example
-            technology: {
-                id: 'technology',
-                title: 'Technology',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['network-group', 'information-technology', 'cyber-security-ops']
-            },
-            
-            'network-group': {
-                id: 'network-group',
-                title: 'Network Group',
-                level: 'Technology Unit',
-                type: 'sub-function',
-                children: ['ng-head', 'ng-planning', 'ng-operations']
-            },
-            
-            'information-technology': {
-                id: 'information-technology',
-                title: 'Information Technology',
-                level: 'Technology Unit',
-                type: 'sub-function',
-                children: ['it-head', 'it-infrastructure', 'it-applications']
-            },
-            
-            'cyber-security-ops': {
-                id: 'cyber-security-ops',
-                title: 'Cyber Security Operations',
-                level: 'Technology Unit',
-                type: 'sub-function',
-                children: ['cso-head', 'cso-analyst', 'cso-engineer']
-            },
-            
-            'supply-chain': {
-                id: 'supply-chain',
-                title: 'Supply Chain Management and Privacy Office',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['scm-head', 'privacy-officer']
-            },
-            
-            'finance-sustainability': {
-                id: 'finance-sustainability',
-                title: 'Finance and Corporate Sustainability',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['finance-head', 'sustainability-head', 'fp-and-a', 'accounting']
-            },
-            
-            'people-group': {
-                id: 'people-group',
-                title: 'People Group',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['hr-head', 'talent-acquisition', 'learning-dev', 'compensation']
-            },
-            
-            'corporate-communications': {
-                id: 'corporate-communications',
-                title: 'Corporate Communications',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['comms-head', 'internal-comms', 'external-comms']
-            },
-            
-            'legal-regulatory': {
-                id: 'legal-regulatory',
-                title: 'Legal and Regulatory',
-                level: 'Business Unit',
-                type: 'shared-services',
-                children: ['legal-head', 'regulatory-head', 'compliance-officer']
-            },
-            
-            // ========================================
-            // EXAMPLE HIERARCHIES - LEVEL 2 POSITIONS
-            // ========================================
-            
-            // Internal Audit hierarchy
-            'internal-audit-head': {
-                id: 'internal-audit-head',
-                title: 'Head - Internal Audit',
-                level: 'Department Head',
-                type: 'avp',
-                children: ['ia-senior-manager', 'ia-risk-manager']
-            },
-            
-            'corp-gov-head': {
-                id: 'corp-gov-head',
-                title: 'Head - Corporate Governance',
-                level: 'Department Head',
-                type: 'avp',
-                children: ['cg-manager', 'cg-analyst']
-            },
-            
-            // Leadership Transition hierarchy
-            'lt-manager': {
-                id: 'lt-manager',
-                title: 'Manager - Leadership Development',
-                level: 'Manager',
-                type: 'senior-manager',
-                children: ['lt-specialist-1', 'lt-specialist-2']
-            },
-            
-            'lt-specialist': {
-                id: 'lt-specialist',
-                title: 'Leadership Transition Specialist',
-                level: 'Specialist',
-                type: 'officer',
+                layer: 1,
                 children: []
-            },
-            
-            // PLDT COO hierarchy
-            'pldt-ops-head': {
-                id: 'pldt-ops-head',
-                title: 'Head - PLDT Operations',
-                level: 'Operations Head',
-                type: 'avp',
-                children: ['pldt-ops-manager-1', 'pldt-ops-manager-2']
-            },
-            
-            'pldt-strategy-head': {
-                id: 'pldt-strategy-head',
-                title: 'Head - PLDT Strategy',
-                level: 'Strategy Head',
-                type: 'avp',
-                children: ['pldt-strategy-manager']
-            },
-            
-            // SMART COO hierarchy
-            'smart-ops-head': {
-                id: 'smart-ops-head',
-                title: 'Head - SMART Operations',
-                level: 'Operations Head',
-                type: 'avp',
-                children: ['smart-ops-manager-1', 'smart-ops-manager-2']
-            },
-            
-            'smart-strategy-head': {
-                id: 'smart-strategy-head',
-                title: 'Head - SMART Strategy',
-                level: 'Strategy Head',
-                type: 'avp',
-                children: ['smart-strategy-manager']
-            },
-            
-            // Consumer Business Home hierarchy
-            'cbh-head': {
-                id: 'cbh-head',
-                title: 'Head - Consumer Business Home',
-                level: 'Business Head',
-                type: 'avp',
-                children: ['cbh-avp-marketing', 'cbh-avp-operations']
-            },
-            
-            'cbh-marketing': {
-                id: 'cbh-marketing',
-                title: 'Marketing Manager - Home',
-                level: 'Marketing Manager',
-                type: 'senior-manager',
-                children: ['cbh-marketing-officer-1', 'cbh-marketing-officer-2']
-            },
-            
-            'cbh-operations': {
-                id: 'cbh-operations',
-                title: 'Operations Manager - Home',
-                level: 'Operations Manager',
-                type: 'senior-manager',
-                children: ['cbh-ops-officer-1', 'cbh-ops-officer-2']
-            },
-            
-            // Finance complete hierarchy example
-            'finance-head': {
-                id: 'finance-head',
-                title: 'Head - Finance',
-                level: 'Finance Head',
-                type: 'avp',
-                children: ['finance-controller', 'finance-treasury']
-            },
-            
-            'sustainability-head': {
-                id: 'sustainability-head',
-                title: 'Head - Corporate Sustainability',
-                level: 'Sustainability Head',
-                type: 'avp',
-                children: ['sustainability-manager']
-            },
-            
-            'fp-and-a': {
-                id: 'fp-and-a',
-                title: 'Financial Planning & Analysis',
-                level: 'FP&A Department',
-                type: 'senior-manager',
-                children: ['fpa-manager', 'fpa-analyst-1', 'fpa-analyst-2']
-            },
-            
-            'accounting': {
-                id: 'accounting',
-                title: 'Accounting Department',
-                level: 'Accounting Department',
-                type: 'senior-manager',
-                children: ['accounting-manager', 'accounting-officer-1', 'accounting-officer-2']
-            },
-            
-            // ========================================
-            // EXAMPLE HIERARCHIES - LEVEL 3 POSITIONS
-            // ========================================
-            
-            // Internal Audit Level 3
-            'ia-senior-manager': {
-                id: 'ia-senior-manager',
-                title: 'Senior Manager - Internal Audit',
-                level: 'Senior Manager',
-                type: 'senior-manager',
-                children: ['ia-officer-1', 'ia-officer-2', 'ia-staff-1']
-            },
-            
-            'ia-risk-manager': {
-                id: 'ia-risk-manager',
-                title: 'Risk Manager',
-                level: 'Risk Manager',
-                type: 'senior-manager',
-                children: ['ia-risk-officer', 'ia-risk-analyst']
-            },
-            
-            // Finance Level 3
-            'finance-controller': {
-                id: 'finance-controller',
-                title: 'Finance Controller',
-                level: 'Controller',
-                type: 'senior-manager',
-                children: ['controller-officer-1', 'controller-officer-2']
-            },
-            
-            'finance-treasury': {
-                id: 'finance-treasury',
-                title: 'Treasury Manager',
-                level: 'Treasury Manager',
-                type: 'senior-manager',
-                children: ['treasury-officer', 'treasury-analyst']
-            },
-            
-            'fpa-manager': {
-                id: 'fpa-manager',
-                title: 'Manager - Financial Planning',
-                level: 'Manager',
-                type: 'senior-manager',
-                children: ['fpa-officer-1', 'fpa-officer-2']
-            },
-            
-            // ========================================
-            // EXAMPLE HIERARCHIES - LEVEL 4 POSITIONS (Staff Level)
-            // ========================================
-            
-            // Internal Audit Staff
-            'ia-officer-1': {
-                id: 'ia-officer-1',
-                title: 'Officer - Internal Audit',
-                level: 'Officer',
-                type: 'officer',
-                children: ['ia-staff-audit-1', 'ia-staff-audit-2']
-            },
-            
-            'ia-officer-2': {
-                id: 'ia-officer-2',
-                title: 'Officer - Compliance Audit',
-                level: 'Officer',
-                type: 'officer',
-                children: ['ia-staff-compliance-1']
-            },
-            
-            'ia-staff-1': {
-                id: 'ia-staff-1',
-                title: 'Staff - Audit Assistant',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            // Finance Staff
-            'controller-officer-1': {
-                id: 'controller-officer-1',
-                title: 'Officer - Financial Reporting',
-                level: 'Officer',
-                type: 'officer',
-                children: ['fr-staff-1', 'fr-staff-2']
-            },
-            
-            'fpa-officer-1': {
-                id: 'fpa-officer-1',
-                title: 'Officer - Budget Planning',
-                level: 'Officer',
-                type: 'officer',
-                children: ['budget-staff-1', 'budget-staff-2']
-            },
-            
-            // ========================================
-            // LEVEL 5 POSITIONS (Individual Contributors)
-            // ========================================
-            
-            'ia-staff-audit-1': {
-                id: 'ia-staff-audit-1',
-                title: 'Staff - Junior Auditor',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            'ia-staff-audit-2': {
-                id: 'ia-staff-audit-2',
-                title: 'Staff - Audit Analyst',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            'fr-staff-1': {
-                id: 'fr-staff-1',
-                title: 'Staff - Financial Analyst',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            'fr-staff-2': {
-                id: 'fr-staff-2',
-                title: 'Staff - Reporting Specialist',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            'budget-staff-1': {
-                id: 'budget-staff-1',
-                title: 'Staff - Budget Analyst',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            'budget-staff-2': {
-                id: 'budget-staff-2',
-                title: 'Staff - Planning Analyst',
-                level: 'Staff',
-                type: 'staff',
-                children: []
-            },
-            
-            // Placeholder positions for other departments (you can expand these)
-            'ng-head': { id: 'ng-head', title: 'Head - Network Group', level: 'Department Head', type: 'avp', children: [] },
-            'it-head': { id: 'it-head', title: 'Head - Information Technology', level: 'Department Head', type: 'avp', children: [] },
-            'cso-head': { id: 'cso-head', title: 'Head - Cyber Security', level: 'Department Head', type: 'avp', children: [] },
-            'hr-head': { id: 'hr-head', title: 'Head - People Group', level: 'Department Head', type: 'avp', children: [] },
-            'comms-head': { id: 'comms-head', title: 'Head - Corporate Communications', level: 'Department Head', type: 'avp', children: [] },
-            'legal-head': { id: 'legal-head', title: 'Head - Legal', level: 'Department Head', type: 'avp', children: [] },
-            
-            // Add more positions as needed - just follow the same pattern!
-            // Each position needs: id, title, level, type, children (array of child IDs)
-            
-            // Additional missing positions
-            'lt-specialist-1': { id: 'lt-specialist-1', title: 'Leadership Specialist 1', level: 'Specialist', type: 'staff', children: [] },
-            'lt-specialist-2': { id: 'lt-specialist-2', title: 'Leadership Specialist 2', level: 'Specialist', type: 'staff', children: [] },
-            'pldt-ops-manager-1': { id: 'pldt-ops-manager-1', title: 'PLDT Operations Manager 1', level: 'Manager', type: 'senior-manager', children: [] },
-            'pldt-ops-manager-2': { id: 'pldt-ops-manager-2', title: 'PLDT Operations Manager 2', level: 'Manager', type: 'senior-manager', children: [] },
-            'pldt-strategy-manager': { id: 'pldt-strategy-manager', title: 'PLDT Strategy Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'smart-ops-manager-1': { id: 'smart-ops-manager-1', title: 'SMART Operations Manager 1', level: 'Manager', type: 'senior-manager', children: [] },
-            'smart-ops-manager-2': { id: 'smart-ops-manager-2', title: 'SMART Operations Manager 2', level: 'Manager', type: 'senior-manager', children: [] },
-            'smart-strategy-manager': { id: 'smart-strategy-manager', title: 'SMART Strategy Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'cbh-avp-marketing': { id: 'cbh-avp-marketing', title: 'AVP - Home Marketing', level: 'AVP', type: 'avp', children: [] },
-            'cbh-avp-operations': { id: 'cbh-avp-operations', title: 'AVP - Home Operations', level: 'AVP', type: 'avp', children: [] },
-            'cbh-marketing-officer-1': { id: 'cbh-marketing-officer-1', title: 'Marketing Officer 1', level: 'Officer', type: 'officer', children: [] },
-            'cbh-marketing-officer-2': { id: 'cbh-marketing-officer-2', title: 'Marketing Officer 2', level: 'Officer', type: 'officer', children: [] },
-            'cbh-ops-officer-1': { id: 'cbh-ops-officer-1', title: 'Operations Officer 1', level: 'Officer', type: 'officer', children: [] },
-            'cbh-ops-officer-2': { id: 'cbh-ops-officer-2', title: 'Operations Officer 2', level: 'Officer', type: 'officer', children: [] },
-            'fsd-head': { id: 'fsd-head', title: 'Head - Fixed Sales', level: 'Department Head', type: 'avp', children: [] },
-            'fsd-sales-manager': { id: 'fsd-sales-manager', title: 'Sales Manager - Fixed', level: 'Manager', type: 'senior-manager', children: [] },
-            'fsd-dev-manager': { id: 'fsd-dev-manager', title: 'Development Manager - Fixed', level: 'Manager', type: 'senior-manager', children: [] },
-            'cbw-head': { id: 'cbw-head', title: 'Head - Consumer Wireless', level: 'Department Head', type: 'avp', children: [] },
-            'cbw-marketing': { id: 'cbw-marketing', title: 'Marketing Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
-            'cbw-operations': { id: 'cbw-operations', title: 'Operations Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
-            'wsd-head': { id: 'wsd-head', title: 'Head - Wireless Sales', level: 'Department Head', type: 'avp', children: [] },
-            'wsd-sales-manager': { id: 'wsd-sales-manager', title: 'Sales Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
-            'wsd-dev-manager': { id: 'wsd-dev-manager', title: 'Development Manager - Wireless', level: 'Manager', type: 'senior-manager', children: [] },
-            'eb-head': { id: 'eb-head', title: 'Head - Enterprise Business', level: 'Department Head', type: 'avp', children: [] },
-            'eb-sales-head': { id: 'eb-sales-head', title: 'Head - Enterprise Sales', level: 'Sales Head', type: 'avp', children: [] },
-            'eb-solutions-head': { id: 'eb-solutions-head', title: 'Head - Enterprise Solutions', level: 'Solutions Head', type: 'avp', children: [] },
-            'ng-planning': { id: 'ng-planning', title: 'Network Planning Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'ng-operations': { id: 'ng-operations', title: 'Network Operations Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'it-infrastructure': { id: 'it-infrastructure', title: 'IT Infrastructure Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'it-applications': { id: 'it-applications', title: 'IT Applications Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'cso-analyst': { id: 'cso-analyst', title: 'Cyber Security Analyst', level: 'Analyst', type: 'officer', children: [] },
-            'cso-engineer': { id: 'cso-engineer', title: 'Cyber Security Engineer', level: 'Engineer', type: 'officer', children: [] },
-            'scm-head': { id: 'scm-head', title: 'Head - Supply Chain', level: 'Department Head', type: 'avp', children: [] },
-            'privacy-officer': { id: 'privacy-officer', title: 'Privacy Officer', level: 'Officer', type: 'officer', children: [] },
-            'sustainability-manager': { id: 'sustainability-manager', title: 'Sustainability Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'fpa-analyst-1': { id: 'fpa-analyst-1', title: 'FP&A Analyst 1', level: 'Analyst', type: 'staff', children: [] },
-            'fpa-analyst-2': { id: 'fpa-analyst-2', title: 'FP&A Analyst 2', level: 'Analyst', type: 'staff', children: [] },
-            'accounting-manager': { id: 'accounting-manager', title: 'Accounting Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'accounting-officer-1': { id: 'accounting-officer-1', title: 'Accounting Officer 1', level: 'Officer', type: 'officer', children: [] },
-            'accounting-officer-2': { id: 'accounting-officer-2', title: 'Accounting Officer 2', level: 'Officer', type: 'officer', children: [] },
-            'talent-acquisition': { id: 'talent-acquisition', title: 'Talent Acquisition Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'learning-dev': { id: 'learning-dev', title: 'Learning & Development Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'compensation': { id: 'compensation', title: 'Compensation Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'internal-comms': { id: 'internal-comms', title: 'Internal Communications Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'external-comms': { id: 'external-comms', title: 'External Communications Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'regulatory-head': { id: 'regulatory-head', title: 'Head - Regulatory Affairs', level: 'Department Head', type: 'avp', children: [] },
-            'compliance-officer': { id: 'compliance-officer', title: 'Compliance Officer', level: 'Officer', type: 'officer', children: [] },
-            'cg-manager': { id: 'cg-manager', title: 'Corporate Governance Manager', level: 'Manager', type: 'senior-manager', children: [] },
-            'cg-analyst': { id: 'cg-analyst', title: 'Corporate Governance Analyst', level: 'Analyst', type: 'staff', children: [] },
-            'ia-risk-officer': { id: 'ia-risk-officer', title: 'Risk Officer', level: 'Officer', type: 'officer', children: [] },
-            'ia-risk-analyst': { id: 'ia-risk-analyst', title: 'Risk Analyst', level: 'Analyst', type: 'staff', children: [] },
-            'controller-officer-2': { id: 'controller-officer-2', title: 'Officer - Management Reporting', level: 'Officer', type: 'officer', children: [] },
-            'treasury-officer': { id: 'treasury-officer', title: 'Treasury Officer', level: 'Officer', type: 'officer', children: [] },
-            'treasury-analyst': { id: 'treasury-analyst', title: 'Treasury Analyst', level: 'Analyst', type: 'staff', children: [] },
-            'fpa-officer-2': { id: 'fpa-officer-2', title: 'Officer - Financial Analysis', level: 'Officer', type: 'officer', children: [] },
-            'ia-staff-compliance-1': { id: 'ia-staff-compliance-1', title: 'Staff - Compliance Specialist', level: 'Staff', type: 'staff', children: [] }
-        };
-
-        // ========================================
-        // JOB DESCRIPTIONS
-        // ========================================
-        
-        const jobDescriptions = {
-            'president-ceo': {
-                title: 'President & CEO',
-                level: 'Chief Executive Officer',
-                department: 'Executive Office',
-                content: `
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
-                            <p class="text-gray-700 leading-relaxed">The President & CEO provides strategic leadership for PLDT and SMART Communications, driving digital transformation and sustainable growth across telecommunications and digital services.</p>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Key Responsibilities</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Lead strategic direction for PLDT Group companies</li>
-                                <li>Oversee business units and shared services</li>
-                                <li>Drive digital transformation initiatives</li>
-                                <li>Ensure regulatory compliance and stakeholder relations</li>
-                                <li>Champion innovation and technology advancement</li>
-                            </ul>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Requirements</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Advanced degree in Business, Engineering, or related field</li>
-                                <li>20+ years of telecommunications industry experience</li>
-                                <li>Proven track record in digital transformation</li>
-                                <li>Strong leadership and strategic planning skills</li>
-                            </ul>
-                        </div>
-                    </div>
-                `
-            },
-            
-            'leadership-transition': {
-                title: 'Leadership Transition Officer',
-                level: 'Executive Position',
-                department: 'Executive Office',
-                content: `
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
-                            <p class="text-gray-700 leading-relaxed">The Leadership Transition Officer manages executive succession planning and leadership development initiatives across PLDT Group.</p>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Key Responsibilities</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Develop and execute leadership succession plans</li>
-                                <li>Coordinate executive development programs</li>
-                                <li>Manage leadership transition processes</li>
-                                <li>Support organizational change initiatives</li>
-                                <li>Facilitate leadership assessments and coaching</li>
-                            </ul>
-                        </div>
-                    </div>
-                `
-            },
-            
-            'internal-audit': {
-                title: 'Internal Audit',
-                level: 'Governance Unit',
-                department: 'Board Governance',
-                content: `
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
-                            <p class="text-gray-700 leading-relaxed">Internal Audit provides independent assurance and consulting services to improve PLDT Group's operations and governance processes.</p>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Key Responsibilities</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Conduct risk-based internal audits</li>
-                                <li>Evaluate internal controls and compliance</li>
-                                <li>Report findings to Board and Audit Committee</li>
-                                <li>Monitor management action plans</li>
-                                <li>Provide advisory services on governance</li>
-                            </ul>
-                        </div>
-                    </div>
-                `
             }
         };
 
-        // ========================================
-        // PASSWORD AUTHENTICATION SYSTEM
-        // ========================================
-        
+        const jobDescriptions = {};
+
         const ACCESS_CODES = {
             'PLDTSMART_HR_OD': {
                 level: 'viewer',
@@ -1410,6 +887,17 @@
         };
 
         let currentUser = null;
+        let expandedNodes = new Set();
+        let layerData = {
+            1: null,
+            2: null,
+            3: null,
+            4: null
+        };
+
+        // ========================================
+        // AUTHENTICATION SYSTEM
+        // ========================================
 
         function handlePasswordKeyPress(event) {
             if (event.key === 'Enter') {
@@ -1422,17 +910,14 @@
             const errorDiv = document.getElementById('loginError');
             
             if (ACCESS_CODES[password]) {
-                // Valid password
                 currentUser = ACCESS_CODES[password];
                 showMainApp();
                 errorDiv.classList.add('hidden');
             } else {
-                // Invalid password
                 errorDiv.classList.remove('hidden');
                 document.getElementById('passwordInput').value = '';
                 document.getElementById('passwordInput').focus();
                 
-                // Shake animation
                 const loginScreen = document.getElementById('loginScreen');
                 loginScreen.style.animation = 'shake 0.5s ease-in-out';
                 setTimeout(() => {
@@ -1445,7 +930,6 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             
-            // Update access indicator
             const indicator = document.getElementById('accessIndicator');
             const icon = document.getElementById('accessIcon');
             const level = document.getElementById('accessLevel');
@@ -1456,7 +940,6 @@
             level.textContent = currentUser.name + ' Access';
             user.textContent = currentUser.level.toUpperCase();
             
-            // Show/hide admin controls
             const adminControls = document.getElementById('adminControls');
             if (currentUser.canEdit) {
                 adminControls.classList.remove('hidden');
@@ -1464,9 +947,9 @@
                 adminControls.classList.add('hidden');
             }
             
-            // Initialize the chart
             generateChart();
             setupSearch();
+            loadCustomizationSettings();
         }
 
         function logout() {
@@ -1486,11 +969,237 @@
         }
 
         // ========================================
-        // WEB APP FUNCTIONALITY
+        // MULTI-LAYER FILE MANAGEMENT SYSTEM
         // ========================================
 
-        let expandedNodes = new Set();
-        let currentLayout = 'horizontal';
+        function openFileManager() {
+            if (!checkAdminAccess('access file manager')) {
+                return;
+            }
+            
+            document.getElementById('fileManagerModal').classList.remove('hidden');
+            document.getElementById('fileManagerModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFileManager() {
+            document.getElementById('fileManagerModal').classList.add('hidden');
+            document.getElementById('fileManagerModal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function handleLayerUpload(event, layer) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    processLayerData(jsonData, layer);
+                } catch (error) {
+                    alert(`❌ Error reading Layer ${layer} file: ` + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processLayerData(data, layer) {
+            if (data.length < 2) {
+                alert(`❌ Layer ${layer} file must have at least a header row and one data row`);
+                return;
+            }
+
+            const headers = data[0];
+            const requiredHeaders = ['Position ID', 'Position Title', 'Level', 'Type', 'Parent ID'];
+            
+            const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+            if (missingHeaders.length > 0) {
+                alert(`❌ Layer ${layer} missing required columns: ${missingHeaders.join(', ')}`);
+                return;
+            }
+
+            // Store layer data
+            layerData[layer] = {
+                headers: headers,
+                data: data.slice(1),
+                processed: false
+            };
+
+            // Update UI
+            updateLayerStatus(layer, data.length - 1);
+            updateLayerPreview(layer, data);
+        }
+
+        function updateLayerStatus(layer, count) {
+            const statusElement = document.getElementById(`layer${layer}Status`);
+            const sectionElement = document.getElementById(`layer${layer}Section`);
+            
+            statusElement.textContent = `✅ ${count} positions loaded`;
+            statusElement.className = 'text-sm text-green-600 font-medium';
+            sectionElement.classList.add('active');
+        }
+
+        function updateLayerPreview(layer, data) {
+            const previewElement = document.getElementById(`layer${layer}Preview`);
+            const contentElement = document.getElementById(`layer${layer}Content`);
+            
+            const sampleRows = data.slice(1, 4); // Show first 3 data rows
+            const previewText = sampleRows.map(row => 
+                `• ${row[1] || 'N/A'} (${row[2] || 'N/A'})`
+            ).join('\n');
+            
+            contentElement.textContent = previewText + (data.length > 4 ? `\n... and ${data.length - 4} more positions` : '');
+            previewElement.classList.remove('hidden');
+        }
+
+        function clearAllLayers() {
+            if (!checkAdminAccess('clear all layers')) return;
+            
+            if (confirm('🗑️ Are you sure you want to clear all uploaded files?\n\nThis action cannot be undone.')) {
+                // Reset layer data
+                layerData = { 1: null, 2: null, 3: null, 4: null };
+                
+                // Reset UI
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`layer${i}Upload`).value = '';
+                    document.getElementById(`layer${i}Status`).textContent = 'No file uploaded';
+                    document.getElementById(`layer${i}Status`).className = 'text-sm text-gray-500';
+                    document.getElementById(`layer${i}Preview`).classList.add('hidden');
+                    document.getElementById(`layer${i}Section`).classList.remove('active');
+                }
+                
+                alert('✅ All layers cleared successfully!');
+            }
+        }
+
+        function processAllLayers() {
+            if (!checkAdminAccess('process all layers')) return;
+            
+            // Check if at least Layer 1 is uploaded
+            if (!layerData[1]) {
+                alert('❌ Layer 1 (Executive Level) must be uploaded first!\n\nThis layer contains the top-level organizational structure.');
+                return;
+            }
+
+            // Clear existing organizational data
+            Object.keys(organizationalData).forEach(key => delete organizationalData[key]);
+            Object.keys(jobDescriptions).forEach(key => delete jobDescriptions[key]);
+
+            const newOrgData = {};
+            const newJobDescs = {};
+            let totalProcessed = 0;
+
+            // Process each layer
+            for (let layer = 1; layer <= 4; layer++) {
+                if (!layerData[layer]) continue;
+
+                const { headers, data } = layerData[layer];
+                const idIndex = headers.indexOf('Position ID');
+                const titleIndex = headers.indexOf('Position Title');
+                const levelIndex = headers.indexOf('Level');
+                const typeIndex = headers.indexOf('Type');
+                const parentIndex = headers.indexOf('Parent ID');
+                const deptIndex = headers.indexOf('Department');
+                const descIndex = headers.indexOf('Description');
+
+                // Process each row in the layer
+                data.forEach(row => {
+                    if (!row[idIndex] || !row[titleIndex]) return;
+
+                    const positionId = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
+                    
+                    newOrgData[positionId] = {
+                        id: positionId,
+                        title: row[titleIndex] || '',
+                        level: row[levelIndex] || 'Position',
+                        type: row[typeIndex] || 'staff',
+                        layer: layer,
+                        children: []
+                    };
+
+                    // Create job description if provided
+                    if (row[descIndex]) {
+                        newJobDescs[positionId] = {
+                            title: row[titleIndex] || '',
+                            level: row[levelIndex] || 'Position',
+                            department: row[deptIndex] || 'Department',
+                            content: `
+                                <div class="space-y-6">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
+                                        <p class="text-gray-700 leading-relaxed">${row[descIndex]}</p>
+                                    </div>
+                                </div>
+                            `
+                        };
+                    }
+
+                    totalProcessed++;
+                });
+
+                layerData[layer].processed = true;
+            }
+
+            // Build parent-child relationships across all layers
+            for (let layer = 1; layer <= 4; layer++) {
+                if (!layerData[layer]) continue;
+
+                const { headers, data } = layerData[layer];
+                const idIndex = headers.indexOf('Position ID');
+                const parentIndex = headers.indexOf('Parent ID');
+
+                data.forEach(row => {
+                    if (!row[idIndex]) return;
+
+                    const positionId = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
+                    const parentId = row[parentIndex] ? String(row[parentIndex]).toLowerCase().replace(/\s+/g, '-') : '';
+                    
+                    if (parentId && newOrgData[parentId]) {
+                        if (!newOrgData[parentId].children.includes(positionId)) {
+                            newOrgData[parentId].children.push(positionId);
+                        }
+                    }
+                });
+            }
+
+            // Update global data
+            Object.assign(organizationalData, newOrgData);
+            Object.assign(jobDescriptions, newJobDescs);
+
+            // Find root node
+            let rootNode = null;
+            Object.values(organizationalData).forEach(node => {
+                if (node.layer === 1 && node.type === 'board') {
+                    rootNode = node.id;
+                }
+            });
+
+            // Regenerate chart
+            expandedNodes.clear();
+            generateChart();
+            closeFileManager();
+
+            // Show success message
+            const activeLayers = Object.keys(layerData).filter(layer => layerData[layer]).length;
+            alert(`✅ Multi-layer processing completed!
+
+📊 Total positions processed: ${totalProcessed}
+🏢 Active layers: ${activeLayers}
+📋 Job descriptions: ${Object.keys(jobDescriptions).length}
+🎯 Root position: ${rootNode ? organizationalData[rootNode].title : 'Auto-detected'}
+
+The organizational chart has been updated with your multi-layer data!`);
+        }
+
+        // ========================================
+        // CHART GENERATION & DISPLAY
+        // ========================================
 
         function createHorizontalOrgBox(nodeId, data, level = 0) {
             const hasChildren = data.children && data.children.length > 0;
@@ -1520,49 +1229,19 @@
             `;
         }
 
-        function createVerticalOrgBox(nodeId, data) {
-            const hasChildren = data.children && data.children.length > 0;
-            const childCount = hasChildren ? countAllChildren(nodeId) : 0;
-            const isExpanded = expandedNodes.has(nodeId);
-            
-            return `
-                <div class="org-container-vertical" data-node="${nodeId}">
-                    <div class="org-box ${data.type}" onclick="handleBoxClick('${nodeId}', '${data.type}')">
-                        <div class="font-bold text-lg">${data.title}</div>
-                        ${data.subtitle ? `<div class="text-sm opacity-90 mt-1">${data.subtitle}</div>` : ''}
-                        <div class="text-sm mt-2 opacity-80">${data.level}</div>
-                        ${childCount > 0 ? `<div class="job-count">${childCount} positions</div>` : ''}
-                        ${hasChildren ? `<div class="expand-indicator" onclick="event.stopPropagation(); toggleExpand('${nodeId}')">${isExpanded ? '−' : '+'}</div>` : ''}
-                    </div>
-                    ${hasChildren ? `
-                        <div class="expandable-content-vertical ${isExpanded ? 'expanded' : ''}" id="content-${nodeId}">
-                            <div class="connecting-line-vertical vertical-line-down"></div>
-                            <div class="org-level-vertical" style="margin-top: 30px;">
-                                ${data.children.map(childId => createVerticalOrgBox(childId, organizationalData[childId])).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
         function countAllChildren(nodeId) {
             const node = organizationalData[nodeId];
             if (!node || !node.children) return 0;
             
-            let count = 0;
+            let count = node.children.length;
             node.children.forEach(childId => {
-                const child = organizationalData[childId];
-                if (child.type === 'position') {
-                    count++;
-                }
                 count += countAllChildren(childId);
             });
             return count;
         }
 
         function handleBoxClick(nodeId, type) {
-            if (type === 'position') {
+            if (jobDescriptions[nodeId]) {
                 showJobDescription(nodeId);
             } else {
                 toggleExpand(nodeId);
@@ -1571,35 +1250,19 @@
 
         function toggleExpand(nodeId) {
             const content = document.getElementById(`content-${nodeId}`);
+            if (!content) return;
+            
             const indicator = content.parentElement.querySelector('.expand-indicator');
             
             if (expandedNodes.has(nodeId)) {
                 expandedNodes.delete(nodeId);
                 content.classList.remove('expanded');
-                indicator.textContent = '+';
+                if (indicator) indicator.textContent = '+';
             } else {
                 expandedNodes.add(nodeId);
                 content.classList.add('expanded');
-                indicator.textContent = '−';
+                if (indicator) indicator.textContent = '−';
             }
-        }
-
-        function setLayout(layout) {
-            currentLayout = layout;
-            
-            // Update button styles
-            const horizontalBtn = document.getElementById('horizontalBtn');
-            const verticalBtn = document.getElementById('verticalBtn');
-            
-            if (layout === 'horizontal') {
-                horizontalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white';
-                verticalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
-            } else {
-                verticalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-blue-600 text-white';
-                horizontalBtn.className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
-            }
-            
-            generateChart();
         }
 
         function expandAll() {
@@ -1620,12 +1283,26 @@
         function generateChart() {
             const chartContainer = document.getElementById('orgChart');
             
-            if (currentLayout === 'horizontal') {
-                chartContainer.className = 'horizontal-container';
-                chartContainer.innerHTML = createHorizontalOrgBox('board', organizationalData['board']);
+            // Find root node
+            let rootNode = 'board';
+            if (!organizationalData[rootNode]) {
+                // Find any node that could be root
+                rootNode = Object.keys(organizationalData)[0];
+            }
+            
+            if (rootNode && organizationalData[rootNode]) {
+                chartContainer.innerHTML = createHorizontalOrgBox(rootNode, organizationalData[rootNode]);
             } else {
-                chartContainer.className = 'vertical-container';
-                chartContainer.innerHTML = createVerticalOrgBox('board', organizationalData['board']);
+                chartContainer.innerHTML = `
+                    <div class="text-center py-20">
+                        <div class="text-6xl mb-4">📋</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">No Organizational Data</h3>
+                        <p class="text-gray-600 mb-6">Upload Excel files using the File Manager to populate the organizational chart.</p>
+                        <button onclick="openFileManager()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            📁 Upload Files
+                        </button>
+                    </div>
+                `;
             }
             
             updateTotalCount();
@@ -1633,284 +1310,16 @@
 
         function updateTotalCount() {
             const totalPositions = Object.keys(organizationalData).length;
+            const activeLayers = new Set(Object.values(organizationalData).map(node => node.layer)).size;
+            
             document.getElementById('totalCount').textContent = totalPositions;
-        }
-
-        function showJobDescription(jobId) {
-            const job = jobDescriptions[jobId];
-            const nodeData = organizationalData[jobId];
-            
-            if (!job) {
-                document.getElementById('jobTitle').textContent = nodeData.title;
-                document.getElementById('jobLevel').textContent = `${nodeData.level} • Professional Position`;
-                document.getElementById('jobContent').innerHTML = `
-                    <div class="text-center py-8">
-                        <div class="text-6xl mb-4">📋</div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Job Description Coming Soon</h3>
-                        <p class="text-gray-600">Detailed job description for this position is being prepared and will be available shortly.</p>
-                        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-                            <p class="text-sm text-blue-800"><strong>Note:</strong> This is a sample organizational chart. In a real implementation, all positions would have detailed job descriptions.</p>
-                        </div>
-                    </div>
-                `;
-            } else {
-                document.getElementById('jobTitle').textContent = job.title;
-                document.getElementById('jobLevel').textContent = `${job.level} • ${job.department}`;
-                document.getElementById('jobContent').innerHTML = job.content;
-            }
-            
-            document.getElementById('jobModal').classList.remove('hidden');
-            document.getElementById('jobModal').classList.add('flex');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeJobModal() {
-            document.getElementById('jobModal').classList.add('hidden');
-            document.getElementById('jobModal').classList.remove('flex');
-            document.body.style.overflow = 'auto';
-        }
-
-        function setupSearch() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const allBoxes = document.querySelectorAll('.org-box');
-                
-                allBoxes.forEach(box => {
-                    const text = box.textContent.toLowerCase();
-                    const container = box.closest('.org-node-container');
-                    
-                    if (searchTerm === '' || text.includes(searchTerm)) {
-                        container.style.display = '';
-                        // Highlight matching text
-                        if (searchTerm !== '') {
-                            const titleElement = box.querySelector('.font-bold');
-                            if (titleElement) {
-                                const originalText = titleElement.textContent;
-                                const highlightedText = originalText.replace(
-                                    new RegExp(`(${searchTerm})`, 'gi'),
-                                    '<span style="background-color: #fef3c7; padding: 2px 4px; border-radius: 4px;">$1</span>'
-                                );
-                                titleElement.innerHTML = highlightedText;
-                            }
-                        }
-                    } else {
-                        container.style.display = 'none';
-                    }
-                });
-            });
-        }
-
-        function exportChart() {
-            const data = {
-                organizationalData,
-                jobDescriptions,
-                expandedNodes: Array.from(expandedNodes),
-                exportDate: new Date().toISOString(),
-                totalPositions: document.getElementById('totalCount').textContent,
-                layout: 'horizontal'
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'horizontal-org-chart-export.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function downloadTemplate() {
-            // Create sample data for Excel template
-            const templateData = [
-                ['Position ID', 'Position Title', 'Level', 'Type', 'Parent ID', 'Department', 'Description'],
-                ['board', 'Board of Directors', 'Board Level', 'board', '', 'Governance', 'Top level governance body'],
-                ['president-ceo', 'President & CEO', 'Chief Executive', 'executive', 'board', 'Executive Office', 'Chief executive officer'],
-                ['finance-head', 'Head - Finance', 'Department Head', 'avp', 'president-ceo', 'Finance', 'Finance department head'],
-                ['finance-manager', 'Finance Manager', 'Manager', 'senior-manager', 'finance-head', 'Finance', 'Finance operations manager'],
-                ['finance-officer', 'Finance Officer', 'Officer', 'officer', 'finance-manager', 'Finance', 'Finance operations officer'],
-                ['finance-staff', 'Finance Staff', 'Staff', 'staff', 'finance-officer', 'Finance', 'Finance support staff']
-            ];
-
-            const ws = XLSX.utils.aoa_to_sheet(templateData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Org Chart Template');
-            
-            // Set column widths
-            ws['!cols'] = [
-                { width: 15 }, // Position ID
-                { width: 30 }, // Position Title
-                { width: 20 }, // Level
-                { width: 15 }, // Type
-                { width: 15 }, // Parent ID
-                { width: 20 }, // Department
-                { width: 40 }  // Description
-            ];
-            
-            XLSX.writeFile(wb, 'org-chart-template.xlsx');
-            
-            // Show instructions
-            alert(`📋 Template Downloaded!
-
-Instructions for using the Excel template:
-
-1. Position ID: Unique identifier (no spaces, use hyphens)
-2. Position Title: Display name for the position
-3. Level: Job level description
-4. Type: Choose from: board, executive, pldt-ops, smart-ops, shared-services, sub-function, avp, senior-manager, officer, staff
-5. Parent ID: The Position ID of the direct supervisor (leave empty for top level)
-6. Department: Department name
-7. Description: Job description (optional)
-
-Save as .xlsx and upload using the "Upload Excel" button!`);
-        }
-
-        function handleExcelUpload(event) {
-            if (!checkAdminAccess('upload Excel file')) {
-                event.target.value = ''; // Reset file input
-                return;
-            }
-            
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    processExcelData(jsonData);
-                } catch (error) {
-                    alert('❌ Error reading Excel file: ' + error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function processExcelData(data) {
-            if (data.length < 2) {
-                alert('❌ Excel file must have at least a header row and one data row');
-                return;
-            }
-
-            const headers = data[0];
-            const requiredHeaders = ['Position ID', 'Position Title', 'Level', 'Type', 'Parent ID'];
-            
-            // Check if required headers exist
-            const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
-            if (missingHeaders.length > 0) {
-                alert(`❌ Missing required columns: ${missingHeaders.join(', ')}`);
-                return;
-            }
-
-            // Get column indices
-            const idIndex = headers.indexOf('Position ID');
-            const titleIndex = headers.indexOf('Position Title');
-            const levelIndex = headers.indexOf('Level');
-            const typeIndex = headers.indexOf('Type');
-            const parentIndex = headers.indexOf('Parent ID');
-            const deptIndex = headers.indexOf('Department');
-            const descIndex = headers.indexOf('Description');
-
-            // Clear existing data
-            Object.keys(organizationalData).forEach(key => delete organizationalData[key]);
-            Object.keys(jobDescriptions).forEach(key => delete jobDescriptions[key]);
-
-            // Process each row
-            const newOrgData = {};
-            const newJobDescs = {};
-            
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row[idIndex] || !row[titleIndex]) continue; // Skip empty rows
-
-                const positionId = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
-                const parentId = row[parentIndex] ? String(row[parentIndex]).toLowerCase().replace(/\s+/g, '-') : '';
-                
-                // Create position data
-                newOrgData[positionId] = {
-                    id: positionId,
-                    title: row[titleIndex] || '',
-                    level: row[levelIndex] || 'Position',
-                    type: row[typeIndex] || 'staff',
-                    children: []
-                };
-
-                // Create job description if description provided
-                if (row[descIndex]) {
-                    newJobDescs[positionId] = {
-                        title: row[titleIndex] || '',
-                        level: row[levelIndex] || 'Position',
-                        department: row[deptIndex] || 'Department',
-                        content: `
-                            <div class="space-y-6">
-                                <div>
-                                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Position Overview</h3>
-                                    <p class="text-gray-700 leading-relaxed">${row[descIndex]}</p>
-                                </div>
-                            </div>
-                        `
-                    };
-                }
-            }
-
-            // Build parent-child relationships
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row[idIndex]) continue;
-
-                const positionId = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
-                const parentId = row[parentIndex] ? String(row[parentIndex]).toLowerCase().replace(/\s+/g, '-') : '';
-                
-                if (parentId && newOrgData[parentId]) {
-                    if (!newOrgData[parentId].children.includes(positionId)) {
-                        newOrgData[parentId].children.push(positionId);
-                    }
-                }
-            }
-
-            // Update global data
-            Object.assign(organizationalData, newOrgData);
-            Object.assign(jobDescriptions, newJobDescs);
-
-            // Find root node (position with no parent)
-            let rootNode = null;
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row[parentIndex] || row[parentIndex] === '') {
-                    rootNode = String(row[idIndex]).toLowerCase().replace(/\s+/g, '-');
-                    break;
-                }
-            }
-
-            // Regenerate chart
-            expandedNodes.clear();
-            generateChart();
-
-            // Show success message
-            const totalPositions = Object.keys(organizationalData).length;
-            alert(`✅ Excel file processed successfully!
-
-📊 Imported ${totalPositions} positions
-🏢 Root position: ${rootNode ? organizationalData[rootNode].title : 'Not found'}
-📋 Job descriptions: ${Object.keys(jobDescriptions).length}
-
-The organizational chart has been updated with your Excel data!`);
-
-            // Reset file input
-            event.target.value = '';
+            document.getElementById('layerCount').textContent = activeLayers;
         }
 
         // ========================================
-        // ADVANCED INTERFACE CUSTOMIZATION SYSTEM
+        // CUSTOMIZATION SYSTEM (FIXED)
         // ========================================
-        
+
         let customizationSettings = {
             theme: 'default',
             compactMode: false,
@@ -1920,25 +1329,17 @@ The organizational chart has been updated with your Excel data!`);
             fontStyle: 'system',
             enableAnimations: true,
             enableShadows: true,
-            // New advanced settings
             headerLogo: null,
             headerTitle: 'PLDT/SMART Organizational Chart',
-            headerSubtitle: 'Toggle between horizontal and vertical layouts - Click on any box to expand departments',
+            headerSubtitle: 'Click on any box to expand departments and view details',
             backgroundColor: 'from-blue-50 to-indigo-100',
             headerBackground: 'from-blue-600 to-indigo-700',
             customCSS: '',
             layoutSpacing: 'normal',
             borderRadius: 'normal',
             boxShadow: 'normal',
-            connectionLines: true,
-            customColors: {},
-            dragDropEnabled: false
+            connectionLines: true
         };
-
-        let isDragging = false;
-        let dragElement = null;
-        let dragOffset = { x: 0, y: 0 };
-        let editMode = false;
 
         function openCustomizer() {
             if (!checkAdminAccess('access customization settings')) {
@@ -1949,26 +1350,7 @@ The organizational chart has been updated with your Excel data!`);
             document.getElementById('customizerModal').classList.add('flex');
             document.body.style.overflow = 'hidden';
             
-            // Load current settings
             loadCustomizationSettings();
-        }
-
-        function switchCustomizerTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            
-            // Remove active class from all tabs
-            document.querySelectorAll('[id$="Tab"]').forEach(tab => {
-                tab.className = 'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
-            });
-            
-            // Show selected tab content
-            document.getElementById(tabName + 'TabContent').classList.remove('hidden');
-            
-            // Add active class to selected tab
-            document.getElementById(tabName + 'Tab').className = 'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white text-blue-600 shadow-sm';
         }
 
         function closeCustomizer() {
@@ -1977,8 +1359,20 @@ The organizational chart has been updated with your Excel data!`);
             document.body.style.overflow = 'auto';
         }
 
+        function switchCustomizerTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('[id$="Tab"]').forEach(tab => {
+                tab.className = 'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-gray-800';
+            });
+            
+            document.getElementById(tabName + 'TabContent').classList.remove('hidden');
+            document.getElementById(tabName + 'Tab').className = 'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white text-blue-600 shadow-sm';
+        }
+
         function loadCustomizationSettings() {
-            // Load from localStorage if available
             const saved = localStorage.getItem('orgChartCustomization');
             if (saved) {
                 customizationSettings = { ...customizationSettings, ...JSON.parse(saved) };
@@ -1993,7 +1387,6 @@ The organizational chart has been updated with your Excel data!`);
             document.getElementById('fontStyle').value = customizationSettings.fontStyle;
             document.getElementById('enableAnimations').checked = customizationSettings.enableAnimations;
             document.getElementById('enableShadows').checked = customizationSettings.enableShadows;
-            document.getElementById('dragDropEnabled').checked = customizationSettings.dragDropEnabled;
             document.getElementById('headerTitle').value = customizationSettings.headerTitle;
             document.getElementById('headerSubtitle').value = customizationSettings.headerSubtitle;
             document.getElementById('backgroundColor').value = customizationSettings.backgroundColor;
@@ -2003,13 +1396,276 @@ The organizational chart has been updated with your Excel data!`);
             document.getElementById('boxShadow').value = customizationSettings.boxShadow;
             document.getElementById('customCSS').value = customizationSettings.customCSS;
             
-            // Apply current settings
             applyAllCustomizations();
         }
 
-        // ========================================
-        // NEW CUSTOMIZATION FUNCTIONS
-        // ========================================
+        // FIXED: Theme application function
+        function applyTheme(themeName) {
+            if (!checkAdminAccess('change theme')) return;
+            
+            customizationSettings.theme = themeName;
+            
+            const themes = {
+                default: {
+                    board: 'linear-gradient(135deg, #1e3a8a, #1e40af)',
+                    executive: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                    'pldt-ops': 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                    'smart-ops': 'linear-gradient(135deg, #16a34a, #15803d)',
+                    'shared-services': 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    'sub-function': 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    avp: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    'senior-manager': 'linear-gradient(135deg, #64748b, #475569)',
+                    officer: 'linear-gradient(135deg, #a16207, #92400e)'
+                },
+                corporate: {
+                    board: 'linear-gradient(135deg, #374151, #1f2937)',
+                    executive: 'linear-gradient(135deg, #4b5563, #374151)',
+                    'pldt-ops': 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    'smart-ops': 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    'shared-services': 'linear-gradient(135deg, #9ca3af, #6b7280)',
+                    'sub-function': 'linear-gradient(135deg, #9ca3af, #6b7280)',
+                    avp: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                    'senior-manager': 'linear-gradient(135deg, #9ca3af, #6b7280)',
+                    officer: 'linear-gradient(135deg, #d1d5db, #9ca3af)'
+                },
+                modern: {
+                    board: 'linear-gradient(135deg, #065f46, #047857)',
+                    executive: 'linear-gradient(135deg, #0d9488, #0f766e)',
+                    'pldt-ops': 'linear-gradient(135deg, #0891b2, #0e7490)',
+                    'smart-ops': 'linear-gradient(135deg, #0891b2, #0e7490)',
+                    'shared-services': 'linear-gradient(135deg, #0d9488, #0f766e)',
+                    'sub-function': 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    avp: 'linear-gradient(135deg, #0d9488, #0f766e)',
+                    'senior-manager': 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                    officer: 'linear-gradient(135deg, #22d3ee, #06b6d4)'
+                },
+                warm: {
+                    board: 'linear-gradient(135deg, #c2410c, #ea580c)',
+                    executive: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                    'pldt-ops': 'linear-gradient(135deg, #dc2626, #f59e0b)',
+                    'smart-ops': 'linear-gradient(135deg, #dc2626, #f59e0b)',
+                    'shared-services': 'linear-gradient(135deg, #d97706, #f59e0b)',
+                    'sub-function': 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                    avp: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+                    'senior-manager': 'linear-gradient(135deg, #fbbf24, #facc15)',
+                    officer: 'linear-gradient(135deg, #facc15, #fde047)'
+                }
+            };
+            
+            const theme = themes[themeName];
+            const style = document.createElement('style');
+            style.id = 'theme-override';
+            
+            // Remove existing theme
+            const existing = document.getElementById('theme-override');
+            if (existing) existing.remove();
+            
+            style.textContent = Object.keys(theme).map(type => 
+                `.org-box.${type} { background: ${theme[type]} !important; }`
+            ).join('\n');
+            
+            document.head.appendChild(style);
+            
+            // Show confirmation
+            const button = event.target;
+            const originalBorder = button.style.borderColor;
+            button.style.borderColor = '#10b981';
+            button.style.borderWidth = '3px';
+            
+            setTimeout(() => {
+                button.style.borderColor = originalBorder;
+                button.style.borderWidth = '';
+            }, 1000);
+        }
+
+        // Other customization functions (simplified for space)
+        function toggleCompactMode() {
+            if (!checkAdminAccess('toggle compact mode')) {
+                document.getElementById('compactMode').checked = customizationSettings.compactMode;
+                return;
+            }
+            customizationSettings.compactMode = document.getElementById('compactMode').checked;
+            applyCompactMode();
+        }
+
+        function applyCompactMode() {
+            const style = document.createElement('style');
+            style.id = 'compact-override';
+            
+            const existing = document.getElementById('compact-override');
+            if (existing) existing.remove();
+            
+            if (customizationSettings.compactMode) {
+                style.textContent = `
+                    .org-box {
+                        min-width: 140px !important;
+                        max-width: 180px !important;
+                        padding: 8px !important;
+                        margin: 4px !important;
+                        font-size: 0.8rem !important;
+                    }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleJobCounts() {
+            if (!checkAdminAccess('toggle job counts')) {
+                document.getElementById('showJobCounts').checked = customizationSettings.showJobCounts;
+                return;
+            }
+            customizationSettings.showJobCounts = document.getElementById('showJobCounts').checked;
+            applyJobCountsVisibility();
+        }
+
+        function applyJobCountsVisibility() {
+            const style = document.createElement('style');
+            style.id = 'jobcounts-override';
+            
+            const existing = document.getElementById('jobcounts-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.showJobCounts) {
+                style.textContent = '.job-count { display: none !important; }';
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleLevels() {
+            if (!checkAdminAccess('toggle levels')) {
+                document.getElementById('showLevels').checked = customizationSettings.showLevels;
+                return;
+            }
+            customizationSettings.showLevels = document.getElementById('showLevels').checked;
+            applyLevelsVisibility();
+        }
+
+        function applyLevelsVisibility() {
+            const style = document.createElement('style');
+            style.id = 'levels-override';
+            
+            const existing = document.getElementById('levels-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.showLevels) {
+                style.textContent = '.org-box .text-xs.mt-2.opacity-80 { display: none !important; }';
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function changeFontSize() {
+            if (!checkAdminAccess('change font size')) {
+                document.getElementById('fontSize').value = customizationSettings.fontSize;
+                return;
+            }
+            customizationSettings.fontSize = document.getElementById('fontSize').value;
+            applyFontSize();
+        }
+
+        function applyFontSize() {
+            const sizes = {
+                small: '0.75rem',
+                medium: '0.875rem',
+                large: '1rem',
+                'extra-large': '1.125rem'
+            };
+            
+            const style = document.createElement('style');
+            style.id = 'fontsize-override';
+            
+            const existing = document.getElementById('fontsize-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `
+                .org-box { font-size: ${sizes[customizationSettings.fontSize]} !important; }
+                .org-box .font-bold { font-size: calc(${sizes[customizationSettings.fontSize]} + 0.125rem) !important; }
+            `;
+            
+            document.head.appendChild(style);
+        }
+
+        function changeFontStyle() {
+            if (!checkAdminAccess('change font style')) {
+                document.getElementById('fontStyle').value = customizationSettings.fontStyle;
+                return;
+            }
+            customizationSettings.fontStyle = document.getElementById('fontStyle').value;
+            applyFontStyle();
+        }
+
+        function applyFontStyle() {
+            const fonts = {
+                system: 'system-ui, -apple-system, sans-serif',
+                modern: 'Inter, system-ui, sans-serif',
+                classic: 'Times, "Times New Roman", serif',
+                tech: 'Monaco, "Cascadia Code", monospace'
+            };
+            
+            const style = document.createElement('style');
+            style.id = 'fontstyle-override';
+            
+            const existing = document.getElementById('fontstyle-override');
+            if (existing) existing.remove();
+            
+            style.textContent = `.org-box { font-family: ${fonts[customizationSettings.fontStyle]} !important; }`;
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleAnimations() {
+            if (!checkAdminAccess('toggle animations')) {
+                document.getElementById('enableAnimations').checked = customizationSettings.enableAnimations;
+                return;
+            }
+            customizationSettings.enableAnimations = document.getElementById('enableAnimations').checked;
+            applyAnimations();
+        }
+
+        function applyAnimations() {
+            const style = document.createElement('style');
+            style.id = 'animations-override';
+            
+            const existing = document.getElementById('animations-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.enableAnimations) {
+                style.textContent = `
+                    .org-box { transition: none !important; }
+                    .org-box:hover { transform: none !important; }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
+
+        function toggleShadows() {
+            if (!checkAdminAccess('toggle shadows')) {
+                document.getElementById('enableShadows').checked = customizationSettings.enableShadows;
+                return;
+            }
+            customizationSettings.enableShadows = document.getElementById('enableShadows').checked;
+            applyShadows();
+        }
+
+        function applyShadows() {
+            const style = document.createElement('style');
+            style.id = 'shadows-override';
+            
+            const existing = document.getElementById('shadows-override');
+            if (existing) existing.remove();
+            
+            if (!customizationSettings.enableShadows) {
+                style.textContent = `
+                    .org-box:hover { box-shadow: none !important; }
+                    .search-container { box-shadow: none !important; }
+                `;
+            }
+            
+            document.head.appendChild(style);
+        }
 
         function handleLogoUpload(event) {
             if (!checkAdminAccess('upload logo')) {
@@ -2103,7 +1759,6 @@ The organizational chart has been updated with your Excel data!`);
 
         function applyBackground() {
             const body = document.body;
-            // Remove existing background classes
             body.className = body.className.replace(/bg-\S+/g, '').replace(/from-\S+/g, '').replace(/to-\S+/g, '');
             
             if (customizationSettings.backgroundColor.includes('gradient')) {
@@ -2112,7 +1767,6 @@ The organizational chart has been updated with your Excel data!`);
                 body.className += ` ${customizationSettings.backgroundColor}`;
             }
             
-            // Handle dark mode text
             if (customizationSettings.backgroundColor === 'bg-gray-900') {
                 body.style.color = 'white';
             } else {
@@ -2134,7 +1788,6 @@ The organizational chart has been updated with your Excel data!`);
             const header = document.querySelector('.nav-header');
             if (!header) return;
             
-            // Remove existing classes
             header.className = 'nav-header color-white padding-20px-0 margin-bottom-30px';
             
             if (customizationSettings.headerBackground.includes('gradient')) {
@@ -2162,13 +1815,7 @@ The organizational chart has been updated with your Excel data!`);
             if (existing) existing.remove();
             
             if (!customizationSettings.connectionLines) {
-                style.textContent = `
-                    .connection-line,
-                    .connecting-line-horizontal,
-                    .connecting-line-vertical {
-                        display: none !important;
-                    }
-                `;
+                style.textContent = '.connection-line { display: none !important; }';
             }
             
             document.head.appendChild(style);
@@ -2201,16 +1848,9 @@ The organizational chart has been updated with your Excel data!`);
             if (existing) existing.remove();
             
             style.textContent = `
-                .horizontal-container {
-                    gap: ${spacing.gap} !important;
-                }
-                .org-box {
-                    margin: ${spacing.margin} !important;
-                    padding: ${spacing.padding} !important;
-                }
-                .org-level-horizontal {
-                    gap: ${spacing.gap} !important;
-                }
+                .horizontal-container { gap: ${spacing.gap} !important; }
+                .org-box { margin: ${spacing.margin} !important; padding: ${spacing.padding} !important; }
+                .org-level-horizontal { gap: ${spacing.gap} !important; }
             `;
             
             document.head.appendChild(style);
@@ -2244,12 +1884,8 @@ The organizational chart has been updated with your Excel data!`);
             if (existing) existing.remove();
             
             style.textContent = `
-                .org-box {
-                    border-radius: ${radius} !important;
-                }
-                .search-container {
-                    border-radius: ${radius} !important;
-                }
+                .org-box { border-radius: ${radius} !important; }
+                .search-container { border-radius: ${radius} !important; }
             `;
             
             document.head.appendChild(style);
@@ -2283,111 +1919,11 @@ The organizational chart has been updated with your Excel data!`);
             if (existing) existing.remove();
             
             style.textContent = `
-                .org-box {
-                    box-shadow: ${shadow} !important;
-                }
-                .org-box:hover {
-                    box-shadow: ${shadow === 'none' ? 'none' : '0 8px 25px rgba(59, 130, 246, 0.15)'} !important;
-                }
+                .org-box { box-shadow: ${shadow} !important; }
+                .org-box:hover { box-shadow: ${shadow === 'none' ? 'none' : '0 8px 25px rgba(59, 130, 246, 0.15)'} !important; }
             `;
             
             document.head.appendChild(style);
-        }
-
-        function toggleDragDrop() {
-            if (!checkAdminAccess('toggle drag and drop')) {
-                document.getElementById('dragDropEnabled').checked = customizationSettings.dragDropEnabled;
-                return;
-            }
-            
-            customizationSettings.dragDropEnabled = document.getElementById('dragDropEnabled').checked;
-            applyDragDrop();
-        }
-
-        function applyDragDrop() {
-            const orgBoxes = document.querySelectorAll('.org-box');
-            
-            orgBoxes.forEach(box => {
-                if (customizationSettings.dragDropEnabled) {
-                    box.style.cursor = 'move';
-                    box.draggable = true;
-                    box.addEventListener('dragstart', handleDragStart);
-                    box.addEventListener('dragover', handleDragOver);
-                    box.addEventListener('drop', handleDrop);
-                } else {
-                    box.style.cursor = 'pointer';
-                    box.draggable = false;
-                    box.removeEventListener('dragstart', handleDragStart);
-                    box.removeEventListener('dragover', handleDragOver);
-                    box.removeEventListener('drop', handleDrop);
-                }
-            });
-        }
-
-        function handleDragStart(e) {
-            dragElement = e.target;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', e.target.outerHTML);
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            if (dragElement !== e.target) {
-                // Simple position swap
-                const dragParent = dragElement.parentNode;
-                const dropParent = e.target.parentNode;
-                
-                const dragNext = dragElement.nextSibling;
-                const dropNext = e.target.nextSibling;
-                
-                dragParent.insertBefore(e.target, dragNext);
-                dropParent.insertBefore(dragElement, dropNext);
-            }
-        }
-
-        function toggleEditMode() {
-            if (!checkAdminAccess('toggle edit mode')) return;
-            
-            editMode = !editMode;
-            const btn = document.getElementById('editModeBtn');
-            
-            if (editMode) {
-                btn.textContent = '💾 Save Changes';
-                btn.className = 'w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors';
-                enableEditMode();
-            } else {
-                btn.textContent = '✏️ Enter Edit Mode';
-                btn.className = 'w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors';
-                disableEditMode();
-            }
-        }
-
-        function enableEditMode() {
-            const orgBoxes = document.querySelectorAll('.org-box');
-            orgBoxes.forEach(box => {
-                box.style.border = '2px dashed #3b82f6';
-                box.contentEditable = true;
-                box.addEventListener('blur', saveBoxContent);
-            });
-        }
-
-        function disableEditMode() {
-            const orgBoxes = document.querySelectorAll('.org-box');
-            orgBoxes.forEach(box => {
-                box.style.border = '';
-                box.contentEditable = false;
-                box.removeEventListener('blur', saveBoxContent);
-            });
-        }
-
-        function saveBoxContent(e) {
-            // In a real application, you would save this to your data structure
-            console.log('Box content updated:', e.target.textContent);
         }
 
         function applyCustomCSS() {
@@ -2410,6 +1946,78 @@ The organizational chart has been updated with your Excel data!`);
             } catch (error) {
                 alert('❌ Invalid CSS syntax. Please check your custom CSS.');
             }
+        }
+
+        function applyAllCustomizations() {
+            applyTheme(customizationSettings.theme);
+            applyCompactMode();
+            applyJobCountsVisibility();
+            applyLevelsVisibility();
+            applyFontSize();
+            applyFontStyle();
+            applyAnimations();
+            applyShadows();
+            applyHeaderLogo();
+            applyHeaderTitle();
+            applyHeaderSubtitle();
+            applyBackground();
+            applyHeaderBackground();
+            applyConnectionLines();
+            applyLayoutSpacing();
+            applyBorderRadius();
+            applyBoxShadow();
+            applyCustomCSS();
+        }
+
+        function saveCustomization() {
+            localStorage.setItem('orgChartCustomization', JSON.stringify(customizationSettings));
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Saved!';
+            button.style.background = '#10b981';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+        }
+
+        function resetToDefault() {
+            customizationSettings = {
+                theme: 'default',
+                compactMode: false,
+                showJobCounts: true,
+                showLevels: true,
+                fontSize: 'medium',
+                fontStyle: 'system',
+                enableAnimations: true,
+                enableShadows: true,
+                headerLogo: null,
+                headerTitle: 'PLDT/SMART Organizational Chart',
+                headerSubtitle: 'Click on any box to expand departments and view details',
+                backgroundColor: 'from-blue-50 to-indigo-100',
+                headerBackground: 'from-blue-600 to-indigo-700',
+                customCSS: '',
+                layoutSpacing: 'normal',
+                borderRadius: 'normal',
+                boxShadow: 'normal',
+                connectionLines: true
+            };
+            
+            // Remove all custom styles
+            ['theme-override', 'compact-override', 'jobcounts-override', 'levels-override', 
+             'fontsize-override', 'fontstyle-override', 'animations-override', 'shadows-override',
+             'spacing-override', 'borderradius-override', 'boxshadow-override', 'connectionlines-override',
+             'custom-css-override'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.remove();
+            });
+            
+            loadCustomizationSettings();
+            localStorage.removeItem('orgChartCustomization');
+            
+            alert('🔄 Interface reset to default settings!');
         }
 
         function exportSettings() {
@@ -2456,10 +2064,8 @@ The organizational chart has been updated with your Excel data!`);
         function generateHTML() {
             if (!checkAdminAccess('generate HTML')) return;
             
-            // Get current HTML with all customizations applied
             const currentHTML = document.documentElement.outerHTML;
             
-            // Create a clean version with embedded styles
             const cleanHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2468,7 +2074,6 @@ The organizational chart has been updated with your Excel data!`);
     <title>Custom Organizational Chart</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Custom Styles Applied -->
     <style>
         ${Array.from(document.querySelectorAll('style')).map(style => style.textContent).join('\n')}
     </style>
@@ -2477,13 +2082,10 @@ The organizational chart has been updated with your Excel data!`);
     ${document.getElementById('mainApp').outerHTML}
     
     <script>
-        // Embedded customization settings
         const customizationSettings = ${JSON.stringify(customizationSettings, null, 2)};
-        
-        // Add your organizational data and functions here
-        // This is a simplified version - you would include all necessary JavaScript
+        const organizationalData = ${JSON.stringify(organizationalData, null, 2)};
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bcd179e3adfedf',t:'MTc1NDYzMzA4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96bce33ad0effee0',t:'MTc1NDYzMzgxNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>`;
             
             const blob = new Blob([cleanHTML], { type: 'text/html' });
@@ -2496,361 +2098,148 @@ The organizational chart has been updated with your Excel data!`);
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            alert('🔧 Custom HTML file generated and downloaded!\n\nThis file contains your current customizations and can be used as a standalone organizational chart.');
+            alert('🔧 Custom HTML file generated and downloaded!');
         }
 
-        function applyTheme(themeName) {
-            customizationSettings.theme = themeName;
-            
-            const themes = {
-                default: {
-                    board: 'linear-gradient(135deg, #1e3a8a, #1e40af)',
-                    executive: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                    pldtOps: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                    smartOps: 'linear-gradient(135deg, #16a34a, #15803d)',
-                    sharedServices: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                    subFunction: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                    avp: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                    seniorManager: 'linear-gradient(135deg, #64748b, #475569)',
-                    officer: 'linear-gradient(135deg, #a16207, #92400e)'
-                },
-                corporate: {
-                    board: 'linear-gradient(135deg, #374151, #1f2937)',
-                    executive: 'linear-gradient(135deg, #4b5563, #374151)',
-                    pldtOps: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                    smartOps: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                    sharedServices: 'linear-gradient(135deg, #9ca3af, #6b7280)',
-                    subFunction: 'linear-gradient(135deg, #9ca3af, #6b7280)',
-                    avp: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                    seniorManager: 'linear-gradient(135deg, #9ca3af, #6b7280)',
-                    officer: 'linear-gradient(135deg, #d1d5db, #9ca3af)'
-                },
-                modern: {
-                    board: 'linear-gradient(135deg, #065f46, #047857)',
-                    executive: 'linear-gradient(135deg, #0d9488, #0f766e)',
-                    pldtOps: 'linear-gradient(135deg, #0891b2, #0e7490)',
-                    smartOps: 'linear-gradient(135deg, #0891b2, #0e7490)',
-                    sharedServices: 'linear-gradient(135deg, #0d9488, #0f766e)',
-                    subFunction: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-                    avp: 'linear-gradient(135deg, #0d9488, #0f766e)',
-                    seniorManager: 'linear-gradient(135deg, #06b6d4, #0891b2)',
-                    officer: 'linear-gradient(135deg, #22d3ee, #06b6d4)'
-                },
-                warm: {
-                    board: 'linear-gradient(135deg, #c2410c, #ea580c)',
-                    executive: 'linear-gradient(135deg, #d97706, #f59e0b)',
-                    pldtOps: 'linear-gradient(135deg, #dc2626, #f59e0b)',
-                    smartOps: 'linear-gradient(135deg, #dc2626, #f59e0b)',
-                    sharedServices: 'linear-gradient(135deg, #d97706, #f59e0b)',
-                    subFunction: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
-                    avp: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
-                    seniorManager: 'linear-gradient(135deg, #fbbf24, #facc15)',
-                    officer: 'linear-gradient(135deg, #facc15, #fde047)'
-                }
-            };
-            
-            const theme = themes[themeName];
-            const style = document.createElement('style');
-            style.id = 'theme-override';
-            
-            // Remove existing theme
-            const existing = document.getElementById('theme-override');
-            if (existing) existing.remove();
-            
-            style.textContent = `
-                .org-box.board { background: ${theme.board} !important; }
-                .org-box.executive { background: ${theme.executive} !important; }
-                .org-box.pldt-ops { background: ${theme.pldtOps} !important; }
-                .org-box.smart-ops { background: ${theme.smartOps} !important; }
-                .org-box.shared-services { background: ${theme.sharedServices} !important; }
-                .org-box.sub-function { background: ${theme.subFunction} !important; }
-                .org-box.avp { background: ${theme.avp} !important; }
-                .org-box.senior-manager { background: ${theme.seniorManager} !important; }
-                .org-box.officer { background: ${theme.officer} !important; }
-            `;
-            
-            document.head.appendChild(style);
-        }
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
 
-        function toggleCompactMode() {
-            customizationSettings.compactMode = document.getElementById('compactMode').checked;
-            applyCompactMode();
-        }
-
-        function applyCompactMode() {
-            const style = document.createElement('style');
-            style.id = 'compact-override';
+        function showJobDescription(jobId) {
+            const job = jobDescriptions[jobId];
+            const nodeData = organizationalData[jobId];
             
-            // Remove existing
-            const existing = document.getElementById('compact-override');
-            if (existing) existing.remove();
-            
-            if (customizationSettings.compactMode) {
-                style.textContent = `
-                    .org-box {
-                        min-width: 140px !important;
-                        max-width: 180px !important;
-                        padding: 8px !important;
-                        margin: 4px !important;
-                        font-size: 0.8rem !important;
-                    }
-                    .org-box .font-bold {
-                        font-size: 0.75rem !important;
-                    }
-                    .horizontal-container {
-                        gap: 20px !important;
-                    }
+            if (!job) {
+                document.getElementById('jobTitle').textContent = nodeData.title;
+                document.getElementById('jobLevel').textContent = `${nodeData.level} • Professional Position`;
+                document.getElementById('jobContent').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-6xl mb-4">📋</div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Job Description Coming Soon</h3>
+                        <p class="text-gray-600">Detailed job description for this position is being prepared and will be available shortly.</p>
+                    </div>
                 `;
+            } else {
+                document.getElementById('jobTitle').textContent = job.title;
+                document.getElementById('jobLevel').textContent = `${job.level} • ${job.department}`;
+                document.getElementById('jobContent').innerHTML = job.content;
             }
             
-            document.head.appendChild(style);
+            document.getElementById('jobModal').classList.remove('hidden');
+            document.getElementById('jobModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
         }
 
-        function toggleJobCounts() {
-            customizationSettings.showJobCounts = document.getElementById('showJobCounts').checked;
-            applyJobCountsVisibility();
+        function closeJobModal() {
+            document.getElementById('jobModal').classList.add('hidden');
+            document.getElementById('jobModal').classList.remove('flex');
+            document.body.style.overflow = 'auto';
         }
 
-        function applyJobCountsVisibility() {
-            const style = document.createElement('style');
-            style.id = 'jobcounts-override';
-            
-            // Remove existing
-            const existing = document.getElementById('jobcounts-override');
-            if (existing) existing.remove();
-            
-            if (!customizationSettings.showJobCounts) {
-                style.textContent = `
-                    .job-count {
-                        display: none !important;
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const allBoxes = document.querySelectorAll('.org-box');
+                
+                allBoxes.forEach(box => {
+                    const text = box.textContent.toLowerCase();
+                    const container = box.closest('.org-node-container');
+                    
+                    if (searchTerm === '' || text.includes(searchTerm)) {
+                        container.style.display = '';
+                        if (searchTerm !== '') {
+                            const titleElement = box.querySelector('.font-bold');
+                            if (titleElement) {
+                                const originalText = titleElement.textContent;
+                                const highlightedText = originalText.replace(
+                                    new RegExp(`(${searchTerm})`, 'gi'),
+                                    '<span style="background-color: #fef3c7; padding: 2px 4px; border-radius: 4px;">$1</span>'
+                                );
+                                titleElement.innerHTML = highlightedText;
+                            }
+                        }
+                    } else {
+                        container.style.display = 'none';
                     }
-                `;
-            }
-            
-            document.head.appendChild(style);
-        }
-
-        function toggleLevels() {
-            customizationSettings.showLevels = document.getElementById('showLevels').checked;
-            applyLevelsVisibility();
-        }
-
-        function applyLevelsVisibility() {
-            const style = document.createElement('style');
-            style.id = 'levels-override';
-            
-            // Remove existing
-            const existing = document.getElementById('levels-override');
-            if (existing) existing.remove();
-            
-            if (!customizationSettings.showLevels) {
-                style.textContent = `
-                    .org-box .text-xs.mt-2.opacity-80 {
-                        display: none !important;
-                    }
-                `;
-            }
-            
-            document.head.appendChild(style);
-        }
-
-        function changeFontSize() {
-            customizationSettings.fontSize = document.getElementById('fontSize').value;
-            applyFontSize();
-        }
-
-        function applyFontSize() {
-            const sizes = {
-                small: '0.75rem',
-                medium: '0.875rem',
-                large: '1rem',
-                'extra-large': '1.125rem'
-            };
-            
-            const style = document.createElement('style');
-            style.id = 'fontsize-override';
-            
-            // Remove existing
-            const existing = document.getElementById('fontsize-override');
-            if (existing) existing.remove();
-            
-            style.textContent = `
-                .org-box {
-                    font-size: ${sizes[customizationSettings.fontSize]} !important;
-                }
-                .org-box .font-bold {
-                    font-size: calc(${sizes[customizationSettings.fontSize]} + 0.125rem) !important;
-                }
-            `;
-            
-            document.head.appendChild(style);
-        }
-
-        function changeFontStyle() {
-            customizationSettings.fontStyle = document.getElementById('fontStyle').value;
-            applyFontStyle();
-        }
-
-        function applyFontStyle() {
-            const fonts = {
-                system: 'system-ui, -apple-system, sans-serif',
-                modern: 'Inter, system-ui, sans-serif',
-                classic: 'Times, "Times New Roman", serif',
-                tech: 'Monaco, "Cascadia Code", monospace'
-            };
-            
-            const style = document.createElement('style');
-            style.id = 'fontstyle-override';
-            
-            // Remove existing
-            const existing = document.getElementById('fontstyle-override');
-            if (existing) existing.remove();
-            
-            style.textContent = `
-                .org-box {
-                    font-family: ${fonts[customizationSettings.fontStyle]} !important;
-                }
-            `;
-            
-            document.head.appendChild(style);
-        }
-
-        function toggleAnimations() {
-            customizationSettings.enableAnimations = document.getElementById('enableAnimations').checked;
-            applyAnimations();
-        }
-
-        function applyAnimations() {
-            const style = document.createElement('style');
-            style.id = 'animations-override';
-            
-            // Remove existing
-            const existing = document.getElementById('animations-override');
-            if (existing) existing.remove();
-            
-            if (!customizationSettings.enableAnimations) {
-                style.textContent = `
-                    .org-box {
-                        transition: none !important;
-                    }
-                    .org-box:hover {
-                        transform: none !important;
-                    }
-                `;
-            }
-            
-            document.head.appendChild(style);
-        }
-
-        function toggleShadows() {
-            customizationSettings.enableShadows = document.getElementById('enableShadows').checked;
-            applyShadows();
-        }
-
-        function applyShadows() {
-            const style = document.createElement('style');
-            style.id = 'shadows-override';
-            
-            // Remove existing
-            const existing = document.getElementById('shadows-override');
-            if (existing) existing.remove();
-            
-            if (!customizationSettings.enableShadows) {
-                style.textContent = `
-                    .org-box:hover {
-                        box-shadow: none !important;
-                    }
-                    .search-container {
-                        box-shadow: none !important;
-                    }
-                `;
-            }
-            
-            document.head.appendChild(style);
-        }
-
-        function applyAllCustomizations() {
-            applyTheme(customizationSettings.theme);
-            applyCompactMode();
-            applyJobCountsVisibility();
-            applyLevelsVisibility();
-            applyFontSize();
-            applyFontStyle();
-            applyAnimations();
-            applyShadows();
-            applyHeaderLogo();
-            applyHeaderTitle();
-            applyHeaderSubtitle();
-            applyBackground();
-            applyHeaderBackground();
-            applyConnectionLines();
-            applyLayoutSpacing();
-            applyBorderRadius();
-            applyBoxShadow();
-            applyDragDrop();
-            applyCustomCSS();
-        }
-
-        function saveCustomization() {
-            localStorage.setItem('orgChartCustomization', JSON.stringify(customizationSettings));
-            
-            // Show success message
-            const button = event.target;
-            const originalText = button.textContent;
-            button.textContent = '✅ Saved!';
-            button.style.background = '#10b981';
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.style.background = '';
-            }, 2000);
-        }
-
-        function resetToDefault() {
-            // Reset settings
-            customizationSettings = {
-                theme: 'default',
-                compactMode: false,
-                showJobCounts: true,
-                showLevels: true,
-                fontSize: 'medium',
-                fontStyle: 'system',
-                enableAnimations: true,
-                enableShadows: true
-            };
-            
-            // Remove all custom styles
-            ['theme-override', 'compact-override', 'jobcounts-override', 'levels-override', 
-             'fontsize-override', 'fontstyle-override', 'animations-override', 'shadows-override'].forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.remove();
+                });
             });
+        }
+
+        function exportChart() {
+            const data = {
+                organizationalData,
+                jobDescriptions,
+                layerData,
+                expandedNodes: Array.from(expandedNodes),
+                customizationSettings,
+                exportDate: new Date().toISOString(),
+                totalPositions: document.getElementById('totalCount').textContent
+            };
             
-            // Update UI controls
-            loadCustomizationSettings();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'org-chart-export.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadTemplate() {
+            const templateData = [
+                ['Position ID', 'Position Title', 'Level', 'Type', 'Parent ID', 'Department', 'Description'],
+                ['board', 'Board of Directors', 'Board Level', 'board', '', 'Governance', 'Top level governance body'],
+                ['president-ceo', 'President & CEO', 'Chief Executive', 'executive', 'board', 'Executive Office', 'Chief executive officer'],
+                ['finance-head', 'Head - Finance', 'Department Head', 'avp', 'president-ceo', 'Finance', 'Finance department head'],
+                ['finance-manager', 'Finance Manager', 'Manager', 'senior-manager', 'finance-head', 'Finance', 'Finance operations manager'],
+                ['finance-officer', 'Finance Officer', 'Officer', 'officer', 'finance-manager', 'Finance', 'Finance operations officer'],
+                ['finance-staff', 'Finance Staff', 'Staff', 'staff', 'finance-officer', 'Finance', 'Finance support staff']
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Org Chart Template');
             
-            // Clear localStorage
-            localStorage.removeItem('orgChartCustomization');
+            ws['!cols'] = [
+                { width: 15 }, { width: 30 }, { width: 20 }, { width: 15 }, 
+                { width: 15 }, { width: 20 }, { width: 40 }
+            ];
             
-            alert('🔄 Interface reset to default settings!');
+            XLSX.writeFile(wb, 'org-chart-template.xlsx');
+            
+            alert(`📋 Template Downloaded!
+
+Instructions for using the Excel template:
+
+1. Position ID: Unique identifier (no spaces, use hyphens)
+2. Position Title: Display name for the position
+3. Level: Job level description
+4. Type: Choose from: board, executive, pldt-ops, smart-ops, shared-services, sub-function, avp, senior-manager, officer, staff
+5. Parent ID: The Position ID of the direct supervisor (leave empty for top level)
+6. Department: Department name
+7. Description: Job description (optional)
+
+Create separate files for each layer and upload using the File Manager!`);
         }
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            // Focus on password input
             document.getElementById('passwordInput').focus();
             
             // Close modals when clicking outside
             document.getElementById('jobModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeJobModal();
-                }
+                if (e.target === this) closeJobModal();
             });
             
             document.getElementById('customizerModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeCustomizer();
-                }
+                if (e.target === this) closeCustomizer();
+            });
+            
+            document.getElementById('fileManagerModal').addEventListener('click', function(e) {
+                if (e.target === this) closeFileManager();
             });
             
             // Close modals with Escape key
@@ -2858,11 +2247,9 @@ The organizational chart has been updated with your Excel data!`);
                 if (e.key === 'Escape') {
                     closeJobModal();
                     closeCustomizer();
+                    closeFileManager();
                 }
             });
-            
-            // Load saved customizations
-            loadCustomizationSettings();
         });
     </script>
 </body>
