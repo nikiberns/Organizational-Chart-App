@@ -2603,7 +2603,25 @@
       const currentData = getNestedStructure(category, unit, currentPath);
       
       if (currentData && typeof currentData === 'object' && !Array.isArray(currentData)) {
-        Object.keys(currentData).forEach(subUnit => {
+        // Show direct positions first if they exist
+        if (currentData['_positions'] && currentData['_positions'].length > 0) {
+          const directPositionsDiv = document.createElement('div');
+          directPositionsDiv.className = 'bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4';
+          directPositionsDiv.innerHTML = `
+            <h4 class="font-semibold text-blue-900 mb-2 flex items-center">
+              <span class="text-blue-600 mr-2">👥</span>
+              Direct Positions at Level ${currentPath.length} (${currentData['_positions'].length})
+            </h4>
+            <div class="text-sm text-gray-600 cursor-pointer hover:text-blue-600" onclick="viewDirectPositions('${category}', '${unit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})">
+              ${currentData['_positions'].slice(0, 3).join(', ')}${currentData['_positions'].length > 3 ? '...' : ''}
+              <div class="mt-2 text-xs text-blue-600">Click to view all direct positions →</div>
+            </div>
+          `;
+          content.appendChild(directPositionsDiv);
+        }
+        
+        // Show sub-units
+        Object.keys(currentData).filter(key => key !== '_positions').forEach(subUnit => {
           const div = document.createElement('div');
           div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
           
@@ -2625,36 +2643,36 @@
           }
           
           const subUnitData = currentData[subUnit];
-          const hasNestedSubUnits = typeof subUnitData === 'object' && !Array.isArray(subUnitData);
-          const positionCount = hasNestedSubUnits ? 
-            countNestedPositions(subUnitData) : 
-            (Array.isArray(subUnitData) ? subUnitData.length : 0);
+          const hasNestedSubUnits = typeof subUnitData === 'object' && !Array.isArray(subUnitData) && Object.keys(subUnitData).some(key => key !== '_positions');
+          const positionCount = countNestedPositions(subUnitData);
           
           // Check if this level has direct positions (mixed structure)
-          const hasDirectPositions = hasNestedSubUnits && subUnitData['_positions'] && subUnitData['_positions'].length > 0;
+          const hasDirectPositions = typeof subUnitData === 'object' && subUnitData['_positions'] && subUnitData['_positions'].length > 0;
           
           const depth = currentPath.length;
-          const colorIntensity = Math.min(depth, 4); // Limit to 4 levels for color variation
-          const colorClasses = ['purple-600', 'purple-700', 'purple-800', 'purple-900'];
-          const bgColorClasses = ['purple-50', 'purple-100', 'purple-200', 'purple-300'];
+          const colorIntensity = Math.min(depth, 8); // Support up to 8 levels
+          const colorClasses = ['purple-500', 'purple-600', 'purple-700', 'purple-800', 'indigo-600', 'indigo-700', 'indigo-800', 'indigo-900'];
+          const bgColorClasses = ['purple-50', 'purple-100', 'purple-200', 'purple-300', 'indigo-50', 'indigo-100', 'indigo-200', 'indigo-300'];
           
           div.innerHTML = `
             <div class="cursor-pointer" onclick="${hasNestedSubUnits ? 
               `viewSubUnits('${category}', '${unit}', '${subUnit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})` : 
               `viewPositions('${category}', '${unit}', '${orgUnit}', '${subUnit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})`}">
-              <h4 class="font-semibold text-lg text-${colorClasses[colorIntensity - 1]} mb-2 flex items-center">
+              <h4 class="font-semibold text-lg text-${colorClasses[colorIntensity - 1]} mb-2 flex items-center flex-wrap">
                 ${currentUser === 'admin' ? '<span class="mr-2 text-gray-400 cursor-move">⋮⋮</span>' : ''}
-                ${subUnit}
-                ${hasNestedSubUnits ? `<span class="ml-2 text-xs bg-${bgColorClasses[colorIntensity - 1]} text-${colorClasses[colorIntensity - 1]} px-2 py-1 rounded">Has Sub-Units</span>` : ''}
-                ${hasDirectPositions ? `<span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Direct Positions</span>` : ''}
-                <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Level ${depth + 1}</span>
+                <span class="flex-1">${subUnit}</span>
+                <div class="flex flex-wrap gap-1 ml-2">
+                  ${hasNestedSubUnits ? `<span class="text-xs bg-${bgColorClasses[colorIntensity - 1]} text-${colorClasses[colorIntensity - 1]} px-2 py-1 rounded">Has Sub-Units</span>` : ''}
+                  ${hasDirectPositions ? `<span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Direct Positions</span>` : ''}
+                  <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Level ${depth + 1}</span>
+                </div>
               </h4>
-              <p class="text-sm text-gray-600">${positionCount} positions available</p>
+              <p class="text-sm text-gray-600">${positionCount} total positions</p>
               <div class="mt-2 text-xs text-${colorClasses[colorIntensity - 1]}">Click to view ${hasNestedSubUnits ? 'sub-units' : 'positions'} →</div>
             </div>
             ${currentUser === 'admin' ? `
               <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div class="flex space-x-1">
+                <div class="flex flex-wrap gap-1">
                   <button onclick="event.stopPropagation(); addNestedSubUnit('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
                           class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600" 
                           title="Add Sub-Unit (Level ${depth + 2})">
@@ -3131,8 +3149,156 @@
           } else {
             alert('Position already exists in this sub-unit!');
           }
+        } else if (typeof currentData === 'object') {
+          // Add to _positions array for mixed structure
+          if (!currentData['_positions']) {
+            currentData['_positions'] = [];
+          }
+          if (!currentData['_positions'].includes(trimmedName)) {
+            currentData['_positions'].push(trimmedName);
+            setNestedStructure(category, unit, path, currentData);
+            
+            // Save to localStorage
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`Position "${trimmedName}" added to "${subUnitName}" successfully!`);
+            
+            // Refresh current view
+            const parentPath = path.slice(0, -1);
+            viewSubUnits(category, unit, parentPath[0] || path[0], parentPath.slice(1));
+          } else {
+            alert('Position already exists in this sub-unit!');
+          }
         } else {
           alert('Cannot add position to this sub-unit. It may contain nested sub-units.');
+        }
+      }
+    }
+
+    function viewDirectPositions(category, unit, path) {
+      const currentData = getNestedStructure(category, unit, path);
+      const directPositions = currentData['_positions'] || [];
+      
+      if (directPositions.length === 0) {
+        alert('No direct positions found at this level.');
+        return;
+      }
+      
+      // Use the existing positions modal to show direct positions
+      const pathString = path.join(' > ');
+      document.getElementById('positions-title').textContent = `${pathString} - Direct Positions`;
+      document.getElementById('positions-breadcrumb-category').textContent = category;
+      document.getElementById('positions-breadcrumb-unit').textContent = unit;
+      document.getElementById('positions-breadcrumb-org').textContent = pathString;
+      
+      const content = document.getElementById('positions-content');
+      content.innerHTML = '';
+      
+      // Add position creation button for admins
+      if (currentUser === 'admin') {
+        const addPositionDiv = document.createElement('div');
+        addPositionDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
+        addPositionDiv.innerHTML = `
+          <div class="text-green-600 text-2xl mb-2">👤</div>
+          <h4 class="font-semibold text-green-800 mb-1">Add New Direct Position</h4>
+          <p class="text-sm text-green-600">Create a new position directly at Level ${path.length}</p>
+        `;
+        addPositionDiv.onclick = () => addDirectPosition(category, unit, path);
+        content.appendChild(addPositionDiv);
+      }
+      
+      directPositions.forEach(position => {
+        const div = document.createElement('div');
+        div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
+        
+        const hasJD = jobDescriptions[position];
+        const statusColor = hasJD ? 'text-green-600' : 'text-orange-600';
+        const statusText = hasJD ? 'JD Available' : 'JD Pending';
+        
+        div.innerHTML = `
+          <div class="cursor-pointer" onclick="viewJobDescription('${position}')">
+            <h4 class="font-semibold text-lg text-gray-900 mb-2">${position}</h4>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm ${statusColor} font-medium">${statusText}</span>
+              <span class="text-xs text-blue-600">Click to view →</span>
+            </div>
+            <div class="text-xs text-gray-500">Direct Position • Level ${path.length} • ${pathString}</div>
+          </div>
+          ${currentUser === 'admin' ? `
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex space-x-1">
+                <input type="file" id="jd-upload-${position.replace(/\s+/g, '-')}" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadIndividualJD(event, '${position}')">
+                <button onclick="event.stopPropagation(); document.getElementById('jd-upload-${position.replace(/\s+/g, '-')}').click()" 
+                        class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
+                        title="Upload JD">
+                  📄
+                </button>
+                <button onclick="event.stopPropagation(); removeDirectPosition('${category}', '${unit}', ${JSON.stringify(path).replace(/"/g, '&quot;')}, '${position}')" 
+                        class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                        title="Remove Position">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          ` : ''}
+        `;
+        content.appendChild(div);
+      });
+      
+      document.getElementById('sub-units-modal').classList.add('hidden');
+      document.getElementById('positions-modal').classList.remove('hidden');
+    }
+
+    function addDirectPosition(category, unit, path) {
+      const pathString = path.join(' > ');
+      const positionName = prompt(`Enter new direct position name for "${pathString}" (Level ${path.length}):`);
+      
+      if (positionName && positionName.trim()) {
+        const trimmedName = positionName.trim();
+        const currentData = getNestedStructure(category, unit, path);
+        
+        if (!currentData['_positions']) {
+          currentData['_positions'] = [];
+        }
+        
+        if (!currentData['_positions'].includes(trimmedName)) {
+          currentData['_positions'].push(trimmedName);
+          setNestedStructure(category, unit, path, currentData);
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`Direct position "${trimmedName}" added successfully to Level ${path.length}!`);
+          viewDirectPositions(category, unit, path);
+        } else {
+          alert('Position already exists at this level!');
+        }
+      }
+    }
+
+    function removeDirectPosition(category, unit, path, position) {
+      const level = path.length;
+      if (confirm(`Are you sure you want to remove the direct position "${position}" from Level ${level}?`)) {
+        const currentData = getNestedStructure(category, unit, path);
+        
+        if (currentData['_positions']) {
+          const index = currentData['_positions'].indexOf(position);
+          if (index > -1) {
+            currentData['_positions'].splice(index, 1);
+            setNestedStructure(category, unit, path, currentData);
+            
+            // Also remove job description if exists
+            if (jobDescriptions[position]) {
+              delete jobDescriptions[position];
+              localStorage.setItem('jobDescriptions', JSON.stringify(jobDescriptions));
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`Direct position "${position}" removed successfully!`);
+            viewDirectPositions(category, unit, path);
+          }
         }
       }
     }
@@ -4969,5 +5135,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3e2fa57ea0959',t:'MTc1NDg3NDk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3f19b051bfebc',t:'MTc1NDg3NTU3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
