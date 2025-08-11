@@ -353,6 +353,30 @@
     </div>
   </div>
 
+  <!-- Sub-Units Modal -->
+  <div id="sub-units-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 id="sub-units-title" class="text-xl font-bold"></h3>
+          <nav class="text-sm text-gray-600 mt-1">
+            <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+            <span class="mx-2">></span>
+            <span id="sub-breadcrumb-category" class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()"></span>
+            <span class="mx-2">></span>
+            <span id="sub-breadcrumb-unit" class="cursor-pointer hover:text-blue-600" onclick="goBackToUnits()"></span>
+            <span class="mx-2">></span>
+            <span id="sub-breadcrumb-orgunit"></span>
+          </nav>
+        </div>
+        <button onclick="closeSubUnitsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="sub-units-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Sub-units will be populated here -->
+      </div>
+    </div>
+  </div>
+
   <!-- Positions Modal -->
   <div id="positions-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
@@ -810,6 +834,30 @@
       </div>
       <div id="org-units-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Organization units will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-Units Modal -->
+  <div id="sub-units-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-6xl max-h-[80vh] overflow-y-auto m-4 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h3 id="sub-units-title" class="text-xl font-bold"></h3>
+          <nav class="text-sm text-gray-600 mt-1">
+            <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+            <span class="mx-2">></span>
+            <span id="sub-breadcrumb-category" class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()"></span>
+            <span class="mx-2">></span>
+            <span id="sub-breadcrumb-unit" class="cursor-pointer hover:text-blue-600" onclick="goBackToUnits()"></span>
+            <span class="mx-2">></span>
+            <span id="sub-breadcrumb-orgunit"></span>
+          </nav>
+        </div>
+        <button onclick="closeSubUnitsModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="sub-units-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Sub-units will be populated here -->
       </div>
     </div>
   </div>
@@ -2065,16 +2113,61 @@
       const content = document.getElementById('org-units-content');
       content.innerHTML = '';
       
+      // Add sub-unit creation button for admins
+      if (currentUser === 'admin') {
+        const addSubUnitDiv = document.createElement('div');
+        addSubUnitDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
+        addSubUnitDiv.innerHTML = `
+          <div class="text-green-600 text-2xl mb-2">➕</div>
+          <h4 class="font-semibold text-green-800 mb-1">Add New Sub-Unit</h4>
+          <p class="text-sm text-green-600">Create a new organizational sub-unit</p>
+        `;
+        addSubUnitDiv.onclick = () => showAddSubUnitForm(category, unit);
+        content.appendChild(addSubUnitDiv);
+      }
+      
       if (orgStructure[category] && orgStructure[category][unit]) {
         Object.keys(orgStructure[category][unit]).forEach(orgUnit => {
           const div = document.createElement('div');
-          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow';
+          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
+          
+          // Check if this org unit has sub-units
+          const hasSubUnits = typeof orgStructure[category][unit][orgUnit] === 'object' && 
+                             !Array.isArray(orgStructure[category][unit][orgUnit]) &&
+                             Object.keys(orgStructure[category][unit][orgUnit]).length > 0;
+          
+          const positionCount = hasSubUnits ? 
+            Object.values(orgStructure[category][unit][orgUnit]).reduce((total, subUnit) => {
+              return total + (Array.isArray(subUnit) ? subUnit.length : 0);
+            }, 0) :
+            (Array.isArray(orgStructure[category][unit][orgUnit]) ? orgStructure[category][unit][orgUnit].length : 0);
+          
           div.innerHTML = `
-            <h4 class="font-semibold text-lg text-blue-900 mb-2">${orgUnit}</h4>
-            <p class="text-sm text-gray-600">${orgStructure[category][unit][orgUnit].length} positions available</p>
-            <div class="mt-2 text-xs text-blue-600">Click to view positions →</div>
+            <div class="cursor-pointer" onclick="${hasSubUnits ? `viewSubUnits('${category}', '${unit}', '${orgUnit}')` : `viewPositions('${category}', '${unit}', '${orgUnit}')`}">
+              <h4 class="font-semibold text-lg text-blue-900 mb-2 flex items-center">
+                ${orgUnit}
+                ${hasSubUnits ? '<span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Has Sub-Units</span>' : ''}
+              </h4>
+              <p class="text-sm text-gray-600">${positionCount} positions available</p>
+              <div class="mt-2 text-xs text-blue-600">Click to view ${hasSubUnits ? 'sub-units' : 'positions'} →</div>
+            </div>
+            ${currentUser === 'admin' ? `
+              <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex space-x-1">
+                  <button onclick="event.stopPropagation(); addSubUnitToOrgUnit('${category}', '${unit}', '${orgUnit}')" 
+                          class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600" 
+                          title="Add Sub-Unit">
+                    ➕
+                  </button>
+                  <button onclick="event.stopPropagation(); removeOrgUnit('${category}', '${unit}', '${orgUnit}')" 
+                          class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                          title="Remove Unit">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ` : ''}
           `;
-          div.onclick = () => viewPositions(category, unit, orgUnit);
           content.appendChild(div);
         });
       } else {
@@ -2084,43 +2177,170 @@
       document.getElementById('org-units-modal').classList.remove('hidden');
     }
 
-    function viewPositions(category, unit, orgUnit) {
+    function viewPositions(category, unit, orgUnit, subUnit = null) {
       currentCategory = category;
       currentUnit = unit;
       currentOrg = orgUnit;
       
-      document.getElementById('positions-title').textContent = orgUnit + ' - Available Positions';
+      const title = subUnit ? `${subUnit} (${orgUnit}) - Available Positions` : `${orgUnit} - Available Positions`;
+      document.getElementById('positions-title').textContent = title;
       document.getElementById('positions-breadcrumb-category').textContent = category;
       document.getElementById('positions-breadcrumb-unit').textContent = unit;
-      document.getElementById('positions-breadcrumb-org').textContent = orgUnit;
+      document.getElementById('positions-breadcrumb-org').textContent = subUnit ? `${orgUnit} > ${subUnit}` : orgUnit;
       
       const content = document.getElementById('positions-content');
       content.innerHTML = '';
       
+      let positions = [];
+      
       if (orgStructure[category] && orgStructure[category][unit] && orgStructure[category][unit][orgUnit]) {
-        orgStructure[category][unit][orgUnit].forEach(position => {
+        if (subUnit) {
+          // Getting positions from a specific sub-unit
+          positions = orgStructure[category][unit][orgUnit][subUnit] || [];
+        } else {
+          // Getting positions from org unit (could be array or object with sub-units)
+          const orgUnitData = orgStructure[category][unit][orgUnit];
+          if (Array.isArray(orgUnitData)) {
+            positions = orgUnitData;
+          } else if (typeof orgUnitData === 'object') {
+            // Flatten all positions from all sub-units
+            positions = Object.values(orgUnitData).flat();
+          }
+        }
+        
+        // Add position creation button for admins
+        if (currentUser === 'admin') {
+          const addPositionDiv = document.createElement('div');
+          addPositionDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
+          addPositionDiv.innerHTML = `
+            <div class="text-green-600 text-2xl mb-2">👤</div>
+            <h4 class="font-semibold text-green-800 mb-1">Add New Position</h4>
+            <p class="text-sm text-green-600">Create a new position in ${subUnit || orgUnit}</p>
+          `;
+          addPositionDiv.onclick = () => addNewPosition(category, unit, orgUnit, subUnit);
+          content.appendChild(addPositionDiv);
+        }
+        
+        positions.forEach(position => {
           const div = document.createElement('div');
-          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow';
+          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
           
           const hasJD = jobDescriptions[position];
           const statusColor = hasJD ? 'text-green-600' : 'text-orange-600';
           const statusText = hasJD ? 'JD Available' : 'JD Pending';
           
           div.innerHTML = `
-            <h4 class="font-semibold text-lg text-gray-900 mb-2">${position}</h4>
-            <div class="flex justify-between items-center mb-2">
-              <span class="text-sm ${statusColor} font-medium">${statusText}</span>
-              <span class="text-xs text-blue-600">Click to view →</span>
+            <div class="cursor-pointer" onclick="viewJobDescription('${position}')">
+              <h4 class="font-semibold text-lg text-gray-900 mb-2">${position}</h4>
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm ${statusColor} font-medium">${statusText}</span>
+                <span class="text-xs text-blue-600">Click to view →</span>
+              </div>
             </div>
-
+            ${currentUser === 'admin' ? `
+              <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex space-x-1">
+                  <input type="file" id="jd-upload-${position.replace(/\s+/g, '-')}" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadIndividualJD(event, '${position}')">
+                  <button onclick="event.stopPropagation(); document.getElementById('jd-upload-${position.replace(/\s+/g, '-')}').click()" 
+                          class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
+                          title="Upload JD">
+                    📄
+                  </button>
+                  <button onclick="event.stopPropagation(); removePosition('${category}', '${unit}', '${orgUnit}', '${position}', '${subUnit || ''}')" 
+                          class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                          title="Remove Position">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ` : ''}
           `;
-          div.querySelector('h4, .flex:first-of-type').onclick = () => viewJobDescription(position);
           content.appendChild(div);
         });
+        
+        if (positions.length === 0 && currentUser !== 'admin') {
+          content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No positions found.</div>';
+        }
       }
       
       document.getElementById('org-units-modal').classList.add('hidden');
+      document.getElementById('sub-units-modal').classList.add('hidden');
       document.getElementById('positions-modal').classList.remove('hidden');
+    }
+
+    function addNewPosition(category, unit, orgUnit, subUnit = null) {
+      const positionName = prompt(`Enter new position name for ${subUnit || orgUnit}:`);
+      
+      if (positionName && positionName.trim()) {
+        const trimmedName = positionName.trim();
+        
+        if (subUnit) {
+          // Adding to sub-unit
+          if (!orgStructure[category][unit][orgUnit][subUnit]) {
+            orgStructure[category][unit][orgUnit][subUnit] = [];
+          }
+          
+          if (!orgStructure[category][unit][orgUnit][subUnit].includes(trimmedName)) {
+            orgStructure[category][unit][orgUnit][subUnit].push(trimmedName);
+          } else {
+            alert('Position already exists!');
+            return;
+          }
+        } else {
+          // Adding to org unit directly
+          if (!Array.isArray(orgStructure[category][unit][orgUnit])) {
+            alert('This unit has sub-units. Please add positions to specific sub-units.');
+            return;
+          }
+          
+          if (!orgStructure[category][unit][orgUnit].includes(trimmedName)) {
+            orgStructure[category][unit][orgUnit].push(trimmedName);
+          } else {
+            alert('Position already exists!');
+            return;
+          }
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+        
+        alert(`Position "${trimmedName}" added successfully!`);
+        viewPositions(category, unit, orgUnit, subUnit);
+      }
+    }
+
+    function removePosition(category, unit, orgUnit, position, subUnit = '') {
+      if (confirm(`Are you sure you want to remove the position "${position}"?`)) {
+        if (subUnit) {
+          // Remove from sub-unit
+          const positions = orgStructure[category][unit][orgUnit][subUnit];
+          const index = positions.indexOf(position);
+          if (index > -1) {
+            positions.splice(index, 1);
+          }
+        } else {
+          // Remove from org unit directly
+          const positions = orgStructure[category][unit][orgUnit];
+          if (Array.isArray(positions)) {
+            const index = positions.indexOf(position);
+            if (index > -1) {
+              positions.splice(index, 1);
+            }
+          }
+        }
+        
+        // Also remove job description if exists
+        if (jobDescriptions[position]) {
+          delete jobDescriptions[position];
+          localStorage.setItem('jobDescriptions', JSON.stringify(jobDescriptions));
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+        
+        alert(`Position "${position}" removed successfully!`);
+        viewPositions(category, unit, orgUnit, subUnit || null);
+      }
     }
 
     function viewJobDescription(title) {
@@ -2150,7 +2370,268 @@
 
     function goBackToUnits() {
       closePositionsModal();
+      closeSubUnitsModal();
       viewOrgUnits(currentCategory, currentUnit);
+    }
+
+    // Sub-Unit Management Functions
+    let currentOrgUnit = '';
+
+    function viewSubUnits(category, unit, orgUnit) {
+      currentCategory = category;
+      currentUnit = unit;
+      currentOrgUnit = orgUnit;
+      
+      document.getElementById('sub-units-title').textContent = orgUnit + ' - Sub-Units';
+      document.getElementById('sub-breadcrumb-category').textContent = category;
+      document.getElementById('sub-breadcrumb-unit').textContent = unit;
+      document.getElementById('sub-breadcrumb-orgunit').textContent = orgUnit;
+      
+      const content = document.getElementById('sub-units-content');
+      content.innerHTML = '';
+      
+      // Add new sub-unit creation button for admins
+      if (currentUser === 'admin') {
+        const addSubUnitDiv = document.createElement('div');
+        addSubUnitDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
+        addSubUnitDiv.innerHTML = `
+          <div class="text-green-600 text-2xl mb-2">➕</div>
+          <h4 class="font-semibold text-green-800 mb-1">Add New Sub-Unit</h4>
+          <p class="text-sm text-green-600">Create a new sub-unit within ${orgUnit}</p>
+        `;
+        addSubUnitDiv.onclick = () => showAddSubUnitForm(category, unit, orgUnit);
+        content.appendChild(addSubUnitDiv);
+      }
+      
+      if (orgStructure[category] && orgStructure[category][unit] && orgStructure[category][unit][orgUnit]) {
+        const orgUnitData = orgStructure[category][unit][orgUnit];
+        
+        // Check if this has sub-units (object) or direct positions (array)
+        if (typeof orgUnitData === 'object' && !Array.isArray(orgUnitData)) {
+          Object.keys(orgUnitData).forEach(subUnit => {
+            const div = document.createElement('div');
+            div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
+            
+            const positions = Array.isArray(orgUnitData[subUnit]) ? orgUnitData[subUnit] : [];
+            
+            div.innerHTML = `
+              <div class="cursor-pointer" onclick="viewPositions('${category}', '${unit}', '${orgUnit}', '${subUnit}')">
+                <h4 class="font-semibold text-lg text-purple-900 mb-2">${subUnit}</h4>
+                <p class="text-sm text-gray-600">${positions.length} positions available</p>
+                <div class="mt-2 text-xs text-purple-600">Click to view positions →</div>
+              </div>
+              ${currentUser === 'admin' ? `
+                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div class="flex space-x-1">
+                    <button onclick="event.stopPropagation(); addPositionToSubUnit('${category}', '${unit}', '${orgUnit}', '${subUnit}')" 
+                            class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
+                            title="Add Position">
+                      👤
+                    </button>
+                    <button onclick="event.stopPropagation(); removeSubUnit('${category}', '${unit}', '${orgUnit}', '${subUnit}')" 
+                            class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                            title="Remove Sub-Unit">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ` : ''}
+            `;
+            content.appendChild(div);
+          });
+        } else {
+          // This org unit has direct positions, show option to convert to sub-units
+          if (currentUser === 'admin') {
+            const convertDiv = document.createElement('div');
+            convertDiv.className = 'bg-yellow-50 border-2 border-dashed border-yellow-300 p-4 rounded-lg text-center hover:bg-yellow-100 cursor-pointer transition-colors';
+            convertDiv.innerHTML = `
+              <div class="text-yellow-600 text-2xl mb-2">🔄</div>
+              <h4 class="font-semibold text-yellow-800 mb-1">Convert to Sub-Units</h4>
+              <p class="text-sm text-yellow-600">This unit has ${orgUnitData.length} direct positions. Convert to sub-unit structure?</p>
+            `;
+            convertDiv.onclick = () => convertToSubUnits(category, unit, orgUnit);
+            content.appendChild(convertDiv);
+          }
+          
+          // Show current positions
+          const positionsDiv = document.createElement('div');
+          positionsDiv.className = 'bg-blue-50 border border-blue-200 p-4 rounded-lg';
+          positionsDiv.innerHTML = `
+            <h4 class="font-semibold text-blue-900 mb-2">Current Positions (${orgUnitData.length})</h4>
+            <div class="text-sm text-gray-600 cursor-pointer hover:text-blue-600" onclick="viewPositions('${category}', '${unit}', '${orgUnit}')">
+              ${orgUnitData.slice(0, 3).join(', ')}${orgUnitData.length > 3 ? '...' : ''}
+              <div class="mt-2 text-xs text-blue-600">Click to view all positions →</div>
+            </div>
+          `;
+          content.appendChild(positionsDiv);
+        }
+      } else {
+        content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No sub-units found.</div>';
+      }
+      
+      document.getElementById('org-units-modal').classList.add('hidden');
+      document.getElementById('sub-units-modal').classList.remove('hidden');
+    }
+
+    function closeSubUnitsModal() {
+      document.getElementById('sub-units-modal').classList.add('hidden');
+    }
+
+    function showAddSubUnitForm(category, unit, orgUnit = null) {
+      const subUnitName = prompt(orgUnit ? 
+        `Enter name for new sub-unit within "${orgUnit}":` : 
+        `Enter name for new organizational unit within "${unit}":`
+      );
+      
+      if (subUnitName && subUnitName.trim()) {
+        if (orgUnit) {
+          // Adding sub-unit to existing org unit
+          addSubUnitToOrgUnit(category, unit, orgUnit, subUnitName.trim());
+        } else {
+          // Adding new org unit
+          addNewOrgUnit(category, unit, subUnitName.trim());
+        }
+      }
+    }
+
+    function addSubUnitToOrgUnit(category, unit, orgUnit, subUnitName = null) {
+      if (!subUnitName) {
+        subUnitName = prompt(`Enter name for new sub-unit within "${orgUnit}":`);
+      }
+      
+      if (subUnitName && subUnitName.trim()) {
+        const trimmedName = subUnitName.trim();
+        
+        // Initialize structure if needed
+        if (!orgStructure[category]) orgStructure[category] = {};
+        if (!orgStructure[category][unit]) orgStructure[category][unit] = {};
+        
+        const currentOrgUnit = orgStructure[category][unit][orgUnit];
+        
+        // Convert to sub-unit structure if it's currently an array
+        if (Array.isArray(currentOrgUnit)) {
+          const positions = [...currentOrgUnit];
+          orgStructure[category][unit][orgUnit] = {
+            'Main': positions,
+            [trimmedName]: []
+          };
+        } else if (typeof currentOrgUnit === 'object') {
+          // Already has sub-units, just add new one
+          orgStructure[category][unit][orgUnit][trimmedName] = [];
+        } else {
+          // Initialize as sub-unit structure
+          orgStructure[category][unit][orgUnit] = {
+            [trimmedName]: []
+          };
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+        
+        alert(`Sub-unit "${trimmedName}" added successfully!`);
+        
+        // Refresh current view
+        if (document.getElementById('sub-units-modal').classList.contains('hidden') === false) {
+          viewSubUnits(category, unit, orgUnit);
+        } else {
+          viewOrgUnits(category, unit);
+        }
+      }
+    }
+
+    function addNewOrgUnit(category, unit, orgUnitName) {
+      if (!orgStructure[category]) orgStructure[category] = {};
+      if (!orgStructure[category][unit]) orgStructure[category][unit] = {};
+      
+      if (orgStructure[category][unit][orgUnitName]) {
+        alert('Organization unit already exists!');
+        return;
+      }
+      
+      orgStructure[category][unit][orgUnitName] = [];
+      
+      // Save to localStorage
+      localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+      
+      alert(`Organization unit "${orgUnitName}" added successfully!`);
+      viewOrgUnits(category, unit);
+    }
+
+    function removeSubUnit(category, unit, orgUnit, subUnit) {
+      if (confirm(`Are you sure you want to remove the sub-unit "${subUnit}"? This will also remove all positions within it.`)) {
+        if (orgStructure[category] && orgStructure[category][unit] && orgStructure[category][unit][orgUnit]) {
+          delete orgStructure[category][unit][orgUnit][subUnit];
+          
+          // If no sub-units left, convert back to array
+          const remainingSubUnits = Object.keys(orgStructure[category][unit][orgUnit]);
+          if (remainingSubUnits.length === 0) {
+            orgStructure[category][unit][orgUnit] = [];
+          } else if (remainingSubUnits.length === 1 && remainingSubUnits[0] === 'Main') {
+            // Only 'Main' left, convert back to direct positions
+            orgStructure[category][unit][orgUnit] = orgStructure[category][unit][orgUnit]['Main'];
+          }
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`Sub-unit "${subUnit}" removed successfully!`);
+          viewSubUnits(category, unit, orgUnit);
+        }
+      }
+    }
+
+    function removeOrgUnit(category, unit, orgUnit) {
+      if (confirm(`Are you sure you want to remove the organizational unit "${orgUnit}"? This will also remove all sub-units and positions within it.`)) {
+        if (orgStructure[category] && orgStructure[category][unit]) {
+          delete orgStructure[category][unit][orgUnit];
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`Organizational unit "${orgUnit}" removed successfully!`);
+          viewOrgUnits(category, unit);
+        }
+      }
+    }
+
+    function convertToSubUnits(category, unit, orgUnit) {
+      if (confirm(`Convert "${orgUnit}" to use sub-units? Current positions will be moved to a "Main" sub-unit.`)) {
+        const currentPositions = orgStructure[category][unit][orgUnit];
+        
+        orgStructure[category][unit][orgUnit] = {
+          'Main': Array.isArray(currentPositions) ? currentPositions : []
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+        
+        alert(`"${orgUnit}" converted to sub-unit structure successfully!`);
+        viewSubUnits(category, unit, orgUnit);
+      }
+    }
+
+    function addPositionToSubUnit(category, unit, orgUnit, subUnit) {
+      const positionName = prompt(`Enter position name for "${subUnit}":`);
+      
+      if (positionName && positionName.trim()) {
+        const trimmedName = positionName.trim();
+        
+        if (!orgStructure[category][unit][orgUnit][subUnit]) {
+          orgStructure[category][unit][orgUnit][subUnit] = [];
+        }
+        
+        if (!orgStructure[category][unit][orgUnit][subUnit].includes(trimmedName)) {
+          orgStructure[category][unit][orgUnit][subUnit].push(trimmedName);
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`Position "${trimmedName}" added to "${subUnit}" successfully!`);
+          viewSubUnits(category, unit, orgUnit);
+        } else {
+          alert('Position already exists in this sub-unit!');
+        }
+      }
     }
 
     function uploadOrgStructure(event) {
@@ -3773,5 +4254,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3958307f0fee1',t:'MTc1NDg3MTgwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3c082d79b8065',t:'MTc1NDg3MzU2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
