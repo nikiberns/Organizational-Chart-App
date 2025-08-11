@@ -140,8 +140,8 @@
   <div id="login-screen" class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
     <div class="bg-white p-8 rounded-xl shadow-lg w-80 border border-blue-200">
       <div class="text-center mb-8">
-        <img id="login-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-12 mx-auto mb-4" alt="Company Logo" />
-        <h2 class="text-2xl font-bold text-blue-900 mb-2">Organization Design Portal</h2>
+        <img id="login-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-10 sm:h-12 mx-auto mb-4 max-w-full object-contain" alt="Company Logo" />
+        <h2 class="text-xl sm:text-2xl font-bold text-blue-900 mb-2">Organization Design Portal</h2>
         <p class="text-blue-600 text-sm">Please enter your credentials to continue</p>
       </div>
       
@@ -496,9 +496,9 @@
     <div class="flex-1 p-6 overflow-y-auto">
       <!-- Home -->
       <div id="home" class="space-y-8 h-full flex flex-col">
-        <div class="flex items-center justify-between">
-          <img id="company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-16" alt="Company Logo" />
-          <div id="logo-admin-controls" class="hidden space-x-2">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <img id="company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-12 sm:h-16 max-w-full object-contain" alt="Company Logo" />
+          <div id="logo-admin-controls" class="hidden space-x-2 flex-wrap">
             <button onclick="openUserManagement()" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">
               👥 User Management
             </button>
@@ -569,9 +569,9 @@
       <!-- Org Chart -->
       <div id="org" class="hidden">
         <div class="flex justify-between items-center mb-6">
-          <div class="flex items-center space-x-4">
-            <img id="org-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-8" alt="Company Logo" />
-            <h2 class="text-xl font-bold">Organizational Chart</h2>
+          <div class="flex items-center space-x-2 sm:space-x-4 flex-wrap">
+            <img id="org-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-6 sm:h-8 max-w-full object-contain" alt="Company Logo" />
+            <h2 class="text-lg sm:text-xl font-bold">Organizational Chart</h2>
           </div>
           <div class="flex items-center space-x-2">
             <div id="org-admin-controls" class="space-x-2 hidden">
@@ -615,9 +615,9 @@
       <!-- Admin Panel -->
       <div id="admin" class="hidden">
         <div class="flex justify-between items-center mb-6">
-          <div class="flex items-center space-x-4">
-            <img id="admin-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-8" alt="Company Logo" />
-            <h2 class="text-xl font-bold">Admin Panel</h2>
+          <div class="flex items-center space-x-2 sm:space-x-4 flex-wrap">
+            <img id="admin-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-6 sm:h-8 max-w-full object-contain" alt="Company Logo" />
+            <h2 class="text-lg sm:text-xl font-bold">Admin Panel</h2>
           </div>
         </div>
         
@@ -740,10 +740,10 @@
 
       <!-- JD Database -->
       <div id="jd" class="hidden">
-        <div class="flex justify-between items-center mb-6">
-          <div class="flex items-center space-x-4">
-            <img id="jd-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-8" alt="Company Logo" />
-            <h2 class="text-xl font-bold">Job Descriptions</h2>
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+          <div class="flex items-center space-x-2 sm:space-x-4 flex-wrap">
+            <img id="jd-company-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/PLDT_Logo_2016.svg/2560px-PLDT_Logo_2016.svg.png" class="h-6 sm:h-8 max-w-full object-contain" alt="Company Logo" />
+            <h2 class="text-lg sm:text-xl font-bold">Job Descriptions</h2>
           </div>
           <div id="jd-admin-controls" class="space-x-2 hidden">
             <button onclick="openCategoryManager()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">
@@ -2434,6 +2434,7 @@
         document.getElementById('company-logo').src = e.target.result;
         document.getElementById('org-company-logo').src = e.target.result;
         document.getElementById('jd-company-logo').src = e.target.result;
+        document.getElementById('admin-company-logo').src = e.target.result;
         document.getElementById('login-logo').src = e.target.result;
         // Store in localStorage for persistence
         localStorage.setItem('companyLogo', e.target.result);
@@ -2468,6 +2469,7 @@
         document.getElementById('company-logo').src = defaultLogo;
         document.getElementById('org-company-logo').src = defaultLogo;
         document.getElementById('jd-company-logo').src = defaultLogo;
+        document.getElementById('admin-company-logo').src = defaultLogo;
         document.getElementById('login-logo').src = defaultLogo;
         localStorage.removeItem('companyLogo');
         alert('Logo removed successfully! Default logo restored.');
@@ -2804,6 +2806,7 @@
         document.getElementById('company-logo').src = savedLogo;
         document.getElementById('org-company-logo').src = savedLogo;
         document.getElementById('jd-company-logo').src = savedLogo;
+        document.getElementById('admin-company-logo').src = savedLogo;
         document.getElementById('login-logo').src = savedLogo;
       }
 
@@ -3770,5 +3773,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c028dda5555783',t:'MTc1NDY2ODEyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3958307f0fee1',t:'MTc1NDg3MTgwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
