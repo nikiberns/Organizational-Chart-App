@@ -2321,8 +2321,16 @@
       if (Array.isArray(data)) {
         positions = [...data];
       } else if (typeof data === 'object' && data !== null) {
-        Object.values(data).forEach(value => {
-          positions = positions.concat(flattenNestedPositions(value));
+        Object.keys(data).forEach(key => {
+          if (key === '_positions') {
+            // Add direct positions at this level
+            if (Array.isArray(data[key])) {
+              positions = positions.concat(data[key]);
+            }
+          } else {
+            // Recursively flatten nested positions
+            positions = positions.concat(flattenNestedPositions(data[key]));
+          }
         });
       }
       return positions;
@@ -2566,17 +2574,29 @@
         content.appendChild(dropZone);
       }
       
-      // Add new sub-unit creation button for admins
+      // Add creation options for admins
       if (currentUser === 'admin') {
+        // Add Sub-Unit option
         const addSubUnitDiv = document.createElement('div');
         addSubUnitDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
         addSubUnitDiv.innerHTML = `
-          <div class="text-green-600 text-2xl mb-2">➕</div>
+          <div class="text-green-600 text-2xl mb-2">🏢</div>
           <h4 class="font-semibold text-green-800 mb-1">Add New Sub-Unit</h4>
           <p class="text-sm text-green-600">Create a new sub-unit within ${currentPath[currentPath.length - 1]} (Level ${currentPath.length + 1})</p>
         `;
         addSubUnitDiv.onclick = () => showAddNestedSubUnitForm(category, unit, currentPath);
         content.appendChild(addSubUnitDiv);
+
+        // Add Position option
+        const addPositionDiv = document.createElement('div');
+        addPositionDiv.className = 'bg-blue-50 border-2 border-dashed border-blue-300 p-4 rounded-lg text-center hover:bg-blue-100 cursor-pointer transition-colors';
+        addPositionDiv.innerHTML = `
+          <div class="text-blue-600 text-2xl mb-2">👤</div>
+          <h4 class="font-semibold text-blue-800 mb-1">Add New Position</h4>
+          <p class="text-sm text-blue-600">Create a new position directly in ${currentPath[currentPath.length - 1]}</p>
+        `;
+        addPositionDiv.onclick = () => addPositionDirectlyToCurrentLevel(category, unit, currentPath);
+        content.appendChild(addPositionDiv);
       }
       
       // Navigate to the correct nested structure
@@ -2610,6 +2630,9 @@
             countNestedPositions(subUnitData) : 
             (Array.isArray(subUnitData) ? subUnitData.length : 0);
           
+          // Check if this level has direct positions (mixed structure)
+          const hasDirectPositions = hasNestedSubUnits && subUnitData['_positions'] && subUnitData['_positions'].length > 0;
+          
           const depth = currentPath.length;
           const colorIntensity = Math.min(depth, 4); // Limit to 4 levels for color variation
           const colorClasses = ['purple-600', 'purple-700', 'purple-800', 'purple-900'];
@@ -2623,6 +2646,7 @@
                 ${currentUser === 'admin' ? '<span class="mr-2 text-gray-400 cursor-move">⋮⋮</span>' : ''}
                 ${subUnit}
                 ${hasNestedSubUnits ? `<span class="ml-2 text-xs bg-${bgColorClasses[colorIntensity - 1]} text-${colorClasses[colorIntensity - 1]} px-2 py-1 rounded">Has Sub-Units</span>` : ''}
+                ${hasDirectPositions ? `<span class="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Direct Positions</span>` : ''}
                 <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Level ${depth + 1}</span>
               </h4>
               <p class="text-sm text-gray-600">${positionCount} positions available</p>
@@ -2734,8 +2758,14 @@
         return data.length;
       } else if (typeof data === 'object' && data !== null) {
         let count = 0;
-        Object.values(data).forEach(value => {
-          count += countNestedPositions(value);
+        Object.keys(data).forEach(key => {
+          if (key === '_positions') {
+            // Count direct positions at this level
+            count += Array.isArray(data[key]) ? data[key].length : 0;
+          } else {
+            // Count nested positions
+            count += countNestedPositions(data[key]);
+          }
         });
         return count;
       }
@@ -2749,6 +2779,62 @@
       
       if (subUnitName && subUnitName.trim()) {
         addNestedSubUnit(category, unit, [...path, subUnitName.trim()]);
+      }
+    }
+
+    function addPositionDirectlyToCurrentLevel(category, unit, path) {
+      const currentLevel = path.length;
+      const unitName = path[path.length - 1];
+      const positionName = prompt(`Enter position name for "${unitName}" (Level ${currentLevel}):`);
+      
+      if (positionName && positionName.trim()) {
+        const trimmedName = positionName.trim();
+        const currentData = getNestedStructure(category, unit, path);
+        
+        // Convert to mixed structure if needed (both sub-units and positions)
+        if (typeof currentData === 'object' && !Array.isArray(currentData)) {
+          // Already has sub-units, add positions array
+          if (!currentData['_positions']) {
+            currentData['_positions'] = [];
+          }
+          if (!currentData['_positions'].includes(trimmedName)) {
+            currentData['_positions'].push(trimmedName);
+            setNestedStructure(category, unit, path, currentData);
+            
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            alert(`Position "${trimmedName}" added directly to Level ${currentLevel}!`);
+            
+            // Refresh current view
+            const parentPath = path.slice(0, -1);
+            viewSubUnits(category, unit, path[0], parentPath.slice(1));
+          } else {
+            alert('Position already exists at this level!');
+          }
+        } else if (Array.isArray(currentData)) {
+          // Already positions array, just add to it
+          if (!currentData.includes(trimmedName)) {
+            currentData.push(trimmedName);
+            setNestedStructure(category, unit, path, currentData);
+            
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            alert(`Position "${trimmedName}" added to Level ${currentLevel}!`);
+            
+            // Refresh current view
+            const parentPath = path.slice(0, -1);
+            viewSubUnits(category, unit, path[0], parentPath.slice(1));
+          } else {
+            alert('Position already exists!');
+          }
+        } else {
+          // Initialize as positions array
+          setNestedStructure(category, unit, path, [trimmedName]);
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          alert(`Position "${trimmedName}" added to Level ${currentLevel}!`);
+          
+          // Refresh current view
+          const parentPath = path.slice(0, -1);
+          viewSubUnits(category, unit, path[0], parentPath.slice(1));
+        }
       }
     }
 
@@ -4883,5 +4969,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3dbdea4affec8',t:'MTc1NDg3NDY4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3e2fa57ea0959',t:'MTc1NDg3NDk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
