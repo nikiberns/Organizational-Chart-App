@@ -1154,24 +1154,28 @@
 
   <script>
     let currentUser = null;
+    let userLevel = null;
+    let isPreviewMode = false;
     let jobDescriptions = {};
-    let orgChartData = [
-      { Level: 1, Position: 'Board of Directors', Parent: '', Color: 'gray', Id: 'board', ReportsTo: '', FunctionalReportsTo: '' },
-      { Level: 2, Position: 'President and CEO', Parent: 'board', Color: 'gray', Id: 'ceo', ReportsTo: 'board', FunctionalReportsTo: '' },
-      { Level: 2.5, Position: 'Internal Audit', Parent: 'board', Color: 'red', Id: 'internal-audit', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
-      { Level: 2.5, Position: 'Corporate Governance', Parent: 'board', Color: 'red', Id: 'corp-governance', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
-      { Level: 3, Position: 'PLDT COO', Parent: 'ceo', Color: 'green', Id: 'pldt-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
-      { Level: 3, Position: 'Smart COO', Parent: 'ceo', Color: 'orange', Id: 'smart-coo', ReportsTo: 'ceo', FunctionalReportsTo: '' },
-      { Level: 3, Position: 'Technology Group', Parent: 'ceo', Color: 'purple', Id: 'technology', ReportsTo: 'ceo', FunctionalReportsTo: '' },
-      { Level: 3, Position: 'People Group', Parent: 'ceo', Color: 'teal', Id: 'people', ReportsTo: 'ceo', FunctionalReportsTo: '' },
-      { Level: 3, Position: 'Finance & Corporate Sustainability', Parent: 'ceo', Color: 'indigo', Id: 'finance', ReportsTo: 'ceo', FunctionalReportsTo: '' },
-      { Level: 4, Position: 'Consumer Business', Parent: 'pldt-coo', Color: 'green', Id: 'consumer', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
-      { Level: 4, Position: 'Enterprise Business', Parent: 'pldt-coo', Color: 'green', Id: 'enterprise', ReportsTo: 'pldt-coo', FunctionalReportsTo: '' },
-      { Level: 4, Position: 'Mobile Services', Parent: 'smart-coo', Color: 'orange', Id: 'mobile', ReportsTo: 'smart-coo', FunctionalReportsTo: '' },
-      { Level: 4, Position: 'Network Operations', Parent: 'smart-coo', Color: 'orange', Id: 'network', ReportsTo: 'smart-coo', FunctionalReportsTo: '' },
-      { Level: 4, Position: 'IT Operations', Parent: 'technology', Color: 'purple', Id: 'it-ops', ReportsTo: 'technology', FunctionalReportsTo: '' },
-      { Level: 4, Position: 'Digital Innovation', Parent: 'technology', Color: 'purple', Id: 'digital', ReportsTo: 'technology', FunctionalReportsTo: '' }
-    ];
+    
+    // Standalone Org Chart System with hierarchical structure
+    let orgChartData = {
+      level0: [
+        { Level: 0, Position: 'Board of Directors', Parent: '', Color: 'gray', Id: 'board', ReportsTo: '', FunctionalReportsTo: '' }
+      ],
+      level0_5: [
+        { Level: 0.5, Position: 'Internal Audit', Parent: 'board', Color: 'red', Id: 'internal-audit', ReportsTo: 'board', FunctionalReportsTo: 'ceo' },
+        { Level: 0.5, Position: 'Corporate Governance', Parent: 'board', Color: 'red', Id: 'corp-governance', ReportsTo: 'board', FunctionalReportsTo: 'ceo' }
+      ],
+      level1: [
+        { Level: 1, Position: 'President and CEO', Parent: 'board', Color: 'gray', Id: 'ceo', ReportsTo: 'board', FunctionalReportsTo: '' }
+      ],
+      level2: [],
+      subUnits: {}
+    };
+    
+    // Separate org chart management
+    let orgChartSubUnits = {};
     let orgStructure = {
       'BUSINESS': {
         'Consumer Business Home': {
@@ -1265,13 +1269,48 @@
       'GOVERNANCE': 'blue'
     };
 
-    // User Management System
+    // User Management System with multi-level admin support
     let userManagement = {
       resetRequests: JSON.parse(localStorage.getItem('resetRequests') || '[]'),
       accessRequests: JSON.parse(localStorage.getItem('accessRequests') || '[]'),
       approvedUsers: JSON.parse(localStorage.getItem('approvedUsers') || '{}'),
-      adminPassword: localStorage.getItem('adminPassword') || 'Hunter542639'
+      level1Password: localStorage.getItem('level1Password') || 'Hunter542639',
+      level2Password: localStorage.getItem('level2Password') || 'PLDT_L2_Admin'
     };
+
+    // Session Management
+    function saveSession() {
+      if (currentUser) {
+        sessionStorage.setItem('currentUser', currentUser);
+        sessionStorage.setItem('userLevel', userLevel);
+        sessionStorage.setItem('isPreviewMode', isPreviewMode);
+      }
+    }
+
+    function loadSession() {
+      const savedUser = sessionStorage.getItem('currentUser');
+      const savedLevel = sessionStorage.getItem('userLevel');
+      const savedPreview = sessionStorage.getItem('isPreviewMode');
+      
+      if (savedUser) {
+        currentUser = savedUser;
+        userLevel = savedLevel;
+        isPreviewMode = savedPreview === 'true';
+        
+        // Auto-login with saved session
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        
+        setupUserInterface();
+        navigate('home');
+      }
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem('userLevel');
+      sessionStorage.removeItem('isPreviewMode');
+    }
 
     // Password visibility toggle
     function togglePasswordVisibility() {
@@ -1290,7 +1329,7 @@
       }
     }
 
-    // Authentication
+    // Authentication with multi-level admin support
     function login(event) {
       event.preventDefault();
       const password = document.getElementById('password').value;
@@ -1298,52 +1337,142 @@
       const errorDiv = document.getElementById('login-error');
 
       let isValid = false;
-      let accessLevel = 'viewer'; // Default to viewer
+      let accessLevel = 'viewer';
+      let level = null;
 
-      // Check if username indicates admin access
-      if (username === 'ntbernal_ADMIN') {
+      // Check Level 1 Admin (Full Access)
+      if (username === 'ntbernal_LEVEL1') {
         accessLevel = 'admin';
-        isValid = password === userManagement.adminPassword;
-      } else if (username === 'ntbernal') {
-        // Specific viewer account - your credentials
+        level = 'level1';
+        isValid = password === userManagement.level1Password;
+      } 
+      // Check Level 2 Admin (Limited Access)
+      else if (username === 'ntbernal_LEVEL2') {
+        accessLevel = 'admin';
+        level = 'level2';
+        isValid = password === userManagement.level2Password;
+      } 
+      // Check your viewer account
+      else if (username === 'ntbernal') {
         accessLevel = 'viewer';
+        level = 'viewer';
         isValid = password === 'PLDT_HR_OD';
-      } else {
-        // Check approved users (ID numbers as usernames)
-        if (username && userManagement.approvedUsers[username]) {
-          accessLevel = 'viewer';
-          isValid = password === userManagement.approvedUsers[username].password;
-        } else {
-          // No default password - users must be approved
-          isValid = false;
-        }
+      } 
+      // Check approved users
+      else if (username && userManagement.approvedUsers[username]) {
+        accessLevel = 'viewer';
+        level = 'viewer';
+        isValid = password === userManagement.approvedUsers[username].password;
       }
 
       if (isValid) {
         currentUser = accessLevel;
+        userLevel = level;
+        isPreviewMode = false;
+        
+        // Save session
+        saveSession();
+        
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
-        document.getElementById('user-role').textContent = accessLevel === 'admin' ? 'Admin' : 'Viewer';
         
-        // Show admin controls if admin
-        if (accessLevel === 'admin') {
-          document.getElementById('org-admin-controls').classList.remove('hidden');
-          document.getElementById('jd-admin-controls').classList.remove('hidden');
-          document.getElementById('logo-admin-controls').classList.remove('hidden');
-          document.getElementById('positions-admin-controls').classList.remove('hidden');
-          document.getElementById('nav-admin').classList.remove('hidden');
-          document.getElementById('nav-user-mgmt').classList.remove('hidden');
-          showCategoryUploadButtons();
-          showExportButtons();
-        } else {
-          hideExportButtons();
-        }
-        
+        setupUserInterface();
         navigate('home');
         errorDiv.classList.add('hidden');
       } else {
         errorDiv.classList.remove('hidden');
         document.getElementById('password').value = '';
+      }
+    }
+
+    // Setup user interface based on access level
+    function setupUserInterface() {
+      const roleText = isPreviewMode ? 'Preview Mode' : 
+                      (userLevel === 'level1' ? 'Level 1 Admin' : 
+                       userLevel === 'level2' ? 'Level 2 Admin' : 'Viewer');
+      
+      document.getElementById('user-role').textContent = roleText;
+      
+      // Add preview mode banner if active
+      updatePreviewBanner();
+      
+      // Show/hide controls based on user level and preview mode
+      const isLevel1 = userLevel === 'level1' && !isPreviewMode;
+      const isLevel2 = (userLevel === 'level1' || userLevel === 'level2') && !isPreviewMode;
+      const isAdmin = (userLevel === 'level1' || userLevel === 'level2') && !isPreviewMode;
+      
+      // Level 1 only controls
+      document.getElementById('org-admin-controls').classList.toggle('hidden', !isLevel1);
+      document.getElementById('logo-admin-controls').classList.toggle('hidden', !isLevel1);
+      document.getElementById('nav-admin').classList.toggle('hidden', !isLevel1);
+      document.getElementById('nav-user-mgmt').classList.toggle('hidden', !isLevel1);
+      
+      // Level 2 and above controls
+      const jdControls = document.getElementById('jd-admin-controls');
+      if (jdControls) {
+        jdControls.classList.toggle('hidden', !isLevel2);
+      }
+      
+      // Show/hide export buttons
+      if (isLevel1) {
+        showExportButtons();
+      } else {
+        hideExportButtons();
+      }
+      
+      // Add preview toggle for admins
+      if ((userLevel === 'level1' || userLevel === 'level2') && !document.getElementById('preview-toggle')) {
+        addPreviewToggle();
+      }
+    }
+
+    // Add preview mode toggle
+    function addPreviewToggle() {
+      const sidebar = document.querySelector('.w-20.bg-white.border-r');
+      const userSection = sidebar.querySelector('.flex-1').nextElementSibling;
+      
+      if (!document.getElementById('preview-toggle')) {
+        const previewButton = document.createElement('button');
+        previewButton.id = 'preview-toggle';
+        previewButton.onclick = togglePreviewMode;
+        previewButton.className = 'p-3 rounded hover:bg-blue-100 mb-2';
+        previewButton.title = isPreviewMode ? 'Exit Preview Mode' : 'Preview as Viewer';
+        previewButton.innerHTML = `<img src="https://img.icons8.com/ios-filled/28/000000/${isPreviewMode ? 'admin-settings-male' : 'visible'}.png" alt="Preview Toggle" />`;
+        
+        userSection.insertBefore(previewButton, userSection.firstChild);
+      }
+    }
+
+    // Toggle preview mode
+    function togglePreviewMode() {
+      isPreviewMode = !isPreviewMode;
+      saveSession();
+      setupUserInterface();
+      
+      // Update preview button
+      const previewButton = document.getElementById('preview-toggle');
+      if (previewButton) {
+        previewButton.title = isPreviewMode ? 'Exit Preview Mode' : 'Preview as Viewer';
+        previewButton.innerHTML = `<img src="https://img.icons8.com/ios-filled/28/000000/${isPreviewMode ? 'admin-settings-male' : 'visible'}.png" alt="Preview Toggle" />`;
+      }
+    }
+
+    // Update preview mode banner
+    function updatePreviewBanner() {
+      let banner = document.getElementById('preview-banner');
+      
+      if (isPreviewMode) {
+        if (!banner) {
+          banner = document.createElement('div');
+          banner.id = 'preview-banner';
+          banner.className = 'bg-orange-500 text-white text-center py-2 px-4 font-semibold';
+          banner.innerHTML = '👁️ PREVIEW MODE - Viewing as regular user | <button onclick="togglePreviewMode()" class="underline hover:text-orange-200">Exit Preview</button>';
+          document.getElementById('main-app').insertBefore(banner, document.getElementById('main-app').firstChild);
+        }
+      } else {
+        if (banner) {
+          banner.remove();
+        }
       }
     }
 
@@ -1354,9 +1483,15 @@
       const adminIndicator = document.getElementById('admin-indicator');
       const viewerIndicator = document.getElementById('viewer-indicator');
       
-      if (username === 'ntbernal_ADMIN') {
+      if (username === 'ntbernal_LEVEL1') {
         accessIndicator.classList.remove('hidden');
         adminIndicator.classList.remove('hidden');
+        adminIndicator.textContent = '🔑 Level 1 Administrator Access Detected';
+        viewerIndicator.classList.add('hidden');
+      } else if (username === 'ntbernal_LEVEL2') {
+        accessIndicator.classList.remove('hidden');
+        adminIndicator.classList.remove('hidden');
+        adminIndicator.textContent = '🔑 Level 2 Administrator Access Detected';
         viewerIndicator.classList.add('hidden');
       } else if (username.length > 0) {
         accessIndicator.classList.remove('hidden');
@@ -1680,27 +1815,61 @@
     }
 
     function changeAdminPassword() {
-      const currentPassword = prompt('Enter current admin password:');
-      if (currentPassword !== userManagement.adminPassword) {
-        alert('Incorrect current password!');
+      if (userLevel !== 'level1' || isPreviewMode) {
+        alert('Password management is only available for Level 1 administrators.');
         return;
       }
       
-      const newPassword = prompt('Enter new admin password (minimum 8 characters):');
-      if (!newPassword || newPassword.length < 8) {
-        alert('Password must be at least 8 characters long!');
-        return;
-      }
+      const passwordType = prompt('Which password to change?\n1. Level 1 Admin Password\n2. Level 2 Admin Password\n\nEnter 1 or 2:');
       
-      const confirmPassword = prompt('Confirm new admin password:');
-      if (newPassword !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
+      if (passwordType === '1') {
+        const currentPassword = prompt('Enter current Level 1 admin password:');
+        if (currentPassword !== userManagement.level1Password) {
+          alert('Incorrect current password!');
+          return;
+        }
+        
+        const newPassword = prompt('Enter new Level 1 admin password (minimum 8 characters):');
+        if (!newPassword || newPassword.length < 8) {
+          alert('Password must be at least 8 characters long!');
+          return;
+        }
+        
+        const confirmPassword = prompt('Confirm new Level 1 admin password:');
+        if (newPassword !== confirmPassword) {
+          alert('Passwords do not match!');
+          return;
+        }
+        
+        userManagement.level1Password = newPassword;
+        localStorage.setItem('level1Password', newPassword);
+        alert('Level 1 admin password changed successfully!');
+        
+      } else if (passwordType === '2') {
+        const currentPassword = prompt('Enter current Level 1 admin password for verification:');
+        if (currentPassword !== userManagement.level1Password) {
+          alert('Incorrect Level 1 admin password!');
+          return;
+        }
+        
+        const newPassword = prompt('Enter new Level 2 admin password (minimum 8 characters):');
+        if (!newPassword || newPassword.length < 8) {
+          alert('Password must be at least 8 characters long!');
+          return;
+        }
+        
+        const confirmPassword = prompt('Confirm new Level 2 admin password:');
+        if (newPassword !== confirmPassword) {
+          alert('Passwords do not match!');
+          return;
+        }
+        
+        userManagement.level2Password = newPassword;
+        localStorage.setItem('level2Password', newPassword);
+        alert('Level 2 admin password changed successfully!');
+      } else {
+        alert('Invalid selection. Please enter 1 or 2.');
       }
-      
-      userManagement.adminPassword = newPassword;
-      localStorage.setItem('adminPassword', newPassword);
-      alert('Admin password changed successfully!');
     }
 
     function exportUserList() {
@@ -1738,15 +1907,32 @@
 
     function logout() {
       currentUser = null;
+      userLevel = null;
+      isPreviewMode = false;
+      
+      // Clear session
+      clearSession();
+      
       document.getElementById('login-screen').classList.remove('hidden');
       document.getElementById('main-app').classList.add('hidden');
       document.getElementById('password').value = '';
+      document.getElementById('username').value = '';
       document.getElementById('login-error').classList.add('hidden');
+      
+      // Hide all admin controls
       document.getElementById('org-admin-controls').classList.add('hidden');
       document.getElementById('jd-admin-controls').classList.add('hidden');
       document.getElementById('logo-admin-controls').classList.add('hidden');
       document.getElementById('nav-admin').classList.add('hidden');
       document.getElementById('nav-user-mgmt').classList.add('hidden');
+      
+      // Remove preview elements
+      const previewBanner = document.getElementById('preview-banner');
+      if (previewBanner) previewBanner.remove();
+      
+      const previewToggle = document.getElementById('preview-toggle');
+      if (previewToggle) previewToggle.remove();
+      
       hideExportButtons();
     }
 
@@ -1782,102 +1968,574 @@
       }
     }
 
-    // Org Chart Rendering
+    // New Org Chart Rendering System
     function renderOrgChart() {
       const chartContainer = document.getElementById('org-chart');
       chartContainer.innerHTML = '';
       
-      // Create main container with relative positioning for connectors
+      // Create main container
       const mainContainer = document.createElement('div');
-      mainContainer.className = 'relative';
+      mainContainer.className = 'relative bg-gray-50 p-6 rounded-lg';
       mainContainer.style.minHeight = '600px';
       
-      // Group nodes by level
-      const levels = {};
-      orgChartData.forEach(node => {
-        if (!levels[node.Level]) levels[node.Level] = [];
-        levels[node.Level].push(node);
-      });
+      // Create hierarchical levels
+      const levelsContainer = document.createElement('div');
+      levelsContainer.className = 'space-y-8';
       
-      // Create hierarchical structure
-      const container = document.createElement('div');
-      container.className = 'org-container';
+      // Level 0 - Board of Directors
+      if (orgChartData.level0.length > 0) {
+        const level0Container = createLevelContainer('Level 0 - Board of Directors', orgChartData.level0, 'gray');
+        levelsContainer.appendChild(level0Container);
+      }
       
-      // Render each level
-      Object.keys(levels).sort().forEach(level => {
-        const levelNodes = levels[level];
-        levelNodes.forEach(node => {
-          const nodeElement = createOrgNode(node);
-          if (level == 1) {
-            container.appendChild(nodeElement);
-          } else {
-            // Find parent and append
-            const parent = findParentElement(node.Parent);
-            if (parent) {
-              let childrenContainer = parent.querySelector(`#${node.Parent}-children`);
-              if (!childrenContainer) {
-                childrenContainer = document.createElement('div');
-                childrenContainer.id = `${node.Parent}-children`;
-                childrenContainer.className = 'org-children';
-                parent.appendChild(childrenContainer);
-              }
-              childrenContainer.appendChild(nodeElement);
-            }
-          }
-        });
-      });
+      // Level 0.5 - Governance Units
+      if (orgChartData.level0_5.length > 0) {
+        const level05Container = createLevelContainer('Level 0.5 - Governance Units', orgChartData.level0_5, 'red');
+        levelsContainer.appendChild(level05Container);
+      }
       
-      mainContainer.appendChild(container);
+      // Level 1 - President and CEO
+      if (orgChartData.level1.length > 0) {
+        const level1Container = createLevelContainer('Level 1 - President and CEO', orgChartData.level1, 'blue');
+        levelsContainer.appendChild(level1Container);
+      }
       
-      // Add connectors after DOM is rendered
-      setTimeout(() => {
-        addOrgConnectors();
-      }, 100);
+      // Level 2 - Direct Reports
+      if (orgChartData.level2.length > 0) {
+        const level2Container = createLevelContainer('Level 2 - Direct Reports', orgChartData.level2, 'green');
+        levelsContainer.appendChild(level2Container);
+      }
+      
+      // Sub-units
+      if (Object.keys(orgChartData.subUnits).length > 0) {
+        const subUnitsContainer = createSubUnitsContainer();
+        levelsContainer.appendChild(subUnitsContainer);
+      }
+      
+      mainContainer.appendChild(levelsContainer);
+      
+      // Add admin controls if Level 1 admin
+      if (userLevel === 'level1' && !isPreviewMode) {
+        addOrgChartAdminControls(mainContainer);
+      }
       
       chartContainer.appendChild(mainContainer);
     }
 
-    function createOrgNode(node) {
+    function createLevelContainer(title, nodes, colorScheme) {
       const container = document.createElement('div');
-      container.className = 'org-container';
+      container.className = 'mb-6';
       
-      const nodeDiv = document.createElement('div');
-      nodeDiv.className = `org-node org-${node.Color}-${node.Level}`;
-      nodeDiv.id = `node-${node.Id}`;
+      const header = document.createElement('div');
+      header.className = `bg-${colorScheme}-100 p-3 rounded-t-lg border-l-4 border-${colorScheme}-500`;
+      header.innerHTML = `
+        <h3 class="font-bold text-${colorScheme}-900">${title}</h3>
+        <p class="text-sm text-${colorScheme}-700">${nodes.length} position(s)</p>
+      `;
       
-      // Create main content area
-      const mainContent = document.createElement('div');
-      mainContent.textContent = node.Position;
-      mainContent.onclick = () => {
-        toggleOrgNode(node.Id);
-      };
-      mainContent.style.cursor = 'pointer';
+      const nodesContainer = document.createElement('div');
+      nodesContainer.className = 'bg-white p-4 rounded-b-lg border border-t-0 border-gray-200';
       
-      // Create functions plus sign
-      const functionsLink = document.createElement('div');
-      functionsLink.innerHTML = '<span style="font-size: 12px; opacity: 0.6; position: absolute; bottom: 4px; left: 6px; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.8); border-radius: 50%; font-weight: bold;">+</span>';
-      functionsLink.style.cursor = 'pointer';
-      functionsLink.style.transition = 'all 0.2s ease';
-      functionsLink.onclick = (e) => {
-        e.stopPropagation();
-        showOrgFunctions(node);
-      };
-      functionsLink.onmouseover = () => {
-        functionsLink.style.opacity = '1';
-        functionsLink.querySelector('span').style.background = 'rgba(255,255,255,1)';
-        functionsLink.querySelector('span').style.transform = 'scale(1.1)';
-      };
-      functionsLink.onmouseout = () => {
-        functionsLink.style.opacity = '0.6';
-        functionsLink.querySelector('span').style.background = 'rgba(255,255,255,0.8)';
-        functionsLink.querySelector('span').style.transform = 'scale(1)';
-      };
+      const nodesGrid = document.createElement('div');
+      nodesGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
       
-      nodeDiv.appendChild(mainContent);
-      nodeDiv.appendChild(functionsLink);
+      nodes.forEach(node => {
+        const nodeElement = createOrgChartNode(node);
+        nodesGrid.appendChild(nodeElement);
+      });
       
-      container.appendChild(nodeDiv);
+      nodesContainer.appendChild(nodesGrid);
+      container.appendChild(header);
+      container.appendChild(nodesContainer);
+      
       return container;
+    }
+
+    function createOrgChartNode(node) {
+      const nodeDiv = document.createElement('div');
+      nodeDiv.className = `bg-gradient-to-r from-${node.Color}-500 to-${node.Color}-600 text-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer relative`;
+      nodeDiv.id = `org-node-${node.Id}`;
+      
+      nodeDiv.innerHTML = `
+        <h4 class="font-semibold text-sm mb-2">${node.Position}</h4>
+        <div class="text-xs opacity-80">Level ${node.Level}</div>
+        ${userLevel === 'level1' && !isPreviewMode ? `
+          <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="editOrgNode('${node.Id}')" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-2 py-1 rounded text-xs">
+              ✏️
+            </button>
+          </div>
+        ` : ''}
+      `;
+      
+      // Add click handler for sub-unit management (Level 2 nodes only)
+      if (node.Level === 2 && userLevel === 'level1' && !isPreviewMode) {
+        nodeDiv.onclick = () => manageSubUnits(node.Id, node.Position);
+      }
+      
+      return nodeDiv;
+    }
+
+    function createSubUnitsContainer() {
+      const container = document.createElement('div');
+      container.className = 'mb-6';
+      
+      const header = document.createElement('div');
+      header.className = 'bg-purple-100 p-3 rounded-t-lg border-l-4 border-purple-500';
+      header.innerHTML = `
+        <h3 class="font-bold text-purple-900">Sub-Units</h3>
+        <p class="text-sm text-purple-700">${Object.keys(orgChartData.subUnits).length} sub-unit group(s)</p>
+      `;
+      
+      const subUnitsContainer = document.createElement('div');
+      subUnitsContainer.className = 'bg-white p-4 rounded-b-lg border border-t-0 border-gray-200';
+      
+      Object.keys(orgChartData.subUnits).forEach(parentId => {
+        const parentNode = findNodeById(parentId);
+        const subUnits = orgChartData.subUnits[parentId];
+        
+        if (parentNode && subUnits.length > 0) {
+          const subUnitGroup = document.createElement('div');
+          subUnitGroup.className = 'mb-4 p-3 bg-gray-50 rounded-lg';
+          
+          subUnitGroup.innerHTML = `
+            <h4 class="font-semibold text-gray-900 mb-2">${parentNode.Position} - Sub-Units</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              ${subUnits.map(subUnit => `
+                <div class="bg-white p-2 rounded border text-sm">
+                  <div class="font-medium">${subUnit.Position}</div>
+                  <div class="text-xs text-gray-500">Level ${subUnit.Level}</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          
+          subUnitsContainer.appendChild(subUnitGroup);
+        }
+      });
+      
+      container.appendChild(header);
+      container.appendChild(subUnitsContainer);
+      
+      return container;
+    }
+
+    function addOrgChartAdminControls(container) {
+      const controlsDiv = document.createElement('div');
+      controlsDiv.className = 'mt-6 p-4 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300';
+      
+      controlsDiv.innerHTML = `
+        <h4 class="font-semibold text-blue-900 mb-3">📊 Org Chart Management</h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <input type="file" id="level2-upload" accept=".xlsx,.xls" class="hidden" onchange="uploadLevel2OrgChart(event)">
+          <button onclick="document.getElementById('level2-upload').click()" class="bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700">
+            📁 Upload Level 2
+          </button>
+          <button onclick="addLevel2Position()" class="bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700">
+            ➕ Add Level 2
+          </button>
+          <button onclick="downloadOrgChartTemplate()" class="bg-purple-600 text-white py-2 px-3 rounded text-sm hover:bg-purple-700">
+            📥 Template
+          </button>
+          <button onclick="exportOrgChartData()" class="bg-teal-600 text-white py-2 px-3 rounded text-sm hover:bg-teal-700">
+            📤 Export JSON
+          </button>
+        </div>
+      `;
+      
+      container.appendChild(controlsDiv);
+    }
+
+    function findNodeById(id) {
+      const allNodes = [
+        ...orgChartData.level0,
+        ...orgChartData.level0_5,
+        ...orgChartData.level1,
+        ...orgChartData.level2
+      ];
+      
+      // Also check sub-units
+      Object.values(orgChartData.subUnits).forEach(subUnitArray => {
+        allNodes.push(...subUnitArray);
+      });
+      
+      return allNodes.find(node => node.Id === id);
+    }
+
+    // Org Chart Management Functions
+    function uploadLevel2OrgChart(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          // Process Level 2 data
+          jsonData.forEach(row => {
+            const position = row.Position || row['Position Title'];
+            const id = row.Id || row.ID || generateId(position);
+            const color = row.Color || 'green';
+            
+            if (position) {
+              const newNode = {
+                Level: 2,
+                Position: position,
+                Parent: 'ceo',
+                Color: color,
+                Id: id,
+                ReportsTo: 'ceo',
+                FunctionalReportsTo: ''
+              };
+              
+              // Check if already exists
+              const exists = orgChartData.level2.find(node => node.Id === id);
+              if (!exists) {
+                orgChartData.level2.push(newNode);
+              }
+            }
+          });
+          
+          // Save to localStorage
+          localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+          
+          renderOrgChart();
+          alert(`Level 2 org chart updated! Added ${jsonData.length} positions.`);
+        } catch (error) {
+          alert('Error reading Excel file. Please check the format.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      
+      // Reset file input
+      event.target.value = '';
+    }
+
+    function addLevel2Position() {
+      const position = prompt('Enter Level 2 position title:');
+      if (position && position.trim()) {
+        const id = generateId(position);
+        const color = prompt('Enter color (blue, green, red, purple, orange, teal, indigo, pink):', 'green') || 'green';
+        
+        const newNode = {
+          Level: 2,
+          Position: position.trim(),
+          Parent: 'ceo',
+          Color: color,
+          Id: id,
+          ReportsTo: 'ceo',
+          FunctionalReportsTo: ''
+        };
+        
+        orgChartData.level2.push(newNode);
+        localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+        
+        renderOrgChart();
+        alert(`Level 2 position "${position}" added successfully!`);
+      }
+    }
+
+    function manageSubUnits(parentId, parentPosition) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto m-4 w-full">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Manage Sub-Units for ${parentPosition}</h3>
+            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Add Sub-Unit -->
+            <div class="bg-green-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-green-900 mb-3">➕ Add Sub-Unit</h4>
+              <form onsubmit="addSubUnit(event, '${parentId}')">
+                <div class="mb-3">
+                  <label class="block text-sm font-medium mb-1">Position Title</label>
+                  <input type="text" id="subunit-position" class="w-full px-3 py-2 border rounded-md" required>
+                </div>
+                <div class="mb-3">
+                  <label class="block text-sm font-medium mb-1">Level</label>
+                  <input type="number" id="subunit-level" class="w-full px-3 py-2 border rounded-md" min="3" value="3" required>
+                </div>
+                <div class="mb-3">
+                  <label class="block text-sm font-medium mb-1">Color</label>
+                  <select id="subunit-color" class="w-full px-3 py-2 border rounded-md">
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="red">Red</option>
+                    <option value="purple">Purple</option>
+                    <option value="orange">Orange</option>
+                    <option value="teal">Teal</option>
+                    <option value="indigo">Indigo</option>
+                    <option value="pink">Pink</option>
+                  </select>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                  Add Sub-Unit
+                </button>
+              </form>
+            </div>
+            
+            <!-- Upload Sub-Units -->
+            <div class="bg-blue-50 p-4 rounded-lg">
+              <h4 class="font-semibold text-blue-900 mb-3">📁 Upload Sub-Units</h4>
+              <input type="file" id="subunit-upload-${parentId}" accept=".xlsx,.xls" class="hidden" onchange="uploadSubUnits(event, '${parentId}')">
+              <button onclick="document.getElementById('subunit-upload-${parentId}').click()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-3">
+                Upload Excel File
+              </button>
+              <button onclick="downloadSubUnitTemplate('${parentId}')" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                Download Template
+              </button>
+            </div>
+          </div>
+          
+          <!-- Current Sub-Units -->
+          <div class="mt-6">
+            <h4 class="font-semibold text-gray-900 mb-3">Current Sub-Units</h4>
+            <div id="current-subunits-${parentId}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${renderCurrentSubUnits(parentId)}
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Close on background click
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      };
+    }
+
+    function renderCurrentSubUnits(parentId) {
+      const subUnits = orgChartData.subUnits[parentId] || [];
+      
+      if (subUnits.length === 0) {
+        return '<p class="text-gray-500 col-span-full text-center py-4">No sub-units added yet</p>';
+      }
+      
+      return subUnits.map(subUnit => `
+        <div class="bg-white p-3 rounded border">
+          <div class="font-medium text-sm">${subUnit.Position}</div>
+          <div class="text-xs text-gray-500">Level ${subUnit.Level}</div>
+          <div class="mt-2 flex space-x-1">
+            <button onclick="editSubUnit('${parentId}', '${subUnit.Id}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">
+              ✏️
+            </button>
+            <button onclick="removeSubUnit('${parentId}', '${subUnit.Id}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">
+              🗑️
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addSubUnit(event, parentId) {
+      event.preventDefault();
+      
+      const position = document.getElementById('subunit-position').value;
+      const level = parseInt(document.getElementById('subunit-level').value);
+      const color = document.getElementById('subunit-color').value;
+      
+      const newSubUnit = {
+        Level: level,
+        Position: position,
+        Parent: parentId,
+        Color: color,
+        Id: generateId(position),
+        ReportsTo: parentId,
+        FunctionalReportsTo: ''
+      };
+      
+      if (!orgChartData.subUnits[parentId]) {
+        orgChartData.subUnits[parentId] = [];
+      }
+      
+      orgChartData.subUnits[parentId].push(newSubUnit);
+      localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+      
+      // Refresh the sub-units display
+      document.getElementById(`current-subunits-${parentId}`).innerHTML = renderCurrentSubUnits(parentId);
+      
+      // Clear form
+      document.getElementById('subunit-position').value = '';
+      document.getElementById('subunit-level').value = '3';
+      document.getElementById('subunit-color').value = 'blue';
+      
+      // Refresh main org chart
+      renderOrgChart();
+      
+      alert(`Sub-unit "${position}" added successfully!`);
+    }
+
+    function uploadSubUnits(event, parentId) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          if (!orgChartData.subUnits[parentId]) {
+            orgChartData.subUnits[parentId] = [];
+          }
+          
+          let addedCount = 0;
+          jsonData.forEach(row => {
+            const position = row.Position || row['Position Title'];
+            const level = row.Level || 3;
+            const color = row.Color || 'blue';
+            
+            if (position) {
+              const newSubUnit = {
+                Level: level,
+                Position: position,
+                Parent: parentId,
+                Color: color,
+                Id: generateId(position),
+                ReportsTo: parentId,
+                FunctionalReportsTo: ''
+              };
+              
+              orgChartData.subUnits[parentId].push(newSubUnit);
+              addedCount++;
+            }
+          });
+          
+          localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+          
+          // Refresh displays
+          document.getElementById(`current-subunits-${parentId}`).innerHTML = renderCurrentSubUnits(parentId);
+          renderOrgChart();
+          
+          alert(`${addedCount} sub-units uploaded successfully!`);
+        } catch (error) {
+          alert('Error reading Excel file. Please check the format.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      
+      // Reset file input
+      event.target.value = '';
+    }
+
+    function downloadSubUnitTemplate(parentId) {
+      const parentNode = findNodeById(parentId);
+      const templateData = [
+        { Position: 'Sample Sub-Unit 1', Level: 3, Color: 'blue' },
+        { Position: 'Sample Sub-Unit 2', Level: 3, Color: 'green' },
+        { Position: 'Sample Sub-Unit 3', Level: 4, Color: 'purple' }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Sub-Units Template');
+      XLSX.writeFile(wb, `${parentNode ? parentNode.Position.replace(/\s+/g, '_') : 'SubUnits'}_Template.xlsx`);
+    }
+
+    function editOrgNode(nodeId) {
+      const node = findNodeById(nodeId);
+      if (!node) return;
+      
+      const newPosition = prompt('Edit position title:', node.Position);
+      if (newPosition && newPosition.trim() && newPosition !== node.Position) {
+        node.Position = newPosition.trim();
+        localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+        renderOrgChart();
+        alert('Position updated successfully!');
+      }
+    }
+
+    function editSubUnit(parentId, subUnitId) {
+      const subUnits = orgChartData.subUnits[parentId] || [];
+      const subUnit = subUnits.find(su => su.Id === subUnitId);
+      
+      if (subUnit) {
+        const newPosition = prompt('Edit sub-unit position:', subUnit.Position);
+        if (newPosition && newPosition.trim() && newPosition !== subUnit.Position) {
+          subUnit.Position = newPosition.trim();
+          localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+          
+          // Refresh displays
+          document.getElementById(`current-subunits-${parentId}`).innerHTML = renderCurrentSubUnits(parentId);
+          renderOrgChart();
+          
+          alert('Sub-unit updated successfully!');
+        }
+      }
+    }
+
+    function removeSubUnit(parentId, subUnitId) {
+      if (confirm('Are you sure you want to remove this sub-unit?')) {
+        const subUnits = orgChartData.subUnits[parentId] || [];
+        const index = subUnits.findIndex(su => su.Id === subUnitId);
+        
+        if (index > -1) {
+          subUnits.splice(index, 1);
+          localStorage.setItem('orgChartData', JSON.stringify(orgChartData));
+          
+          // Refresh displays
+          document.getElementById(`current-subunits-${parentId}`).innerHTML = renderCurrentSubUnits(parentId);
+          renderOrgChart();
+          
+          alert('Sub-unit removed successfully!');
+        }
+      }
+    }
+
+    function downloadOrgChartTemplate() {
+      const templateData = [
+        { Position: 'Chief Operating Officer', Level: 2, Color: 'green', Id: 'coo' },
+        { Position: 'Chief Technology Officer', Level: 2, Color: 'blue', Id: 'cto' },
+        { Position: 'Chief Financial Officer', Level: 2, Color: 'purple', Id: 'cfo' }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Level 2 Template');
+      XLSX.writeFile(wb, 'PLDT_Level2_OrgChart_Template.xlsx');
+    }
+
+    function exportOrgChartData() {
+      if (userLevel !== 'level1' || isPreviewMode) {
+        alert('Export functionality is only available for Level 1 administrators.');
+        return;
+      }
+      
+      const exportData = {
+        level0: orgChartData.level0,
+        level0_5: orgChartData.level0_5,
+        level1: orgChartData.level1,
+        level2: orgChartData.level2,
+        subUnits: orgChartData.subUnits,
+        exportDate: new Date().toISOString()
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `PLDT_OrgChart_Export_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      
+      alert('Org chart data exported successfully!');
+    }
+
+    function generateId(text) {
+      return text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     }
 
     function findParentElement(parentId) {
@@ -2388,12 +3046,17 @@
       if (Array.isArray(positionsData)) {
         positions = positionsData;
       } else if (typeof positionsData === 'object' && positionsData !== null) {
-        // Flatten all positions from all nested sub-units
-        positions = flattenNestedPositions(positionsData);
+        // Check for direct positions at this level
+        if (positionsData['_positions']) {
+          positions = [...positionsData['_positions']];
+        }
+        // Also flatten all positions from nested sub-units for display
+        const nestedPositions = flattenNestedPositions(positionsData);
+        positions = [...positions, ...nestedPositions];
       }
       
-      // Add position creation button for admins
-      if (currentUser === 'admin') {
+      // Add position creation button for Level 2+ admins
+      if ((userLevel === 'level1' || userLevel === 'level2') && !isPreviewMode) {
         const addPositionDiv = document.createElement('div');
         addPositionDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
         addPositionDiv.innerHTML = `
@@ -2422,7 +3085,7 @@
             </div>
             <div class="text-xs text-gray-500">Level ${fullPath.length} • ${pathString}</div>
           </div>
-          ${currentUser === 'admin' ? `
+          ${(userLevel === 'level1' || userLevel === 'level2') && !isPreviewMode ? `
             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <div class="flex space-x-1">
                 <input type="file" id="jd-upload-${position.replace(/\s+/g, '-')}" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadIndividualJD(event, '${position}')">
@@ -2431,11 +3094,13 @@
                         title="Upload JD">
                   📄
                 </button>
-                <button onclick="event.stopPropagation(); removeNestedPosition('${category}', '${unit}', ${JSON.stringify(fullPath).replace(/"/g, '&quot;')}, '${position}')" 
-                        class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
-                        title="Remove Position">
-                  🗑️
-                </button>
+                ${userLevel === 'level1' ? `
+                  <button onclick="event.stopPropagation(); removeNestedPosition('${category}', '${unit}', ${JSON.stringify(fullPath).replace(/"/g, '&quot;')}, '${position}')" 
+                          class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                          title="Remove Position">
+                    🗑️
+                  </button>
+                ` : ''}
               </div>
             </div>
           ` : ''}
@@ -2443,7 +3108,7 @@
         content.appendChild(div);
       });
       
-      if (positions.length === 0 && currentUser !== 'admin') {
+      if (positions.length === 0 && (userLevel !== 'level1' && userLevel !== 'level2')) {
         content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No positions found.</div>';
       }
       
@@ -4327,8 +4992,11 @@
       return null;
     }
 
-    // Load saved logo and icons on page load
+    // Load saved data and session on page load
     window.addEventListener('load', function() {
+      // Load session first
+      loadSession();
+      
       const savedLogo = localStorage.getItem('companyLogo');
       if (savedLogo) {
         document.getElementById('company-logo').src = savedLogo;
@@ -4398,6 +5066,17 @@
         } catch (error) {
           console.log('Error loading saved category colors');
         }
+      }
+
+      // Load saved user management data
+      const savedLevel1Password = localStorage.getItem('level1Password');
+      if (savedLevel1Password) {
+        userManagement.level1Password = savedLevel1Password;
+      }
+      
+      const savedLevel2Password = localStorage.getItem('level2Password');
+      if (savedLevel2Password) {
+        userManagement.level2Password = savedLevel2Password;
       }
 
       // Initial render of categories
@@ -5876,5 +6555,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d41924577ffee1',t:'MTc1NDg3NzE5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d48b3ab05308b4',t:'MTc1NDg4MTg2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
