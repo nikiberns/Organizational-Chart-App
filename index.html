@@ -359,7 +359,7 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 id="sub-units-title" class="text-xl font-bold"></h3>
-          <nav class="text-sm text-gray-600 mt-1">
+          <nav class="text-sm text-gray-600 mt-1" id="sub-breadcrumb-nav">
             <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
             <span class="mx-2">></span>
             <span id="sub-breadcrumb-category" class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()"></span>
@@ -844,7 +844,7 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 id="sub-units-title" class="text-xl font-bold"></h3>
-          <nav class="text-sm text-gray-600 mt-1">
+          <nav class="text-sm text-gray-600 mt-1" id="sub-breadcrumb-nav">
             <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
             <span class="mx-2">></span>
             <span id="sub-breadcrumb-category" class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()"></span>
@@ -2177,95 +2177,170 @@
       document.getElementById('org-units-modal').classList.remove('hidden');
     }
 
-    function viewPositions(category, unit, orgUnit, subUnit = null) {
+    function viewPositions(category, unit, orgUnit, subUnit = null, parentPath = []) {
       currentCategory = category;
       currentUnit = unit;
       currentOrg = orgUnit;
       
-      const title = subUnit ? `${subUnit} (${orgUnit}) - Available Positions` : `${orgUnit} - Available Positions`;
+      // Build the full path for nested navigation
+      let fullPath = [...parentPath];
+      if (orgUnit && !fullPath.includes(orgUnit)) {
+        fullPath.push(orgUnit);
+      }
+      if (subUnit) {
+        fullPath.push(subUnit);
+      }
+      
+      const pathString = fullPath.join(' > ');
+      const title = `${pathString} - Available Positions`;
       document.getElementById('positions-title').textContent = title;
       document.getElementById('positions-breadcrumb-category').textContent = category;
       document.getElementById('positions-breadcrumb-unit').textContent = unit;
-      document.getElementById('positions-breadcrumb-org').textContent = subUnit ? `${orgUnit} > ${subUnit}` : orgUnit;
+      document.getElementById('positions-breadcrumb-org').textContent = pathString;
       
       const content = document.getElementById('positions-content');
       content.innerHTML = '';
       
       let positions = [];
       
-      if (orgStructure[category] && orgStructure[category][unit] && orgStructure[category][unit][orgUnit]) {
-        if (subUnit) {
-          // Getting positions from a specific sub-unit
-          positions = orgStructure[category][unit][orgUnit][subUnit] || [];
-        } else {
-          // Getting positions from org unit (could be array or object with sub-units)
-          const orgUnitData = orgStructure[category][unit][orgUnit];
-          if (Array.isArray(orgUnitData)) {
-            positions = orgUnitData;
-          } else if (typeof orgUnitData === 'object') {
-            // Flatten all positions from all sub-units
-            positions = Object.values(orgUnitData).flat();
-          }
-        }
+      // Get positions using the nested structure helper
+      const positionsData = getNestedStructure(category, unit, fullPath);
+      
+      if (Array.isArray(positionsData)) {
+        positions = positionsData;
+      } else if (typeof positionsData === 'object' && positionsData !== null) {
+        // Flatten all positions from all nested sub-units
+        positions = flattenNestedPositions(positionsData);
+      }
+      
+      // Add position creation button for admins
+      if (currentUser === 'admin') {
+        const addPositionDiv = document.createElement('div');
+        addPositionDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
+        addPositionDiv.innerHTML = `
+          <div class="text-green-600 text-2xl mb-2">👤</div>
+          <h4 class="font-semibold text-green-800 mb-1">Add New Position</h4>
+          <p class="text-sm text-green-600">Create a new position in ${fullPath[fullPath.length - 1]}</p>
+        `;
+        addPositionDiv.onclick = () => addNestedPosition(category, unit, fullPath);
+        content.appendChild(addPositionDiv);
+      }
+      
+      positions.forEach(position => {
+        const div = document.createElement('div');
+        div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
         
-        // Add position creation button for admins
-        if (currentUser === 'admin') {
-          const addPositionDiv = document.createElement('div');
-          addPositionDiv.className = 'bg-green-50 border-2 border-dashed border-green-300 p-4 rounded-lg text-center hover:bg-green-100 cursor-pointer transition-colors';
-          addPositionDiv.innerHTML = `
-            <div class="text-green-600 text-2xl mb-2">👤</div>
-            <h4 class="font-semibold text-green-800 mb-1">Add New Position</h4>
-            <p class="text-sm text-green-600">Create a new position in ${subUnit || orgUnit}</p>
-          `;
-          addPositionDiv.onclick = () => addNewPosition(category, unit, orgUnit, subUnit);
-          content.appendChild(addPositionDiv);
-        }
+        const hasJD = jobDescriptions[position];
+        const statusColor = hasJD ? 'text-green-600' : 'text-orange-600';
+        const statusText = hasJD ? 'JD Available' : 'JD Pending';
         
-        positions.forEach(position => {
-          const div = document.createElement('div');
-          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
-          
-          const hasJD = jobDescriptions[position];
-          const statusColor = hasJD ? 'text-green-600' : 'text-orange-600';
-          const statusText = hasJD ? 'JD Available' : 'JD Pending';
-          
-          div.innerHTML = `
-            <div class="cursor-pointer" onclick="viewJobDescription('${position}')">
-              <h4 class="font-semibold text-lg text-gray-900 mb-2">${position}</h4>
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm ${statusColor} font-medium">${statusText}</span>
-                <span class="text-xs text-blue-600">Click to view →</span>
+        div.innerHTML = `
+          <div class="cursor-pointer" onclick="viewJobDescription('${position}')">
+            <h4 class="font-semibold text-lg text-gray-900 mb-2">${position}</h4>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm ${statusColor} font-medium">${statusText}</span>
+              <span class="text-xs text-blue-600">Click to view →</span>
+            </div>
+            <div class="text-xs text-gray-500">Level ${fullPath.length} • ${pathString}</div>
+          </div>
+          ${currentUser === 'admin' ? `
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex space-x-1">
+                <input type="file" id="jd-upload-${position.replace(/\s+/g, '-')}" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadIndividualJD(event, '${position}')">
+                <button onclick="event.stopPropagation(); document.getElementById('jd-upload-${position.replace(/\s+/g, '-')}').click()" 
+                        class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
+                        title="Upload JD">
+                  📄
+                </button>
+                <button onclick="event.stopPropagation(); removeNestedPosition('${category}', '${unit}', ${JSON.stringify(fullPath).replace(/"/g, '&quot;')}, '${position}')" 
+                        class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                        title="Remove Position">
+                  🗑️
+                </button>
               </div>
             </div>
-            ${currentUser === 'admin' ? `
-              <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div class="flex space-x-1">
-                  <input type="file" id="jd-upload-${position.replace(/\s+/g, '-')}" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="uploadIndividualJD(event, '${position}')">
-                  <button onclick="event.stopPropagation(); document.getElementById('jd-upload-${position.replace(/\s+/g, '-')}').click()" 
-                          class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
-                          title="Upload JD">
-                    📄
-                  </button>
-                  <button onclick="event.stopPropagation(); removePosition('${category}', '${unit}', '${orgUnit}', '${position}', '${subUnit || ''}')" 
-                          class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
-                          title="Remove Position">
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            ` : ''}
-          `;
-          content.appendChild(div);
-        });
-        
-        if (positions.length === 0 && currentUser !== 'admin') {
-          content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No positions found.</div>';
-        }
+          ` : ''}
+        `;
+        content.appendChild(div);
+      });
+      
+      if (positions.length === 0 && currentUser !== 'admin') {
+        content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No positions found.</div>';
       }
       
       document.getElementById('org-units-modal').classList.add('hidden');
       document.getElementById('sub-units-modal').classList.add('hidden');
       document.getElementById('positions-modal').classList.remove('hidden');
+    }
+
+    function flattenNestedPositions(data) {
+      let positions = [];
+      if (Array.isArray(data)) {
+        positions = [...data];
+      } else if (typeof data === 'object' && data !== null) {
+        Object.values(data).forEach(value => {
+          positions = positions.concat(flattenNestedPositions(value));
+        });
+      }
+      return positions;
+    }
+
+    function addNestedPosition(category, unit, path) {
+      const unitName = path[path.length - 1];
+      const positionName = prompt(`Enter new position name for "${unitName}" (Level ${path.length}):`);
+      
+      if (positionName && positionName.trim()) {
+        const trimmedName = positionName.trim();
+        const currentData = getNestedStructure(category, unit, path);
+        
+        if (Array.isArray(currentData)) {
+          if (!currentData.includes(trimmedName)) {
+            currentData.push(trimmedName);
+            setNestedStructure(category, unit, path, currentData);
+            
+            // Save to localStorage
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`Position "${trimmedName}" added successfully to Level ${path.length}!`);
+            viewPositions(category, unit, path[0], path.length > 1 ? path[path.length - 1] : null, path.slice(0, -1));
+          } else {
+            alert('Position already exists!');
+          }
+        } else {
+          // Convert to array structure first
+          setNestedStructure(category, unit, path, [trimmedName]);
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          alert(`Position "${trimmedName}" added successfully to Level ${path.length}!`);
+          viewPositions(category, unit, path[0], path.length > 1 ? path[path.length - 1] : null, path.slice(0, -1));
+        }
+      }
+    }
+
+    function removeNestedPosition(category, unit, path, position) {
+      const level = path.length;
+      if (confirm(`Are you sure you want to remove the position "${position}" from Level ${level}?`)) {
+        const currentData = getNestedStructure(category, unit, path);
+        
+        if (Array.isArray(currentData)) {
+          const index = currentData.indexOf(position);
+          if (index > -1) {
+            currentData.splice(index, 1);
+            setNestedStructure(category, unit, path, currentData);
+            
+            // Also remove job description if exists
+            if (jobDescriptions[position]) {
+              delete jobDescriptions[position];
+              localStorage.setItem('jobDescriptions', JSON.stringify(jobDescriptions));
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`Position "${position}" removed successfully!`);
+            viewPositions(category, unit, path[0], path.length > 1 ? path[path.length - 1] : null, path.slice(0, -1));
+          }
+        }
+      }
     }
 
     function addNewPosition(category, unit, orgUnit, subUnit = null) {
@@ -2374,18 +2449,64 @@
       viewOrgUnits(currentCategory, currentUnit);
     }
 
+    function buildDynamicBreadcrumb(category, unit, path) {
+      const breadcrumbNav = document.getElementById('sub-breadcrumb-nav');
+      if (!breadcrumbNav) return;
+      
+      let breadcrumbHTML = `
+        <span onclick="navigate('jd')" class="cursor-pointer hover:text-blue-600">Job Descriptions</span>
+        <span class="mx-2">></span>
+        <span class="cursor-pointer hover:text-blue-600" onclick="goBackToCategory()">${category}</span>
+        <span class="mx-2">></span>
+        <span class="cursor-pointer hover:text-blue-600" onclick="goBackToUnits()">${unit}</span>
+      `;
+      
+      // Add each level of the path as clickable breadcrumb
+      for (let i = 0; i < path.length; i++) {
+        breadcrumbHTML += `<span class="mx-2">></span>`;
+        
+        if (i === path.length - 1) {
+          // Last item is not clickable (current location)
+          breadcrumbHTML += `<span class="text-gray-900 font-medium">${path[i]}</span>`;
+        } else {
+          // Previous levels are clickable
+          const clickPath = path.slice(0, i + 1);
+          breadcrumbHTML += `<span class="cursor-pointer hover:text-blue-600" onclick="navigateToNestedLevel('${category}', '${unit}', ${JSON.stringify(clickPath).replace(/"/g, '&quot;')})">${path[i]}</span>`;
+        }
+      }
+      
+      breadcrumbNav.innerHTML = breadcrumbHTML;
+    }
+
+    function navigateToNestedLevel(category, unit, path) {
+      const parentPath = path.slice(0, -1);
+      const currentLevel = path[path.length - 1];
+      
+      if (path.length === 1) {
+        // Navigate to org units level
+        viewOrgUnits(category, unit);
+      } else {
+        // Navigate to specific sub-unit level
+        viewSubUnits(category, unit, currentLevel, parentPath);
+      }
+    }
+
     // Sub-Unit Management Functions
     let currentOrgUnit = '';
+    let currentPath = []; // Track the current navigation path
 
-    function viewSubUnits(category, unit, orgUnit) {
+    function viewSubUnits(category, unit, orgUnit, parentPath = []) {
       currentCategory = category;
       currentUnit = unit;
       currentOrgUnit = orgUnit;
+      currentPath = [...parentPath, orgUnit];
       
-      document.getElementById('sub-units-title').textContent = orgUnit + ' - Sub-Units';
-      document.getElementById('sub-breadcrumb-category').textContent = category;
-      document.getElementById('sub-breadcrumb-unit').textContent = unit;
-      document.getElementById('sub-breadcrumb-orgunit').textContent = orgUnit;
+      // Build dynamic title and breadcrumb
+      const pathString = currentPath.join(' > ');
+      document.getElementById('sub-units-title').textContent = pathString + ' - Sub-Units';
+      
+      // Build dynamic breadcrumb navigation
+      buildDynamicBreadcrumb(category, unit, currentPath);
       
       const content = document.getElementById('sub-units-content');
       content.innerHTML = '';
@@ -2397,74 +2518,92 @@
         addSubUnitDiv.innerHTML = `
           <div class="text-green-600 text-2xl mb-2">➕</div>
           <h4 class="font-semibold text-green-800 mb-1">Add New Sub-Unit</h4>
-          <p class="text-sm text-green-600">Create a new sub-unit within ${orgUnit}</p>
+          <p class="text-sm text-green-600">Create a new sub-unit within ${currentPath[currentPath.length - 1]}</p>
         `;
-        addSubUnitDiv.onclick = () => showAddSubUnitForm(category, unit, orgUnit);
+        addSubUnitDiv.onclick = () => showAddNestedSubUnitForm(category, unit, currentPath);
         content.appendChild(addSubUnitDiv);
       }
       
-      if (orgStructure[category] && orgStructure[category][unit] && orgStructure[category][unit][orgUnit]) {
-        const orgUnitData = orgStructure[category][unit][orgUnit];
-        
-        // Check if this has sub-units (object) or direct positions (array)
-        if (typeof orgUnitData === 'object' && !Array.isArray(orgUnitData)) {
-          Object.keys(orgUnitData).forEach(subUnit => {
-            const div = document.createElement('div');
-            div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
-            
-            const positions = Array.isArray(orgUnitData[subUnit]) ? orgUnitData[subUnit] : [];
-            
-            div.innerHTML = `
-              <div class="cursor-pointer" onclick="viewPositions('${category}', '${unit}', '${orgUnit}', '${subUnit}')">
-                <h4 class="font-semibold text-lg text-purple-900 mb-2">${subUnit}</h4>
-                <p class="text-sm text-gray-600">${positions.length} positions available</p>
-                <div class="mt-2 text-xs text-purple-600">Click to view positions →</div>
-              </div>
-              ${currentUser === 'admin' ? `
-                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div class="flex space-x-1">
-                    <button onclick="event.stopPropagation(); addPositionToSubUnit('${category}', '${unit}', '${orgUnit}', '${subUnit}')" 
-                            class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
-                            title="Add Position">
-                      👤
-                    </button>
-                    <button onclick="event.stopPropagation(); removeSubUnit('${category}', '${unit}', '${orgUnit}', '${subUnit}')" 
-                            class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
-                            title="Remove Sub-Unit">
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              ` : ''}
-            `;
-            content.appendChild(div);
-          });
-        } else {
-          // This org unit has direct positions, show option to convert to sub-units
-          if (currentUser === 'admin') {
-            const convertDiv = document.createElement('div');
-            convertDiv.className = 'bg-yellow-50 border-2 border-dashed border-yellow-300 p-4 rounded-lg text-center hover:bg-yellow-100 cursor-pointer transition-colors';
-            convertDiv.innerHTML = `
-              <div class="text-yellow-600 text-2xl mb-2">🔄</div>
-              <h4 class="font-semibold text-yellow-800 mb-1">Convert to Sub-Units</h4>
-              <p class="text-sm text-yellow-600">This unit has ${orgUnitData.length} direct positions. Convert to sub-unit structure?</p>
-            `;
-            convertDiv.onclick = () => convertToSubUnits(category, unit, orgUnit);
-            content.appendChild(convertDiv);
-          }
+      // Navigate to the correct nested structure
+      const currentData = getNestedStructure(category, unit, currentPath);
+      
+      if (currentData && typeof currentData === 'object' && !Array.isArray(currentData)) {
+        Object.keys(currentData).forEach(subUnit => {
+          const div = document.createElement('div');
+          div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
           
-          // Show current positions
-          const positionsDiv = document.createElement('div');
-          positionsDiv.className = 'bg-blue-50 border border-blue-200 p-4 rounded-lg';
-          positionsDiv.innerHTML = `
-            <h4 class="font-semibold text-blue-900 mb-2">Current Positions (${orgUnitData.length})</h4>
-            <div class="text-sm text-gray-600 cursor-pointer hover:text-blue-600" onclick="viewPositions('${category}', '${unit}', '${orgUnit}')">
-              ${orgUnitData.slice(0, 3).join(', ')}${orgUnitData.length > 3 ? '...' : ''}
-              <div class="mt-2 text-xs text-blue-600">Click to view all positions →</div>
+          const subUnitData = currentData[subUnit];
+          const hasNestedSubUnits = typeof subUnitData === 'object' && !Array.isArray(subUnitData);
+          const positionCount = hasNestedSubUnits ? 
+            countNestedPositions(subUnitData) : 
+            (Array.isArray(subUnitData) ? subUnitData.length : 0);
+          
+          const depth = currentPath.length;
+          const colorIntensity = Math.min(depth * 100 + 500, 900);
+          
+          div.innerHTML = `
+            <div class="cursor-pointer" onclick="${hasNestedSubUnits ? 
+              `viewSubUnits('${category}', '${unit}', '${subUnit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})` : 
+              `viewPositions('${category}', '${unit}', '${orgUnit}', '${subUnit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})`}">
+              <h4 class="font-semibold text-lg text-purple-${colorIntensity} mb-2 flex items-center">
+                ${subUnit}
+                ${hasNestedSubUnits ? '<span class="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Has Sub-Units</span>' : ''}
+                <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Level ${depth + 1}</span>
+              </h4>
+              <p class="text-sm text-gray-600">${positionCount} positions available</p>
+              <div class="mt-2 text-xs text-purple-600">Click to view ${hasNestedSubUnits ? 'sub-units' : 'positions'} →</div>
             </div>
+            ${currentUser === 'admin' ? `
+              <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex space-x-1">
+                  ${hasNestedSubUnits ? `
+                    <button onclick="event.stopPropagation(); addNestedSubUnit('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
+                            class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600" 
+                            title="Add Sub-Unit">
+                      ➕
+                    </button>
+                  ` : ''}
+                  <button onclick="event.stopPropagation(); addPositionToNestedSubUnit('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
+                          class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
+                          title="Add Position">
+                    👤
+                  </button>
+                  <button onclick="event.stopPropagation(); removeNestedSubUnit('${category}', '${unit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')}, '${subUnit}')" 
+                          class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
+                          title="Remove Sub-Unit">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ` : ''}
           `;
-          content.appendChild(positionsDiv);
+          content.appendChild(div);
+        });
+      } else if (Array.isArray(currentData)) {
+        // This unit has direct positions, show option to convert to sub-units
+        if (currentUser === 'admin') {
+          const convertDiv = document.createElement('div');
+          convertDiv.className = 'bg-yellow-50 border-2 border-dashed border-yellow-300 p-4 rounded-lg text-center hover:bg-yellow-100 cursor-pointer transition-colors';
+          convertDiv.innerHTML = `
+            <div class="text-yellow-600 text-2xl mb-2">🔄</div>
+            <h4 class="font-semibold text-yellow-800 mb-1">Convert to Sub-Units</h4>
+            <p class="text-sm text-yellow-600">This unit has ${currentData.length} direct positions. Convert to sub-unit structure?</p>
+          `;
+          convertDiv.onclick = () => convertNestedToSubUnits(category, unit, currentPath);
+          content.appendChild(convertDiv);
         }
+        
+        // Show current positions
+        const positionsDiv = document.createElement('div');
+        positionsDiv.className = 'bg-blue-50 border border-blue-200 p-4 rounded-lg';
+        positionsDiv.innerHTML = `
+          <h4 class="font-semibold text-blue-900 mb-2">Current Positions (${currentData.length})</h4>
+          <div class="text-sm text-gray-600 cursor-pointer hover:text-blue-600" onclick="viewPositions('${category}', '${unit}', '${orgUnit}', null, ${JSON.stringify(parentPath).replace(/"/g, '&quot;')})">
+            ${currentData.slice(0, 3).join(', ')}${currentData.length > 3 ? '...' : ''}
+            <div class="mt-2 text-xs text-blue-600">Click to view all positions →</div>
+          </div>
+        `;
+        content.appendChild(positionsDiv);
       } else {
         content.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">No sub-units found.</div>';
       }
@@ -2475,6 +2614,184 @@
 
     function closeSubUnitsModal() {
       document.getElementById('sub-units-modal').classList.add('hidden');
+    }
+
+    // Helper functions for nested structure management
+    function getNestedStructure(category, unit, path) {
+      let current = orgStructure[category]?.[unit];
+      if (!current) return null;
+      
+      for (let i = 0; i < path.length; i++) {
+        if (current && typeof current === 'object' && current[path[i]]) {
+          current = current[path[i]];
+        } else {
+          return null;
+        }
+      }
+      return current;
+    }
+
+    function setNestedStructure(category, unit, path, value) {
+      if (!orgStructure[category]) orgStructure[category] = {};
+      if (!orgStructure[category][unit]) orgStructure[category][unit] = {};
+      
+      let current = orgStructure[category][unit];
+      
+      // Navigate to the parent of the target
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!current[path[i]]) current[path[i]] = {};
+        current = current[path[i]];
+      }
+      
+      // Set the value
+      if (path.length > 0) {
+        current[path[path.length - 1]] = value;
+      } else {
+        orgStructure[category][unit] = value;
+      }
+    }
+
+    function countNestedPositions(data) {
+      if (Array.isArray(data)) {
+        return data.length;
+      } else if (typeof data === 'object' && data !== null) {
+        let count = 0;
+        Object.values(data).forEach(value => {
+          count += countNestedPositions(value);
+        });
+        return count;
+      }
+      return 0;
+    }
+
+    function showAddNestedSubUnitForm(category, unit, path) {
+      const currentLevel = path.length;
+      const parentName = path[path.length - 1];
+      const subUnitName = prompt(`Enter name for new sub-unit within "${parentName}" (Level ${currentLevel + 1}):`);
+      
+      if (subUnitName && subUnitName.trim()) {
+        addNestedSubUnit(category, unit, [...path, subUnitName.trim()]);
+      }
+    }
+
+    function addNestedSubUnit(category, unit, path) {
+      const subUnitName = path[path.length - 1];
+      const parentPath = path.slice(0, -1);
+      
+      // Get parent structure
+      const parentData = getNestedStructure(category, unit, parentPath);
+      
+      if (parentData) {
+        // Convert to sub-unit structure if it's currently an array
+        if (Array.isArray(parentData)) {
+          const positions = [...parentData];
+          const newStructure = {
+            'Main': positions,
+            [subUnitName]: []
+          };
+          setNestedStructure(category, unit, parentPath, newStructure);
+        } else if (typeof parentData === 'object') {
+          // Already has sub-units, just add new one
+          const updatedParent = { ...parentData, [subUnitName]: [] };
+          setNestedStructure(category, unit, parentPath, updatedParent);
+        } else {
+          // Initialize as sub-unit structure
+          setNestedStructure(category, unit, parentPath, { [subUnitName]: [] });
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+        
+        alert(`Sub-unit "${subUnitName}" added successfully at Level ${path.length}!`);
+        
+        // Refresh current view
+        viewSubUnits(category, unit, parentPath[0] || path[0], parentPath.slice(1));
+      }
+    }
+
+    function addPositionToNestedSubUnit(category, unit, path) {
+      const subUnitName = path[path.length - 1];
+      const positionName = prompt(`Enter position name for "${subUnitName}":`);
+      
+      if (positionName && positionName.trim()) {
+        const trimmedName = positionName.trim();
+        const currentData = getNestedStructure(category, unit, path);
+        
+        if (Array.isArray(currentData)) {
+          if (!currentData.includes(trimmedName)) {
+            currentData.push(trimmedName);
+            setNestedStructure(category, unit, path, currentData);
+            
+            // Save to localStorage
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`Position "${trimmedName}" added to "${subUnitName}" successfully!`);
+            
+            // Refresh current view
+            const parentPath = path.slice(0, -1);
+            viewSubUnits(category, unit, parentPath[0] || path[0], parentPath.slice(1));
+          } else {
+            alert('Position already exists in this sub-unit!');
+          }
+        } else {
+          alert('Cannot add position to this sub-unit. It may contain nested sub-units.');
+        }
+      }
+    }
+
+    function removeNestedSubUnit(category, unit, parentPath, subUnitName) {
+      const fullPath = [...parentPath, subUnitName];
+      const level = fullPath.length;
+      
+      if (confirm(`Are you sure you want to remove the Level ${level} sub-unit "${subUnitName}"? This will also remove all nested sub-units and positions within it.`)) {
+        const parentData = getNestedStructure(category, unit, parentPath);
+        
+        if (parentData && typeof parentData === 'object') {
+          delete parentData[subUnitName];
+          
+          // If no sub-units left, convert back to array
+          const remainingSubUnits = Object.keys(parentData);
+          if (remainingSubUnits.length === 0) {
+            setNestedStructure(category, unit, parentPath, []);
+          } else if (remainingSubUnits.length === 1 && remainingSubUnits[0] === 'Main') {
+            // Only 'Main' left, convert back to direct positions
+            setNestedStructure(category, unit, parentPath, parentData['Main']);
+          } else {
+            setNestedStructure(category, unit, parentPath, parentData);
+          }
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`Sub-unit "${subUnitName}" removed successfully!`);
+          
+          // Refresh current view
+          viewSubUnits(category, unit, parentPath[0] || 'root', parentPath.slice(1));
+        }
+      }
+    }
+
+    function convertNestedToSubUnits(category, unit, path) {
+      const unitName = path[path.length - 1];
+      if (confirm(`Convert "${unitName}" to use sub-units? Current positions will be moved to a "Main" sub-unit.`)) {
+        const currentPositions = getNestedStructure(category, unit, path);
+        
+        if (Array.isArray(currentPositions)) {
+          const newStructure = {
+            'Main': [...currentPositions]
+          };
+          setNestedStructure(category, unit, path, newStructure);
+          
+          // Save to localStorage
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`"${unitName}" converted to sub-unit structure successfully!`);
+          
+          // Refresh current view
+          const parentPath = path.slice(0, -1);
+          viewSubUnits(category, unit, path[0], parentPath.slice(1));
+        }
+      }
     }
 
     function showAddSubUnitForm(category, unit, orgUnit = null) {
@@ -4254,5 +4571,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3c082d79b8065',t:'MTc1NDg3MzU2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3cd5eb6dafeeb',t:'MTc1NDg3NDA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
