@@ -93,6 +93,49 @@
     .org-gray-2 { background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%); }
     .org-gray-3 { background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); }
     .org-gray-4 { background: linear-gradient(135deg, #9ca3af 0%, #d1d5db 100%); }
+    
+    /* Drag and Drop Styles */
+    .drag-over {
+      border: 2px solid #10b981 !important;
+      background-color: #f0fdf4 !important;
+      transform: scale(1.02);
+      transition: all 0.2s ease;
+    }
+    
+    .dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+    
+    .drop-zone-active {
+      border: 2px dashed #10b981 !important;
+      background-color: #f0fdf4 !important;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .sub-unit-card {
+      transition: all 0.3s ease;
+    }
+    
+    .sub-unit-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .drag-handle {
+      cursor: grab;
+      user-select: none;
+    }
+    
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    
     .org-connector {
       position: absolute;
       background: #cbd5e1;
@@ -2511,6 +2554,18 @@
       const content = document.getElementById('sub-units-content');
       content.innerHTML = '';
       
+      // Add drop zone for drag and drop
+      if (currentUser === 'admin') {
+        const dropZone = document.createElement('div');
+        dropZone.className = 'bg-gray-50 border-2 border-dashed border-gray-300 p-4 rounded-lg text-center mb-4 hidden';
+        dropZone.id = 'drop-zone';
+        dropZone.innerHTML = `
+          <div class="text-gray-400 text-2xl mb-2">📁</div>
+          <p class="text-gray-600">Drop sub-unit here to move it</p>
+        `;
+        content.appendChild(dropZone);
+      }
+      
       // Add new sub-unit creation button for admins
       if (currentUser === 'admin') {
         const addSubUnitDiv = document.createElement('div');
@@ -2518,7 +2573,7 @@
         addSubUnitDiv.innerHTML = `
           <div class="text-green-600 text-2xl mb-2">➕</div>
           <h4 class="font-semibold text-green-800 mb-1">Add New Sub-Unit</h4>
-          <p class="text-sm text-green-600">Create a new sub-unit within ${currentPath[currentPath.length - 1]}</p>
+          <p class="text-sm text-green-600">Create a new sub-unit within ${currentPath[currentPath.length - 1]} (Level ${currentPath.length + 1})</p>
         `;
         addSubUnitDiv.onclick = () => showAddNestedSubUnitForm(category, unit, currentPath);
         content.appendChild(addSubUnitDiv);
@@ -2532,6 +2587,23 @@
           const div = document.createElement('div');
           div.className = 'bg-white border border-gray-200 p-4 rounded-lg shadow hover:shadow-md transition-shadow relative group';
           
+          // Make draggable for admin users
+          if (currentUser === 'admin') {
+            div.draggable = true;
+            div.dataset.subUnit = subUnit;
+            div.dataset.sourcePath = JSON.stringify(currentPath);
+            div.dataset.category = category;
+            div.dataset.unit = unit;
+            
+            // Add drag event listeners
+            div.addEventListener('dragstart', handleDragStart);
+            div.addEventListener('dragend', handleDragEnd);
+            div.addEventListener('dragover', handleDragOver);
+            div.addEventListener('drop', handleDrop);
+            div.addEventListener('dragenter', handleDragEnter);
+            div.addEventListener('dragleave', handleDragLeave);
+          }
+          
           const subUnitData = currentData[subUnit];
           const hasNestedSubUnits = typeof subUnitData === 'object' && !Array.isArray(subUnitData);
           const positionCount = hasNestedSubUnits ? 
@@ -2539,34 +2611,40 @@
             (Array.isArray(subUnitData) ? subUnitData.length : 0);
           
           const depth = currentPath.length;
-          const colorIntensity = Math.min(depth * 100 + 500, 900);
+          const colorIntensity = Math.min(depth, 4); // Limit to 4 levels for color variation
+          const colorClasses = ['purple-600', 'purple-700', 'purple-800', 'purple-900'];
+          const bgColorClasses = ['purple-50', 'purple-100', 'purple-200', 'purple-300'];
           
           div.innerHTML = `
             <div class="cursor-pointer" onclick="${hasNestedSubUnits ? 
               `viewSubUnits('${category}', '${unit}', '${subUnit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})` : 
               `viewPositions('${category}', '${unit}', '${orgUnit}', '${subUnit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')})`}">
-              <h4 class="font-semibold text-lg text-purple-${colorIntensity} mb-2 flex items-center">
+              <h4 class="font-semibold text-lg text-${colorClasses[colorIntensity - 1]} mb-2 flex items-center">
+                ${currentUser === 'admin' ? '<span class="mr-2 text-gray-400 cursor-move">⋮⋮</span>' : ''}
                 ${subUnit}
-                ${hasNestedSubUnits ? '<span class="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Has Sub-Units</span>' : ''}
+                ${hasNestedSubUnits ? `<span class="ml-2 text-xs bg-${bgColorClasses[colorIntensity - 1]} text-${colorClasses[colorIntensity - 1]} px-2 py-1 rounded">Has Sub-Units</span>` : ''}
                 <span class="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Level ${depth + 1}</span>
               </h4>
               <p class="text-sm text-gray-600">${positionCount} positions available</p>
-              <div class="mt-2 text-xs text-purple-600">Click to view ${hasNestedSubUnits ? 'sub-units' : 'positions'} →</div>
+              <div class="mt-2 text-xs text-${colorClasses[colorIntensity - 1]}">Click to view ${hasNestedSubUnits ? 'sub-units' : 'positions'} →</div>
             </div>
             ${currentUser === 'admin' ? `
               <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div class="flex space-x-1">
-                  ${hasNestedSubUnits ? `
-                    <button onclick="event.stopPropagation(); addNestedSubUnit('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
-                            class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600" 
-                            title="Add Sub-Unit">
-                      ➕
-                    </button>
-                  ` : ''}
+                  <button onclick="event.stopPropagation(); addNestedSubUnit('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
+                          class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600" 
+                          title="Add Sub-Unit (Level ${depth + 2})">
+                    ➕
+                  </button>
                   <button onclick="event.stopPropagation(); addPositionToNestedSubUnit('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
                           class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600" 
                           title="Add Position">
                     👤
+                  </button>
+                  <button onclick="event.stopPropagation(); convertSubUnitToPositions('${category}', '${unit}', ${JSON.stringify([...currentPath, subUnit]).replace(/"/g, '&quot;')})" 
+                          class="bg-yellow-500 text-white px-2 py-1 rounded text-xs hover:bg-yellow-600" 
+                          title="Convert to Positions">
+                    🔄
                   </button>
                   <button onclick="event.stopPropagation(); removeNestedSubUnit('${category}', '${unit}', ${JSON.stringify(currentPath).replace(/"/g, '&quot;')}, '${subUnit}')" 
                           class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600" 
@@ -2706,6 +2784,240 @@
         
         // Refresh current view
         viewSubUnits(category, unit, parentPath[0] || path[0], parentPath.slice(1));
+      }
+    }
+
+    // Drag and Drop Variables
+    let draggedElement = null;
+    let draggedData = null;
+
+    // Drag and Drop Event Handlers
+    function handleDragStart(e) {
+      draggedElement = e.target;
+      draggedData = {
+        subUnit: e.target.dataset.subUnit,
+        sourcePath: JSON.parse(e.target.dataset.sourcePath),
+        category: e.target.dataset.category,
+        unit: e.target.dataset.unit
+      };
+      
+      e.target.style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', e.target.outerHTML);
+      
+      // Show drop zones
+      showDropZones();
+    }
+
+    function handleDragEnd(e) {
+      e.target.style.opacity = '1';
+      draggedElement = null;
+      draggedData = null;
+      
+      // Hide drop zones
+      hideDropZones();
+      
+      // Remove drag indicators
+      document.querySelectorAll('.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+      });
+    }
+
+    function handleDragOver(e) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDragEnter(e) {
+      if (e.target !== draggedElement && e.target.dataset.subUnit) {
+        e.target.classList.add('drag-over');
+      }
+    }
+
+    function handleDragLeave(e) {
+      e.target.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      }
+      
+      e.target.classList.remove('drag-over');
+      
+      if (draggedElement !== e.target && draggedData) {
+        const targetSubUnit = e.target.dataset.subUnit;
+        const targetPath = JSON.parse(e.target.dataset.sourcePath || '[]');
+        const targetCategory = e.target.dataset.category;
+        const targetUnit = e.target.dataset.unit;
+        
+        if (targetSubUnit && targetCategory && targetUnit) {
+          moveSubUnit(draggedData, {
+            subUnit: targetSubUnit,
+            path: targetPath,
+            category: targetCategory,
+            unit: targetUnit
+          });
+        }
+      }
+      
+      return false;
+    }
+
+    function showDropZones() {
+      const dropZone = document.getElementById('drop-zone');
+      if (dropZone) {
+        dropZone.classList.remove('hidden');
+        dropZone.addEventListener('dragover', handleDropZoneDragOver);
+        dropZone.addEventListener('drop', handleDropZoneDrop);
+      }
+      
+      // Highlight potential drop targets
+      document.querySelectorAll('[data-sub-unit]').forEach(el => {
+        if (el !== draggedElement) {
+          el.style.border = '2px dashed #10b981';
+          el.style.backgroundColor = '#f0fdf4';
+        }
+      });
+    }
+
+    function hideDropZones() {
+      const dropZone = document.getElementById('drop-zone');
+      if (dropZone) {
+        dropZone.classList.add('hidden');
+        dropZone.removeEventListener('dragover', handleDropZoneDragOver);
+        dropZone.removeEventListener('drop', handleDropZoneDrop);
+      }
+      
+      // Remove drop target highlighting
+      document.querySelectorAll('[data-sub-unit]').forEach(el => {
+        el.style.border = '';
+        el.style.backgroundColor = '';
+      });
+    }
+
+    function handleDropZoneDragOver(e) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDropZoneDrop(e) {
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      }
+      
+      if (draggedData) {
+        // Move to current level (extract from parent)
+        extractSubUnit(draggedData);
+      }
+      
+      return false;
+    }
+
+    function moveSubUnit(source, target) {
+      if (confirm(`Move "${source.subUnit}" into "${target.subUnit}"?`)) {
+        // Get source data
+        const sourceData = getNestedStructure(source.category, source.unit, [...source.sourcePath, source.subUnit]);
+        
+        if (sourceData) {
+          // Add to target location
+          const targetParentPath = [...target.path, target.subUnit];
+          const targetParentData = getNestedStructure(target.category, target.unit, targetParentPath);
+          
+          if (targetParentData && typeof targetParentData === 'object') {
+            // Convert target to sub-unit structure if it's an array
+            if (Array.isArray(targetParentData)) {
+              const newTargetStructure = {
+                'Main': [...targetParentData],
+                [source.subUnit]: sourceData
+              };
+              setNestedStructure(target.category, target.unit, targetParentPath, newTargetStructure);
+            } else {
+              // Add to existing sub-unit structure
+              const updatedTarget = { ...targetParentData, [source.subUnit]: sourceData };
+              setNestedStructure(target.category, target.unit, targetParentPath, updatedTarget);
+            }
+            
+            // Remove from source location
+            const sourceParentData = getNestedStructure(source.category, source.unit, source.sourcePath);
+            if (sourceParentData && typeof sourceParentData === 'object') {
+              delete sourceParentData[source.subUnit];
+              setNestedStructure(source.category, source.unit, source.sourcePath, sourceParentData);
+            }
+            
+            // Save changes
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`"${source.subUnit}" moved successfully into "${target.subUnit}"!`);
+            
+            // Refresh current view
+            viewSubUnits(currentCategory, currentUnit, currentPath[0], currentPath.slice(1));
+          }
+        }
+      }
+    }
+
+    function extractSubUnit(source) {
+      if (confirm(`Extract "${source.subUnit}" to current level?`)) {
+        // Get source data
+        const sourceData = getNestedStructure(source.category, source.unit, [...source.sourcePath, source.subUnit]);
+        
+        if (sourceData) {
+          // Add to current level
+          const currentData = getNestedStructure(currentCategory, currentUnit, currentPath);
+          if (currentData && typeof currentData === 'object') {
+            const updatedCurrent = { ...currentData, [source.subUnit]: sourceData };
+            setNestedStructure(currentCategory, currentUnit, currentPath, updatedCurrent);
+            
+            // Remove from source location
+            const sourceParentData = getNestedStructure(source.category, source.unit, source.sourcePath);
+            if (sourceParentData && typeof sourceParentData === 'object') {
+              delete sourceParentData[source.subUnit];
+              setNestedStructure(source.category, source.unit, source.sourcePath, sourceParentData);
+            }
+            
+            // Save changes
+            localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+            
+            alert(`"${source.subUnit}" extracted to current level successfully!`);
+            
+            // Refresh current view
+            viewSubUnits(currentCategory, currentUnit, currentPath[0], currentPath.slice(1));
+          }
+        }
+      }
+    }
+
+    function convertSubUnitToPositions(category, unit, path) {
+      const subUnitName = path[path.length - 1];
+      const level = path.length;
+      
+      if (confirm(`Convert "${subUnitName}" (Level ${level}) to direct positions? All nested sub-units will be flattened.`)) {
+        const subUnitData = getNestedStructure(category, unit, path);
+        
+        if (subUnitData) {
+          // Flatten all nested positions
+          const allPositions = flattenNestedPositions(subUnitData);
+          
+          // Replace with flattened positions array
+          setNestedStructure(category, unit, path, allPositions);
+          
+          // Save changes
+          localStorage.setItem('orgStructure', JSON.stringify(orgStructure));
+          
+          alert(`"${subUnitName}" converted to ${allPositions.length} direct positions successfully!`);
+          
+          // Refresh current view
+          const parentPath = path.slice(0, -1);
+          viewSubUnits(category, unit, parentPath[0] || path[0], parentPath.slice(1));
+        }
       }
     }
 
@@ -4571,5 +4883,5 @@
       }
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3cd5eb6dafeeb',t:'MTc1NDg3NDA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3dbdea4affec8',t:'MTc1NDg3NDY4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
