@@ -67,11 +67,18 @@
     .size-medium { width: 160px; height: 80px; font-size: 12px; padding: 12px; }
     .size-large { width: 200px; height: 100px; font-size: 14px; padding: 16px; }
     
-    /* Formal Connection Lines */
+    /* Connection Lines - All Black */
     .org-connection-line {
       position: absolute;
-      background: #374151;
+      background: #000000;
       z-index: 1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .org-connection-line:hover {
+      background: #dc2626;
+      box-shadow: 0 0 4px rgba(220, 38, 38, 0.5);
     }
     
     .org-connection-vertical {
@@ -86,43 +93,98 @@
       position: absolute;
       width: 8px;
       height: 8px;
-      background: #374151;
+      background: #000000;
       border-radius: 50%;
       z-index: 2;
       transform: translate(-50%, -50%);
       border: 2px solid white;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
     
-    /* Custom Connection Lines */
+    .org-connection-point:hover {
+      background: #dc2626;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    
+    /* Custom Connection Lines - All Black */
     .org-connection-custom {
       position: absolute;
-      background: #dc2626;
+      background: #000000;
       z-index: 1;
-      opacity: 0.8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .org-connection-custom:hover {
+      background: #dc2626;
+      box-shadow: 0 0 4px rgba(220, 38, 38, 0.5);
     }
     
     .org-connection-custom.org-connection-vertical {
-      width: 3px;
+      width: 2px;
     }
     
     .org-connection-custom.org-connection-horizontal {
-      height: 3px;
+      height: 2px;
+    }
+    
+    /* Dotted Line Styles */
+    .org-connection-dotted {
+      background: repeating-linear-gradient(
+        to right,
+        #000000 0px,
+        #000000 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+    
+    .org-connection-dotted.org-connection-vertical {
+      background: repeating-linear-gradient(
+        to bottom,
+        #000000 0px,
+        #000000 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+    
+    .org-connection-dotted:hover {
+      background: repeating-linear-gradient(
+        to right,
+        #dc2626 0px,
+        #dc2626 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+    
+    .org-connection-dotted.org-connection-vertical:hover {
+      background: repeating-linear-gradient(
+        to bottom,
+        #dc2626 0px,
+        #dc2626 4px,
+        transparent 4px,
+        transparent 8px
+      );
     }
     
     .org-connection-custom-point {
       position: absolute;
       width: 10px;
       height: 10px;
-      background: #dc2626;
+      background: #000000;
       border-radius: 50%;
       z-index: 2;
       transform: translate(-50%, -50%);
       border: 2px solid white;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
     
     .org-connection-custom-point:hover {
-      background: #b91c1c;
+      background: #dc2626;
       transform: translate(-50%, -50%) scale(1.2);
     }
     
@@ -281,6 +343,36 @@
     
     .tab-close:hover {
       background: rgba(239, 68, 68, 0.8);
+      color: white;
+    }
+    
+    /* Line Style Selector */
+    .line-style-selector {
+      display: inline-flex;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .line-style-option {
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      border-right: 1px solid #d1d5db;
+    }
+    
+    .line-style-option:last-child {
+      border-right: none;
+    }
+    
+    .line-style-option:hover {
+      background: #f3f4f6;
+    }
+    
+    .line-style-option.active {
+      background: #3b82f6;
       color: white;
     }
   </style>
@@ -654,7 +746,7 @@
                 </div>
                 
                 <!-- Tools -->
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-2 border-r pr-3">
                   <button onclick="undo()" id="undo-btn" class="bg-gray-600 text-white px-2 py-1 rounded text-sm hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Nothing to undo">
                     ↶ Undo
                   </button>
@@ -670,6 +762,19 @@
                   <button onclick="createNewPage()" class="bg-orange-600 text-white px-2 py-1 rounded text-sm hover:bg-orange-700">
                     📄 New Page
                   </button>
+                </div>
+                
+                <!-- Line Style Selector -->
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm text-gray-600">Line Style:</span>
+                  <div class="line-style-selector">
+                    <div class="line-style-option active" onclick="setLineStyle('solid')" data-style="solid">
+                      ━━━ Solid
+                    </div>
+                    <div class="line-style-option" onclick="setLineStyle('dotted')" data-style="dotted">
+                      ┅┅┅ Dotted
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -892,6 +997,7 @@
     let connectionMode = false;
     let connectionStart = null;
     let customConnections = []; // Store custom connections separate from hierarchy
+    let currentLineStyle = 'solid'; // Track current line style
     
     // Undo/Redo System
     let undoStack = [];
@@ -1012,6 +1118,23 @@
       }, 2000);
     }
 
+    // Line Style Management
+    function setLineStyle(style) {
+      currentLineStyle = style;
+      
+      // Update UI
+      document.querySelectorAll('.line-style-option').forEach(option => {
+        option.classList.remove('active');
+      });
+      document.querySelector(`[data-style="${style}"]`).classList.add('active');
+      
+      // Re-render connections with new style
+      clearConnections();
+      drawOrgConnections();
+      
+      showActionFeedback(`📏 Line style: ${style === 'solid' ? 'Solid' : 'Dotted'}`);
+    }
+
     // Password visibility toggle
     function togglePasswordVisibility() {
       const passwordInput = document.getElementById('password');
@@ -1029,54 +1152,72 @@
       }
     }
 
-    // Authentication with multi-level admin support
+    // Real-time access level detection based on username
+    document.addEventListener('DOMContentLoaded', function() {
+      const usernameInput = document.getElementById('username');
+      
+      usernameInput.addEventListener('input', function() {
+        const username = this.value.trim();
+        const accessIndicator = document.getElementById('access-indicator');
+        const adminIndicator = document.getElementById('admin-indicator');
+        const viewerIndicator = document.getElementById('viewer-indicator');
+        
+        if (username === 'ntbernal_ADMIN') {
+          accessIndicator.classList.remove('hidden');
+          adminIndicator.classList.remove('hidden');
+          adminIndicator.textContent = '🔑 Administrator Access Detected';
+          viewerIndicator.classList.add('hidden');
+        } else if (username === 'ntbernal') {
+          accessIndicator.classList.remove('hidden');
+          adminIndicator.classList.add('hidden');
+          viewerIndicator.classList.remove('hidden');
+          viewerIndicator.textContent = '👤 Viewer Access Detected';
+        } else if (username.length > 0) {
+          accessIndicator.classList.remove('hidden');
+          adminIndicator.classList.add('hidden');
+          viewerIndicator.classList.remove('hidden');
+          viewerIndicator.textContent = '👤 Viewer Access';
+        } else {
+          accessIndicator.classList.add('hidden');
+          adminIndicator.classList.add('hidden');
+          viewerIndicator.classList.add('hidden');
+        }
+      });
+    });
+
+    // Simple Working Login System
     function login(event) {
       event.preventDefault();
-      const password = document.getElementById('password').value;
-      const username = document.getElementById('username').value;
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
       const errorDiv = document.getElementById('login-error');
 
-      let isValid = false;
-      let accessLevel = 'viewer';
-      let level = null;
-
-      // Check Level 1 Admin (Full Access)
-      if (username === 'ntbernal_ADMIN') {
-        accessLevel = 'admin';
-        level = 'level1';
-        isValid = password === userManagement.level1Password;
-      } 
-      // Check Level 2 Admin (Limited Access)
-      else if (username === 'ntbernal_LEVEL2') {
-        accessLevel = 'admin';
-        level = 'level2';
-        isValid = password === userManagement.level2Password;
-      } 
-      // Check your viewer account
-      else if (username === 'ntbernal') {
-        accessLevel = 'viewer';
-        level = 'viewer';
-        isValid = password === 'PLDT_HR_OD';
-      } 
-      // Check approved users
-      else if (username && userManagement.approvedUsers[username]) {
-        accessLevel = 'viewer';
-        level = 'viewer';
-        isValid = password === userManagement.approvedUsers[username].password;
-      }
-
-      if (isValid) {
-        currentUser = accessLevel;
-        userLevel = level;
+      // Direct credential check - simple and reliable
+      if ((username === 'ntbernal_ADMIN' && password === 'Hunter542639') ||
+          (username === 'ntbernal' && password === 'PLDT_HR_OD')) {
+        
+        // Set user level
+        if (username === 'ntbernal_ADMIN') {
+          currentUser = 'admin';
+          userLevel = 'level1';
+        } else {
+          currentUser = 'viewer';
+          userLevel = 'viewer';
+        }
+        
         isPreviewMode = false;
         
+        // Hide login, show app
+        errorDiv.classList.add('hidden');
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
         
         setupUserInterface();
         navigate('home');
-        errorDiv.classList.add('hidden');
+        
       } else {
+        // Show error
         errorDiv.classList.remove('hidden');
         document.getElementById('password').value = '';
       }
@@ -1100,34 +1241,6 @@
       document.getElementById('nav-admin').classList.toggle('hidden', !isLevel1);
       document.getElementById('org-toolbar').classList.toggle('hidden', !isLevel1);
     }
-
-    // Real-time access level detection based on username
-    document.getElementById('username').addEventListener('input', function() {
-      const username = this.value;
-      const accessIndicator = document.getElementById('access-indicator');
-      const adminIndicator = document.getElementById('admin-indicator');
-      const viewerIndicator = document.getElementById('viewer-indicator');
-      
-      if (username === 'ntbernal_ADMIN') {
-        accessIndicator.classList.remove('hidden');
-        adminIndicator.classList.remove('hidden');
-        adminIndicator.textContent = '🔑 Level 1 Administrator Access Detected';
-        viewerIndicator.classList.add('hidden');
-      } else if (username === 'ntbernal_LEVEL2') {
-        accessIndicator.classList.remove('hidden');
-        adminIndicator.classList.remove('hidden');
-        adminIndicator.textContent = '🔑 Level 2 Administrator Access Detected';
-        viewerIndicator.classList.add('hidden');
-      } else if (username.length > 0) {
-        accessIndicator.classList.remove('hidden');
-        adminIndicator.classList.add('hidden');
-        viewerIndicator.classList.remove('hidden');
-      } else {
-        accessIndicator.classList.add('hidden');
-        adminIndicator.classList.add('hidden');
-        viewerIndicator.classList.add('hidden');
-      }
-    });
 
     // Password Reset Functions
     function showPasswordReset() {
@@ -1199,7 +1312,486 @@
       
       if (section === 'org') {
         renderOrgChart();
+      } else if (section === 'jd') {
+        initializeJDSystem();
       }
+    }
+
+    // Job Description Categories
+    const jobCategories = [
+      {
+        id: 'executive',
+        name: 'Executive Leadership',
+        icon: '👔',
+        color: 'from-purple-400 to-purple-600',
+        positions: [
+          { title: 'Chief Executive Officer', level: 'C-Suite', department: 'Executive', code: 'CEO-001' },
+          { title: 'Chief Operating Officer', level: 'C-Suite', department: 'Operations', code: 'COO-001' },
+          { title: 'Chief Financial Officer', level: 'C-Suite', department: 'Finance', code: 'CFO-001' },
+          { title: 'Chief Technology Officer', level: 'C-Suite', department: 'Technology', code: 'CTO-001' },
+          { title: 'Chief Human Resources Officer', level: 'C-Suite', department: 'Human Resources', code: 'CHRO-001' },
+          { title: 'Chief Marketing Officer', level: 'C-Suite', department: 'Marketing', code: 'CMO-001' }
+        ]
+      },
+      {
+        id: 'management',
+        name: 'Management',
+        icon: '📊',
+        color: 'from-blue-400 to-blue-600',
+        positions: [
+          { title: 'Vice President - Operations', level: 'VP', department: 'Operations', code: 'VP-OPS-001' },
+          { title: 'Vice President - Sales', level: 'VP', department: 'Sales', code: 'VP-SAL-001' },
+          { title: 'Vice President - Engineering', level: 'VP', department: 'Engineering', code: 'VP-ENG-001' },
+          { title: 'Director of Finance', level: 'Director', department: 'Finance', code: 'DIR-FIN-001' },
+          { title: 'Director of Human Resources', level: 'Director', department: 'Human Resources', code: 'DIR-HR-001' },
+          { title: 'Director of Marketing', level: 'Director', department: 'Marketing', code: 'DIR-MKT-001' },
+          { title: 'Regional Manager', level: 'Manager', department: 'Operations', code: 'MGR-REG-001' },
+          { title: 'Product Manager', level: 'Manager', department: 'Product', code: 'MGR-PRD-001' }
+        ]
+      },
+      {
+        id: 'technology',
+        name: 'Technology & Engineering',
+        icon: '💻',
+        color: 'from-green-400 to-green-600',
+        positions: [
+          { title: 'Senior Software Engineer', level: 'Senior', department: 'Engineering', code: 'ENG-SR-001' },
+          { title: 'Software Engineer', level: 'Mid-Level', department: 'Engineering', code: 'ENG-MID-001' },
+          { title: 'Junior Software Engineer', level: 'Junior', department: 'Engineering', code: 'ENG-JR-001' },
+          { title: 'DevOps Engineer', level: 'Mid-Level', department: 'Engineering', code: 'DEV-OPS-001' },
+          { title: 'Data Scientist', level: 'Senior', department: 'Data', code: 'DATA-SR-001' },
+          { title: 'System Administrator', level: 'Mid-Level', department: 'IT', code: 'SYS-ADM-001' },
+          { title: 'Network Engineer', level: 'Mid-Level', department: 'IT', code: 'NET-ENG-001' },
+          { title: 'Cybersecurity Specialist', level: 'Senior', department: 'Security', code: 'SEC-SP-001' }
+        ]
+      },
+      {
+        id: 'sales',
+        name: 'Sales & Marketing',
+        icon: '📈',
+        color: 'from-orange-400 to-orange-600',
+        positions: [
+          { title: 'Sales Director', level: 'Director', department: 'Sales', code: 'SAL-DIR-001' },
+          { title: 'Senior Sales Manager', level: 'Senior Manager', department: 'Sales', code: 'SAL-MGR-001' },
+          { title: 'Account Executive', level: 'Mid-Level', department: 'Sales', code: 'ACC-EXE-001' },
+          { title: 'Sales Representative', level: 'Entry-Level', department: 'Sales', code: 'SAL-REP-001' },
+          { title: 'Marketing Manager', level: 'Manager', department: 'Marketing', code: 'MKT-MGR-001' },
+          { title: 'Digital Marketing Specialist', level: 'Mid-Level', department: 'Marketing', code: 'DIG-MKT-001' },
+          { title: 'Content Marketing Manager', level: 'Manager', department: 'Marketing', code: 'CON-MKT-001' },
+          { title: 'Brand Manager', level: 'Manager', department: 'Marketing', code: 'BRD-MGR-001' }
+        ]
+      },
+      {
+        id: 'operations',
+        name: 'Operations & Support',
+        icon: '⚙️',
+        color: 'from-teal-400 to-teal-600',
+        positions: [
+          { title: 'Operations Manager', level: 'Manager', department: 'Operations', code: 'OPS-MGR-001' },
+          { title: 'Supply Chain Manager', level: 'Manager', department: 'Supply Chain', code: 'SCM-MGR-001' },
+          { title: 'Quality Assurance Manager', level: 'Manager', department: 'Quality', code: 'QA-MGR-001' },
+          { title: 'Customer Success Manager', level: 'Manager', department: 'Customer Success', code: 'CS-MGR-001' },
+          { title: 'Project Coordinator', level: 'Mid-Level', department: 'Operations', code: 'PRJ-CRD-001' },
+          { title: 'Business Analyst', level: 'Mid-Level', department: 'Operations', code: 'BUS-ANL-001' },
+          { title: 'Administrative Assistant', level: 'Entry-Level', department: 'Administration', code: 'ADM-AST-001' }
+        ]
+      },
+      {
+        id: 'finance',
+        name: 'Finance & Accounting',
+        icon: '💰',
+        color: 'from-indigo-400 to-indigo-600',
+        positions: [
+          { title: 'Finance Manager', level: 'Manager', department: 'Finance', code: 'FIN-MGR-001' },
+          { title: 'Senior Accountant', level: 'Senior', department: 'Accounting', code: 'ACC-SR-001' },
+          { title: 'Staff Accountant', level: 'Mid-Level', department: 'Accounting', code: 'ACC-STF-001' },
+          { title: 'Financial Analyst', level: 'Mid-Level', department: 'Finance', code: 'FIN-ANL-001' },
+          { title: 'Budget Analyst', level: 'Mid-Level', department: 'Finance', code: 'BUD-ANL-001' },
+          { title: 'Accounts Payable Specialist', level: 'Entry-Level', department: 'Accounting', code: 'AP-SP-001' },
+          { title: 'Accounts Receivable Specialist', level: 'Entry-Level', department: 'Accounting', code: 'AR-SP-001' },
+          { title: 'Payroll Specialist', level: 'Mid-Level', department: 'Finance', code: 'PAY-SP-001' }
+        ]
+      },
+      {
+        id: 'hr',
+        name: 'Human Resources',
+        icon: '👥',
+        color: 'from-pink-400 to-pink-600',
+        positions: [
+          { title: 'HR Manager', level: 'Manager', department: 'Human Resources', code: 'HR-MGR-001' },
+          { title: 'Talent Acquisition Specialist', level: 'Mid-Level', department: 'Human Resources', code: 'TA-SP-001' },
+          { title: 'HR Business Partner', level: 'Senior', department: 'Human Resources', code: 'HR-BP-001' },
+          { title: 'Compensation & Benefits Analyst', level: 'Mid-Level', department: 'Human Resources', code: 'CB-ANL-001' },
+          { title: 'Training & Development Coordinator', level: 'Mid-Level', department: 'Human Resources', code: 'TD-CRD-001' },
+          { title: 'HR Generalist', level: 'Mid-Level', department: 'Human Resources', code: 'HR-GEN-001' },
+          { title: 'Organizational Development Specialist', level: 'Senior', department: 'Human Resources', code: 'OD-SP-001' }
+        ]
+      },
+      {
+        id: 'legal',
+        name: 'Legal & Compliance',
+        icon: '⚖️',
+        color: 'from-gray-400 to-gray-600',
+        positions: [
+          { title: 'General Counsel', level: 'C-Suite', department: 'Legal', code: 'GC-001' },
+          { title: 'Senior Legal Counsel', level: 'Senior', department: 'Legal', code: 'LEG-SR-001' },
+          { title: 'Corporate Lawyer', level: 'Mid-Level', department: 'Legal', code: 'LEG-CRP-001' },
+          { title: 'Compliance Manager', level: 'Manager', department: 'Compliance', code: 'COM-MGR-001' },
+          { title: 'Compliance Specialist', level: 'Mid-Level', department: 'Compliance', code: 'COM-SP-001' },
+          { title: 'Contract Administrator', level: 'Mid-Level', department: 'Legal', code: 'CON-ADM-001' },
+          { title: 'Legal Assistant', level: 'Entry-Level', department: 'Legal', code: 'LEG-AST-001' }
+        ]
+      }
+    ];
+
+    // Job Description Templates
+    const jobDescriptionTemplates = {
+      'CEO-001': {
+        title: 'Chief Executive Officer',
+        department: 'Executive',
+        level: 'C-Suite',
+        reportsTo: 'Board of Directors',
+        summary: 'The Chief Executive Officer (CEO) is responsible for the overall strategic direction, management, and success of the organization. The CEO provides leadership and vision to ensure the company achieves its mission and objectives while maintaining the highest standards of corporate governance.',
+        responsibilities: [
+          'Develop and implement comprehensive business strategies to promote company growth and profitability',
+          'Provide strategic leadership and direction to all departments and business units',
+          'Build and maintain relationships with key stakeholders, investors, and board members',
+          'Oversee financial performance and ensure fiscal responsibility',
+          'Foster a positive corporate culture that promotes innovation, collaboration, and excellence',
+          'Represent the company in public forums, industry events, and media interactions',
+          'Ensure compliance with all legal and regulatory requirements',
+          'Lead organizational change initiatives and digital transformation efforts'
+        ],
+        qualifications: [
+          'Master\'s degree in Business Administration, Management, or related field',
+          'Minimum 15 years of progressive leadership experience in senior executive roles',
+          'Proven track record of successful business growth and transformation',
+          'Strong financial acumen and strategic planning capabilities',
+          'Excellent communication, negotiation, and interpersonal skills',
+          'Experience in mergers, acquisitions, and corporate restructuring',
+          'Deep understanding of industry trends and competitive landscape'
+        ],
+        skills: [
+          'Strategic Planning & Execution',
+          'Leadership & Team Building',
+          'Financial Management',
+          'Stakeholder Management',
+          'Corporate Governance',
+          'Change Management',
+          'Public Speaking',
+          'Crisis Management'
+        ]
+      },
+      'CTO-001': {
+        title: 'Chief Technology Officer',
+        department: 'Technology',
+        level: 'C-Suite',
+        reportsTo: 'Chief Executive Officer',
+        summary: 'The Chief Technology Officer (CTO) is responsible for overseeing the technological direction of the company, driving innovation, and ensuring that technology strategies align with business objectives. The CTO leads the technology organization and plays a key role in digital transformation initiatives.',
+        responsibilities: [
+          'Develop and execute comprehensive technology strategy aligned with business goals',
+          'Lead digital transformation initiatives and emerging technology adoption',
+          'Oversee software development, infrastructure, and technology operations',
+          'Build and manage high-performing technology teams',
+          'Ensure cybersecurity, data privacy, and regulatory compliance',
+          'Drive innovation through research and development initiatives',
+          'Manage technology budgets and vendor relationships',
+          'Collaborate with other executives on technology-enabled business solutions'
+        ],
+        qualifications: [
+          'Master\'s degree in Computer Science, Engineering, or related technical field',
+          'Minimum 12 years of progressive technology leadership experience',
+          'Proven experience in enterprise software development and architecture',
+          'Strong background in cloud computing, AI/ML, and emerging technologies',
+          'Experience leading large-scale digital transformation projects',
+          'Excellent leadership and team management skills',
+          'Strong business acumen and strategic thinking abilities'
+        ],
+        skills: [
+          'Technology Strategy',
+          'Software Architecture',
+          'Cloud Computing',
+          'Artificial Intelligence',
+          'Cybersecurity',
+          'Team Leadership',
+          'Project Management',
+          'Vendor Management'
+        ]
+      }
+    };
+
+    // Initialize JD system
+    function initializeJDSystem() {
+      renderJobCategories();
+    }
+
+    function renderJobCategories() {
+      const container = document.getElementById('categories-container');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      jobCategories.forEach(category => {
+        const categoryCard = document.createElement('div');
+        categoryCard.className = `bg-gradient-to-br ${category.color} rounded-xl p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`;
+        categoryCard.onclick = () => openCategoryModal(category);
+        
+        categoryCard.innerHTML = `
+          <div class="text-4xl mb-4">${category.icon}</div>
+          <h3 class="text-xl font-bold mb-2">${category.name}</h3>
+          <p class="text-sm opacity-90 mb-4">${category.positions.length} positions available</p>
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium">View Positions →</span>
+            <div class="bg-white bg-opacity-20 rounded-full px-3 py-1 text-xs font-bold">
+              ${category.positions.length}
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(categoryCard);
+      });
+    }
+
+    function openCategoryModal(category) {
+      // Create modal
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      };
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col';
+      
+      modalContent.innerHTML = `
+        <div class="bg-gradient-to-r ${category.color} text-white p-6">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+              <div class="text-3xl">${category.icon}</div>
+              <div>
+                <h2 class="text-2xl font-bold">${category.name}</h2>
+                <p class="opacity-90">${category.positions.length} positions in this category</p>
+              </div>
+            </div>
+            <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-gray-200 text-2xl font-bold">×</button>
+          </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="grid gap-4">
+            ${category.positions.map(position => `
+              <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="openJobDescription('${position.code}')">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <h3 class="font-bold text-lg text-gray-900">${position.title}</h3>
+                    <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                      <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${position.level}</span>
+                      <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full">${position.department}</span>
+                      <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded-full">${position.code}</span>
+                    </div>
+                  </div>
+                  <div class="text-blue-600 hover:text-blue-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+    }
+
+    function openJobDescription(jobCode) {
+      const jobTemplate = jobDescriptionTemplates[jobCode];
+      
+      if (!jobTemplate) {
+        // Create a generic template for positions without detailed descriptions
+        const position = findPositionByCode(jobCode);
+        if (!position) return;
+        
+        showGenericJobDescription(position);
+        return;
+      }
+      
+      // Create detailed job description modal
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      };
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col';
+      
+      modalContent.innerHTML = `
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6">
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-2xl font-bold mb-2">${jobTemplate.title}</h2>
+              <div class="flex items-center space-x-4 text-sm">
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full">${jobTemplate.department}</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full">${jobTemplate.level}</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full">Reports to: ${jobTemplate.reportsTo}</span>
+              </div>
+            </div>
+            <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-gray-200 text-2xl font-bold">×</button>
+          </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+          <!-- Job Summary -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-3">Position Summary</h3>
+            <p class="text-gray-700 leading-relaxed">${jobTemplate.summary}</p>
+          </div>
+          
+          <!-- Key Responsibilities -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-3">Key Responsibilities</h3>
+            <ul class="space-y-2">
+              ${jobTemplate.responsibilities.map(resp => `
+                <li class="flex items-start space-x-2">
+                  <span class="text-blue-600 mt-1">•</span>
+                  <span class="text-gray-700">${resp}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          
+          <!-- Qualifications -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-3">Required Qualifications</h3>
+            <ul class="space-y-2">
+              ${jobTemplate.qualifications.map(qual => `
+                <li class="flex items-start space-x-2">
+                  <span class="text-green-600 mt-1">✓</span>
+                  <span class="text-gray-700">${qual}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          
+          <!-- Key Skills -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-3">Key Skills & Competencies</h3>
+            <div class="flex flex-wrap gap-2">
+              ${jobTemplate.skills.map(skill => `
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">${skill}</span>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        
+        <div class="border-t bg-gray-50 p-4 flex justify-end space-x-3">
+          <button onclick="exportJobDescription('${jobCode}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            📄 Export PDF
+          </button>
+          <button onclick="this.closest('.fixed').remove()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+            Close
+          </button>
+        </div>
+      `;
+      
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+    }
+
+    function findPositionByCode(code) {
+      for (const category of jobCategories) {
+        const position = category.positions.find(p => p.code === code);
+        if (position) return position;
+      }
+      return null;
+    }
+
+    function showGenericJobDescription(position) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+      modal.onclick = (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      };
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col';
+      
+      modalContent.innerHTML = `
+        <div class="bg-gradient-to-r from-gray-600 to-gray-800 text-white p-6">
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-2xl font-bold mb-2">${position.title}</h2>
+              <div class="flex items-center space-x-4 text-sm">
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full">${position.department}</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full">${position.level}</span>
+                <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full">${position.code}</span>
+              </div>
+            </div>
+            <button onclick="this.closest('.fixed').remove()" class="text-white hover:text-gray-200 text-2xl font-bold">×</button>
+          </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6 text-center">
+          <div class="text-6xl mb-4">📋</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Job Description Template</h3>
+          <p class="text-gray-600 mb-6">Detailed job description for ${position.title} is currently being developed.</p>
+          <p class="text-sm text-gray-500">This position is available in the ${position.department} department at the ${position.level} level.</p>
+        </div>
+        
+        <div class="border-t bg-gray-50 p-4 flex justify-center">
+          <button onclick="this.closest('.fixed').remove()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+            Close
+          </button>
+        </div>
+      `;
+      
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+    }
+
+    function exportJobDescription(jobCode) {
+      const jobTemplate = jobDescriptionTemplates[jobCode];
+      if (!jobTemplate) return;
+      
+      // Create a simple text export (in a real app, this would generate a PDF)
+      let content = `JOB DESCRIPTION\n\n`;
+      content += `Position: ${jobTemplate.title}\n`;
+      content += `Department: ${jobTemplate.department}\n`;
+      content += `Level: ${jobTemplate.level}\n`;
+      content += `Reports To: ${jobTemplate.reportsTo}\n\n`;
+      content += `POSITION SUMMARY\n${jobTemplate.summary}\n\n`;
+      content += `KEY RESPONSIBILITIES\n`;
+      jobTemplate.responsibilities.forEach((resp, index) => {
+        content += `${index + 1}. ${resp}\n`;
+      });
+      content += `\nREQUIRED QUALIFICATIONS\n`;
+      jobTemplate.qualifications.forEach((qual, index) => {
+        content += `${index + 1}. ${qual}\n`;
+      });
+      content += `\nKEY SKILLS\n`;
+      content += jobTemplate.skills.join(', ');
+      
+      // Create and download file
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${jobTemplate.title.replace(/\s+/g, '_')}_Job_Description.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      showActionFeedback(`📄 Exported: ${jobTemplate.title} Job Description`);
     }
 
     // Formal Org Chart Rendering System
@@ -1387,6 +1979,9 @@
       const connectionClass = connectionType === 'custom' ? 'org-connection-custom' : 'org-connection-line';
       const pointClass = connectionType === 'custom' ? 'org-connection-custom-point' : 'org-connection-point';
       
+      // Add dotted style if selected
+      const dottedClass = currentLineStyle === 'dotted' ? ' org-connection-dotted' : '';
+      
       // For board level connections, use different approach to avoid overlap
       const parentNode = orgChartData.nodes.find(n => n.id === parentId);
       const childNode = orgChartData.nodes.find(n => n.id === childId);
@@ -1401,45 +1996,52 @@
           
           // Vertical line from board down to junction level
           const boardVertical = document.createElement('div');
-          boardVertical.className = `${connectionClass} org-connection-vertical`;
+          boardVertical.className = `${connectionClass} org-connection-vertical${dottedClass}`;
           boardVertical.style.left = `${parentX - 1}px`;
           boardVertical.style.top = `${parentY}px`;
           boardVertical.style.height = `${junctionY - parentY}px`;
+          boardVertical.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Horizontal line from board center to child position
           const horizontalConnector = document.createElement('div');
-          horizontalConnector.className = `${connectionClass} org-connection-horizontal`;
+          horizontalConnector.className = `${connectionClass} org-connection-horizontal${dottedClass}`;
           horizontalConnector.style.left = `${Math.min(parentX, childX)}px`;
           horizontalConnector.style.top = `${junctionY - 1}px`;
           horizontalConnector.style.width = `${Math.abs(childX - parentX) + 2}px`;
+          horizontalConnector.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Vertical line from junction down to child
           const childVertical = document.createElement('div');
-          childVertical.className = `${connectionClass} org-connection-vertical`;
+          childVertical.className = `${connectionClass} org-connection-vertical${dottedClass}`;
           childVertical.style.left = `${childX - 1}px`;
           childVertical.style.top = `${junctionY}px`;
           childVertical.style.height = `${childY - junctionY}px`;
+          childVertical.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Connection points
           const parentPoint = document.createElement('div');
           parentPoint.className = pointClass;
           parentPoint.style.left = `${parentX}px`;
           parentPoint.style.top = `${parentY}px`;
+          parentPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const junctionPoint = document.createElement('div');
           junctionPoint.className = pointClass;
           junctionPoint.style.left = `${parentX}px`;
           junctionPoint.style.top = `${junctionY}px`;
+          junctionPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const childJunctionPoint = document.createElement('div');
           childJunctionPoint.className = pointClass;
           childJunctionPoint.style.left = `${childX}px`;
           childJunctionPoint.style.top = `${junctionY}px`;
+          childJunctionPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const childPoint = document.createElement('div');
           childPoint.className = pointClass;
           childPoint.style.left = `${childX}px`;
           childPoint.style.top = `${childY}px`;
+          childPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           chartContainer.appendChild(boardVertical);
           chartContainer.appendChild(horizontalConnector);
@@ -1454,44 +2056,50 @@
           
           // Vertical line from board down to junction
           const boardVertical = document.createElement('div');
-          boardVertical.className = `${connectionClass} org-connection-vertical`;
+          boardVertical.className = `${connectionClass} org-connection-vertical${dottedClass}`;
           boardVertical.style.left = `${parentX - 1}px`;
           boardVertical.style.top = `${parentY}px`;
           boardVertical.style.height = `${junctionY - parentY}px`;
+          boardVertical.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Horizontal line (if needed)
           if (Math.abs(childX - parentX) > 5) {
             const horizontalConnector = document.createElement('div');
-            horizontalConnector.className = `${connectionClass} org-connection-horizontal`;
+            horizontalConnector.className = `${connectionClass} org-connection-horizontal${dottedClass}`;
             horizontalConnector.style.left = `${Math.min(parentX, childX)}px`;
             horizontalConnector.style.top = `${junctionY - 1}px`;
             horizontalConnector.style.width = `${Math.abs(childX - parentX) + 2}px`;
+            horizontalConnector.onclick = () => handleLineClick(fromId, toId, connectionType);
             chartContainer.appendChild(horizontalConnector);
           }
           
           // Vertical line to child
           const childVertical = document.createElement('div');
-          childVertical.className = `${connectionClass} org-connection-vertical`;
+          childVertical.className = `${connectionClass} org-connection-vertical${dottedClass}`;
           childVertical.style.left = `${childX - 1}px`;
           childVertical.style.top = `${junctionY}px`;
           childVertical.style.height = `${childY - junctionY}px`;
+          childVertical.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Connection points
           const parentPoint = document.createElement('div');
           parentPoint.className = pointClass;
           parentPoint.style.left = `${parentX}px`;
           parentPoint.style.top = `${parentY}px`;
+          parentPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const junctionPoint = document.createElement('div');
           junctionPoint.className = pointClass;
           junctionPoint.style.left = `${parentX}px`;
           junctionPoint.style.top = `${junctionY}px`;
+          junctionPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           if (Math.abs(childX - parentX) > 5) {
             const childJunctionPoint = document.createElement('div');
             childJunctionPoint.className = pointClass;
             childJunctionPoint.style.left = `${childX}px`;
             childJunctionPoint.style.top = `${junctionY}px`;
+            childJunctionPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
             chartContainer.appendChild(childJunctionPoint);
           }
           
@@ -1499,6 +2107,7 @@
           childPoint.className = pointClass;
           childPoint.style.left = `${childX}px`;
           childPoint.style.top = `${childY}px`;
+          childPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           chartContainer.appendChild(boardVertical);
           chartContainer.appendChild(childVertical);
@@ -1514,7 +2123,7 @@
         if (connectionType === 'custom') {
           // Simple direct line for custom connections
           const directLine = document.createElement('div');
-          directLine.className = `${connectionClass} org-connection-horizontal`;
+          directLine.className = `${connectionClass} org-connection-horizontal${dottedClass}`;
           
           const angle = Math.atan2(childY - parentY, childX - parentX) * 180 / Math.PI;
           const length = Math.sqrt(Math.pow(childX - parentX, 2) + Math.pow(childY - parentY, 2));
@@ -1524,17 +2133,20 @@
           directLine.style.width = `${length}px`;
           directLine.style.transformOrigin = '0 50%';
           directLine.style.transform = `rotate(${angle}deg)`;
+          directLine.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Connection points for custom connections
           const startPoint = document.createElement('div');
           startPoint.className = pointClass;
           startPoint.style.left = `${parentX}px`;
           startPoint.style.top = `${parentY}px`;
+          startPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const endPoint = document.createElement('div');
           endPoint.className = pointClass;
           endPoint.style.left = `${childX}px`;
           endPoint.style.top = `${childY}px`;
+          endPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           chartContainer.appendChild(directLine);
           chartContainer.appendChild(startPoint);
@@ -1545,45 +2157,52 @@
           
           // Create vertical line from parent (downward)
           const verticalLine1 = document.createElement('div');
-          verticalLine1.className = `${connectionClass} org-connection-vertical`;
+          verticalLine1.className = `${connectionClass} org-connection-vertical${dottedClass}`;
           verticalLine1.style.left = `${parentX - 1}px`;
           verticalLine1.style.top = `${parentY}px`;
           verticalLine1.style.height = `${midY - parentY}px`;
+          verticalLine1.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Create horizontal line (connecting line)
           const horizontalLine = document.createElement('div');
-          horizontalLine.className = `${connectionClass} org-connection-horizontal`;
+          horizontalLine.className = `${connectionClass} org-connection-horizontal${dottedClass}`;
           horizontalLine.style.left = `${Math.min(parentX, childX)}px`;
           horizontalLine.style.top = `${midY - 1}px`;
           horizontalLine.style.width = `${Math.abs(childX - parentX) + 2}px`;
+          horizontalLine.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Create vertical line to child (downward)
           const verticalLine2 = document.createElement('div');
-          verticalLine2.className = `${connectionClass} org-connection-vertical`;
+          verticalLine2.className = `${connectionClass} org-connection-vertical${dottedClass}`;
           verticalLine2.style.left = `${childX - 1}px`;
           verticalLine2.style.top = `${midY}px`;
           verticalLine2.style.height = `${childY - midY}px`;
+          verticalLine2.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Create formal connection points
           const parentPoint = document.createElement('div');
           parentPoint.className = pointClass;
           parentPoint.style.left = `${parentX}px`;
           parentPoint.style.top = `${parentY}px`;
+          parentPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const junctionPoint = document.createElement('div');
           junctionPoint.className = pointClass;
           junctionPoint.style.left = `${parentX}px`;
           junctionPoint.style.top = `${midY}px`;
+          junctionPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const childJunctionPoint = document.createElement('div');
           childJunctionPoint.className = pointClass;
           childJunctionPoint.style.left = `${childX}px`;
           childJunctionPoint.style.top = `${midY}px`;
+          childJunctionPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           const childPoint = document.createElement('div');
           childPoint.className = pointClass;
           childPoint.style.left = `${childX}px`;
           childPoint.style.top = `${childY}px`;
+          childPoint.onclick = () => handleLineClick(fromId, toId, connectionType);
           
           // Add to container
           chartContainer.appendChild(verticalLine1);
@@ -1598,9 +2217,43 @@
       }
     }
 
+    // Handle line clicks for deletion
+    function handleLineClick(fromId, toId, connectionType) {
+      if (!orgEditMode) return;
+      
+      const fromNode = orgChartData.nodes.find(n => n.id === fromId);
+      const toNode = orgChartData.nodes.find(n => n.id === toId);
+      
+      if (connectionType === 'hierarchy') {
+        // For hierarchy connections, ask for confirmation
+        if (confirm(`Remove hierarchy connection between "${fromNode.title}" and "${toNode.title}"?\n\nThis will make "${fromNode.title}" a top-level node.`)) {
+          saveState('Remove Hierarchy Connection');
+          
+          // Remove parent relationship
+          fromNode.parent = null;
+          
+          // Re-render chart
+          renderOrgChart();
+          showActionFeedback(`🗑️ Removed hierarchy: ${fromNode.title} ↔ ${toNode.title}`);
+        }
+      } else {
+        // For custom connections, remove directly
+        saveState('Remove Custom Connection');
+        
+        customConnections = customConnections.filter(conn => 
+          !((conn.from === fromId && conn.to === toId) || 
+            (conn.from === toId && conn.to === fromId))
+        );
+        
+        // Re-render chart
+        renderOrgChart();
+        showActionFeedback(`🗑️ Removed connection: ${fromNode.title} ↔ ${toNode.title}`);
+      }
+    }
+
     function clearConnections() {
       const chartContainer = document.getElementById('org-chart');
-      const connections = chartContainer.querySelectorAll('.org-connection-line, .org-connection-point');
+      const connections = chartContainer.querySelectorAll('.org-connection-line, .org-connection-point, .org-connection-custom, .org-connection-custom-point');
       connections.forEach(conn => conn.remove());
     }
 
@@ -2259,6 +2912,8 @@
         return;
       }
       
+      saveState('Apply Template');
+      
       // Clear current nodes for main page
       orgChartData.pages[currentOrgPage].nodes = [];
       
@@ -2287,175 +2942,13 @@
       // Fix parent references
       orgChartData.nodes.forEach(node => {
         if (node.parent) {
-          const parentNode = orgChartData.nodes.find(n => 
-            n.id.startsWith(node.parent.split('-')[0]) && n.id !== node.id
-          );
+          const parentNode = orgChartData.nodes.find(n => n.id.startsWith(node.parent.split('-')[0]));
           if (parentNode) {
             node.parent = parentNode.id;
           }
         }
       });
       
+      // Re-render chart
       renderOrgChart();
-      templateSelect.value = '';
-    }
-
-    function autoLayout() {
-      if (!confirm('Auto-arrange all nodes? This will reorganize the current layout.')) return;
-      
-      saveState('Auto Layout');
-      
-      const currentPageNodes = orgChartData.pages[currentOrgPage].nodes;
-      const nodes = currentPageNodes.map(nodeId => 
-        orgChartData.nodes.find(n => n.id === nodeId)
-      ).filter(Boolean);
-      
-      // Group by level
-      const levelGroups = {};
-      nodes.forEach(node => {
-        if (!levelGroups[node.level]) {
-          levelGroups[node.level] = [];
-        }
-        levelGroups[node.level].push(node);
-      });
-      
-      // Auto-arrange by level
-      Object.keys(levelGroups).forEach(level => {
-        const levelNodes = levelGroups[level];
-        const levelNum = parseInt(level);
-        const y = 50 + (levelNum - 1) * 150;
-        
-        levelNodes.forEach((node, index) => {
-          const totalWidth = levelNodes.length * 200;
-          const startX = Math.max(100, (800 - totalWidth) / 2);
-          node.x = startX + (index * 200);
-          node.y = y;
-        });
-      });
-      
-      renderOrgChart();
-      showActionFeedback('✨ Auto-arranged all nodes');
-    }
-
-    // Connection Management Functions
-    function toggleConnectionMode() {
-      connectionMode = !connectionMode;
-      const btn = document.getElementById('connection-mode-btn');
-      
-      if (connectionMode) {
-        btn.textContent = '❌ Exit Connect';
-        btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-        btn.classList.add('bg-red-600', 'hover:bg-red-700');
-        
-        // Add visual indicators to all nodes
-        document.querySelectorAll('.org-node').forEach(node => {
-          node.classList.add('connection-mode-active');
-        });
-        
-        connectionStart = null;
-      } else {
-        btn.textContent = '🔗 Connect Mode';
-        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
-        btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-        
-        // Remove visual indicators
-        document.querySelectorAll('.org-node').forEach(node => {
-          node.classList.remove('connection-mode-active', 'connection-start-selected');
-        });
-        
-        connectionStart = null;
-      }
-    }
-
-    function handleConnectionClick(node) {
-      if (!connectionStart) {
-        // First click - select start node
-        connectionStart = node;
-        
-        // Visual feedback
-        document.querySelectorAll('.org-node').forEach(n => {
-          n.classList.remove('connection-start-selected');
-        });
-        
-        const nodeElement = document.getElementById(`org-node-${node.id}`);
-        nodeElement.classList.add('connection-start-selected');
-        
-      } else if (connectionStart.id === node.id) {
-        // Clicked same node - deselect
-        connectionStart = null;
-        document.querySelectorAll('.org-node').forEach(n => {
-          n.classList.remove('connection-start-selected');
-        });
-        
-      } else {
-        // Second click - create connection
-        const existingConnection = customConnections.find(conn => 
-          (conn.from === connectionStart.id && conn.to === node.id) ||
-          (conn.from === node.id && conn.to === connectionStart.id)
-        );
-        
-        if (existingConnection) {
-          // Remove existing connection
-          customConnections = customConnections.filter(conn => conn !== existingConnection);
-        } else {
-          // Add new connection
-          customConnections.push({
-            from: connectionStart.id,
-            to: node.id,
-            type: 'custom'
-          });
-        }
-        
-        // Reset selection
-        connectionStart = null;
-        document.querySelectorAll('.org-node').forEach(n => {
-          n.classList.remove('connection-start-selected');
-        });
-        
-        // Redraw connections
-        clearConnections();
-        drawOrgConnections();
-      }
-    }
-
-    function clearConnections() {
-      const chartContainer = document.getElementById('org-chart');
-      const connections = chartContainer.querySelectorAll('.org-connection-line, .org-connection-point, .org-connection-custom, .org-connection-custom-point');
-      connections.forEach(conn => conn.remove());
-    }
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      // Only handle shortcuts when not in input fields
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-        return;
-      }
-      
-      // Ctrl+Z or Cmd+Z for Undo
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      }
-      
-      // Ctrl+Y or Cmd+Shift+Z for Redo
-      if (((e.ctrlKey || e.metaKey) && e.key === 'y') || 
-          ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z')) {
-        e.preventDefault();
-        redo();
-      }
-      
-      // Escape to exit connection mode
-      if (e.key === 'Escape' && connectionMode) {
-        toggleConnectionMode();
-      }
-    });
-
-    // Initialize on page load
-    window.addEventListener('load', function() {
-      // Set up initial org chart
-      updateOrgTabs();
-      updateUndoRedoButtons();
-    });
-  </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96dc5c1ff083d007',t:'MTc1NDk2MzgyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9717c80ff35d0399',t:'MTc1NTU4NjkwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
